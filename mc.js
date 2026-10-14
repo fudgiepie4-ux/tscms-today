@@ -88,11 +88,11 @@ const v=document.getElementById('apw').value;
 const err=document.getElementById('pwerr');
 if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
 err.textContent='LOADING…';
-const sstage=signonBuild();
+const sstage=SIGNON_ENABLED?signonBuild():null;
 // Start video playback NOW, synchronously in the tap gesture — after the
 // async fetch/decrypt below, mobile browsers will have expired the gesture
 // and block play(). We kick it off here; signonPlay() later just makes it visible.
-(function(){
+if(SIGNON_ENABLED){(function(){
 var v=document.getElementById('signon-vid');
 if(!v)return;
 try{
@@ -101,7 +101,7 @@ if(pr&&pr.catch)pr.catch(function(){try{v.muted=true;v.play().catch(function(){}
 }catch(e){
 try{v.muted=true;v.play().catch(function(){});}catch(e2){}
 }
-})();
+})();}
 function gateBack(msg){signonDrop();document.getElementById('admingate').style.display='';err.textContent=msg;}
 let b;
 try{
@@ -120,13 +120,15 @@ d=JSON.parse(new TextDecoder().decode(pt));
 }catch(e){gateBack('WRONG PASSWORD');return;}
 if(!d||!d.stats){gateBack('DATA LOOKS CORRUPT — TRY AGAIN LATER');return;}
 err.textContent='';
-signonPlay(sstage,function(){
+function showAdmin(){
 document.getElementById('admingate').style.display='none';
 document.getElementById('adminbody').style.display='block';
 if(typeof zi==='function')zi(d.danger||[]);
-if(typeof ziIssues==='function')ziIssues(d.flags||[]);});}
+if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
+if(SIGNON_ENABLED){signonPlay(sstage,showAdmin);}else{showAdmin();}}
 document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
 /* Sign-on video: plays after password unlock, before the admin layout */
+var SIGNON_ENABLED=false; /* TEMPORARILY OFF — set true to bring the intro video back */
 var SIGNON_URL='https://q63l42nl0lcqmn6m.public.blob.vercel-storage.com/tscms-control-room-sign-on.mp4';
 function signonBuild(){
 if(document.getElementById('signon-stage'))return document.getElementById('signon-stage');
