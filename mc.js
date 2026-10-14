@@ -120,7 +120,7 @@ if(document.getElementById('signon-stage'))return document.getElementById('signo
 var gate=document.getElementById('admingate');
 var stage=document.createElement('div');
 stage.id='signon-stage';stage.style.visibility='hidden';
-stage.innerHTML='<video id="signon-vid" src="'+SIGNON_URL+'" playsinline preload="auto"></video><button id="signon-skip" type="button">SKIP INTRO \u00BB</button>';
+stage.innerHTML='<video id="signon-vid" src="'+SIGNON_URL+'" playsinline preload="auto"></video><button id="signon-skip" type="button">SKIP INTRO \u00BB</button><button id="signon-sound" type="button" style="display:none">TAP FOR SOUND</button>';
 document.body.appendChild(stage);
 if(gate)gate.style.display='none';
 return stage;}
@@ -134,5 +134,11 @@ vid.addEventListener('ended',finish);
 vid.addEventListener('error',finish);
 setTimeout(function(){if(!finished)finish();},25000);
 stage.style.visibility='visible';
-var pr=null;try{pr=vid.play();}catch(e){finish();return;}
-if(pr&&pr.catch)pr.catch(function(){finish();});}
+function playMuted(){
+vid.muted=true;
+var pr2=null;try{pr2=vid.play();}catch(e2){}
+if(pr2&&pr2.catch)pr2.catch(function(){finish();return;});
+var sb=document.getElementById('signon-sound');
+if(sb){sb.style.display='block';sb.addEventListener('click',function(){try{vid.muted=false;}catch(e){}sb.style.display='none';});}}
+var pr=null;try{pr=vid.play();}catch(e){playMuted();return;}
+if(pr&&pr.catch)pr.catch(function(){if(!finished)playMuted();});}
