@@ -74,3 +74,37 @@ return '<div class="iss"><div class="iss-head">'+
 '<div class="iss-posts">'+rows+'</div></div>';
 }).join('');
 }
+/* Admin gate — password unlock with encrypted data */
+function b64ToBytes(b){const s=atob(b);const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}
+function showTab(w){
+document.getElementById('tab-public').style.display=w==='public'?'block':'none';
+document.getElementById('tab-admin').style.display=w==='admin'?'block':'none';
+document.getElementById('tabbtn-public').classList.toggle('on',w==='public');
+document.getElementById('tabbtn-admin').classList.toggle('on',w==='admin');}
+async function unlockAdmin(){
+const v=document.getElementById('apw').value;
+const err=document.getElementById('pwerr');
+if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
+err.textContent='LOADING…';
+let b;
+try{
+const r=await fetch('admin-data.enc.json');
+if(!r.ok)throw new Error('http '+r.status);
+b=await r.json();
+}catch(e){err.textContent='COULDN’T LOAD DATA — CHECK CONNECTION & RETRY';return;}
+err.textContent='DECRYPTING…';
+let d;
+try{
+const enc=new TextEncoder();
+const baseKey=await crypto.subtle.importKey('raw',enc.encode(v),'PBKDF2',false,['deriveKey']);
+const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(b.salt),iterations:b.iter,hash:'SHA-256'},baseKey,{name:'AES-GCM',length:256},false,['decrypt']);
+const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(b.iv)},key,b64ToBytes(b.ct));
+d=JSON.parse(new TextDecoder().decode(pt));
+}catch(e){err.textContent='WRONG PASSWORD';return;}
+if(!d||!d.stats){err.textContent='DATA LOOKS CORRUPT — TRY AGAIN LATER';return;}
+err.textContent='';
+document.getElementById('admingate').style.display='none';
+document.getElementById('adminbody').style.display='block';
+if(typeof zi==='function')zi(d.danger||[]);
+if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
+document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
