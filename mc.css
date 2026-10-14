@@ -90,7 +90,10 @@
 .staff-err{color:#ff6ec7;margin-top:12px;min-height:20px;font-size:13px;text-shadow:0 0 8px rgba(255,110,199,.4)}
 
 /* ---- Hidden gold record Easter egg ---- */
-/* Studio intro video banner — replaces the gold record */
+/* Studio intro video banner — TEMPORARILY DISABLED 2026-10-14 per Fudgie.
+   Video won't play on Android (unsupported error); he + Clara diagnosing.
+   To re-enable: delete the next line. */
+.studio-intro-wrap{display:none!important}
 .studio-intro-wrap{margin:12px auto 6px;text-align:center}
 .studio-intro-btn{background:linear-gradient(180deg,#3a2c14,#241a0c);border:2px solid #8a6a2f;border-radius:8px;color:#ffb347;font-weight:700;font-size:13px;letter-spacing:.08em;padding:10px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,179,71,.15);transition:transform .15s,box-shadow .15s}
 .studio-intro-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,179,71,.25)}
