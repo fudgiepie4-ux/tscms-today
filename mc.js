@@ -140,17 +140,41 @@ document.body.appendChild(stage);
 if(gate)gate.style.display='none';
 return stage;}
 function signonDrop(){var s=document.getElementById('signon-stage');if(s&&s.parentNode)s.parentNode.removeChild(s);}
-/* Inline studio intro: tap the banner, video plays right in the header */
+/* Inline studio intro: tap the banner, video plays right in the header.
+   Per Clara's review: don't lock the UI before load succeeds — surface real
+   errors and offer retry instead of silently swallowing failures. */
 function playStudioIntro(){
 var btn=document.getElementById('studio-intro-btn');
 var wrap=document.getElementById('studio-intro-vid');
 if(!btn||!wrap||wrap.dataset.playing)return;
-wrap.dataset.playing='1';
-btn.style.display='none';
+btn.disabled=true;
+btn.innerHTML='&#9654; LOADING VIDEO&hellip;';
 wrap.style.display='block';
-wrap.innerHTML='<video src="'+SIGNON_URL+'" controls playsinline preload="auto"></video>';
+wrap.innerHTML='<video src="'+SIGNON_URL+'" controls playsinline preload="auto" style="width:100%"></video><div class="studio-intro-err" id="studio-intro-err" style="display:none"></div>';
 var v=wrap.querySelector('video');
-if(v){try{var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
+var errBox=document.getElementById('studio-intro-err');
+function showError(msg){
+  wrap.dataset.playing='';
+  btn.disabled=false;
+  btn.innerHTML='&#9654; RETRY STUDIO INTRO';
+  btn.style.display='';
+  if(errBox){errBox.style.display='block';errBox.textContent='Video failed: '+msg+' — tap retry or check connection.';}
+}
+if(!v){showError('no video element');return;}
+v.addEventListener('error',function(){
+  var code=v.error?v.error.code:'unknown';
+  var detail={1:'aborted',2:'network',3:'decode',4:'unsupported'}[code]||('code '+code);
+  showError(detail);
+});
+v.addEventListener('playing',function(){
+  wrap.dataset.playing='1';
+  btn.style.display='none';
+  if(errBox)errBox.style.display='none';
+});
+try{
+  var pr=v.play();
+  if(pr&&pr.catch)pr.catch(function(e){showError(e&&e.name?e.name:'play blocked');});
+}catch(e){showError(e&&e.message?e.message:'play threw');}
 }
 function signonPlay(stage,done){
 var vid=document.getElementById('signon-vid');
