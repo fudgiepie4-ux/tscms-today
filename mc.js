@@ -82,16 +82,19 @@ document.getElementById('tab-admin').style.display=w==='admin'?'block':'none';
 document.getElementById('tabbtn-public').classList.toggle('on',w==='public');
 document.getElementById('tabbtn-admin').classList.toggle('on',w==='admin');}
 async function unlockAdmin(){
+if(document.getElementById('signon-stage'))return;
 const v=document.getElementById('apw').value;
 const err=document.getElementById('pwerr');
 if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
 err.textContent='LOADING…';
+const sstage=signonBuild();
+function gateBack(msg){signonDrop();document.getElementById('admingate').style.display='';err.textContent=msg;}
 let b;
 try{
 const r=await fetch('admin-data.enc.json');
 if(!r.ok)throw new Error('http '+r.status);
 b=await r.json();
-}catch(e){err.textContent='COULDN’T LOAD DATA — CHECK CONNECTION & RETRY';return;}
+}catch(e){gateBack('COULDN’T LOAD DATA — CHECK CONNECTION & RETRY');return;}
 err.textContent='DECRYPTING…';
 let d;
 try{
@@ -100,11 +103,35 @@ const baseKey=await crypto.subtle.importKey('raw',enc.encode(v),'PBKDF2',false,[
 const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(b.salt),iterations:b.iter,hash:'SHA-256'},baseKey,{name:'AES-GCM',length:256},false,['decrypt']);
 const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(b.iv)},key,b64ToBytes(b.ct));
 d=JSON.parse(new TextDecoder().decode(pt));
-}catch(e){err.textContent='WRONG PASSWORD';return;}
-if(!d||!d.stats){err.textContent='DATA LOOKS CORRUPT — TRY AGAIN LATER';return;}
+}catch(e){gateBack('WRONG PASSWORD');return;}
+if(!d||!d.stats){gateBack('DATA LOOKS CORRUPT — TRY AGAIN LATER');return;}
 err.textContent='';
+signonPlay(sstage,function(){
 document.getElementById('admingate').style.display='none';
 document.getElementById('adminbody').style.display='block';
 if(typeof zi==='function')zi(d.danger||[]);
-if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
+if(typeof ziIssues==='function')ziIssues(d.flags||[]);});}
 document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
+/* Sign-on video: plays after password unlock, before the admin layout */
+var SIGNON_URL='https://q63l42nl0lcqmn6m.public.blob.vercel-storage.com/tscms-control-room-sign-on.mp4';
+function signonBuild(){
+if(document.getElementById('signon-stage'))return document.getElementById('signon-stage');
+var gate=document.getElementById('admingate');
+var stage=document.createElement('div');
+stage.id='signon-stage';stage.style.visibility='hidden';
+stage.innerHTML='<video id="signon-vid" src="'+SIGNON_URL+'" playsinline preload="auto"></video><button id="signon-skip" type="button">SKIP INTRO \u00BB</button>';
+document.body.appendChild(stage);
+if(gate)gate.style.display='none';
+return stage;}
+function signonDrop(){var s=document.getElementById('signon-stage');if(s&&s.parentNode)s.parentNode.removeChild(s);}
+function signonPlay(stage,done){
+var vid=document.getElementById('signon-vid');
+var finished=false;
+function finish(){if(finished)return;finished=true;try{vid.pause();}catch(e){}signonDrop();done();}
+document.getElementById('signon-skip').addEventListener('click',finish);
+vid.addEventListener('ended',finish);
+vid.addEventListener('error',finish);
+setTimeout(function(){if(!finished)finish();},25000);
+stage.style.visibility='visible';
+var pr=null;try{pr=vid.play();}catch(e){finish();return;}
+if(pr&&pr.catch)pr.catch(function(){finish();});}
