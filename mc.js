@@ -171,10 +171,22 @@ v.addEventListener('playing',function(){
   btn.style.display='none';
   if(errBox)errBox.style.display='none';
 });
-try{
-  var pr=v.play();
-  if(pr&&pr.catch)pr.catch(function(e){showError(e&&e.name?e.name:'play blocked');});
-}catch(e){showError(e&&e.message?e.message:'play threw');}
+/* Wait for the browser to load enough to know it can play, before calling play().
+   Calling play() immediately on a fresh src can throw NotSupportedError even
+   for valid files, because no metadata has loaded yet. */
+var playAttempted=false;
+function tryPlay(){
+  if(playAttempted)return; playAttempted=true;
+  try{
+    var pr=v.play();
+    if(pr&&pr.catch)pr.catch(function(e){showError(e&&e.name?e.name:'play blocked');});
+  }catch(e){showError(e&&e.message?e.message:'play threw');}
+}
+v.addEventListener('canplay',tryPlay);
+v.addEventListener('loadedmetadata',function(){setTimeout(tryPlay,300);});
+/* Fallback: if metadata never arrives within 8s, surface it instead of hanging */
+setTimeout(function(){if(!playAttempted&&!wrap.dataset.playing)showError('timeout waiting for video data');},8000);
+v.load();
 }
 function signonPlay(stage,done){
 var vid=document.getElementById('signon-vid');
