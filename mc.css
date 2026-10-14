@@ -97,6 +97,8 @@
 .studio-intro-btn:active{transform:translateY(1px)}
 .studio-intro-vid{margin:8px auto;max-width:560px}
 .studio-intro-vid video{width:100%;border-radius:8px;border:2px solid #5a4326;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.studio-intro-err{margin-top:8px;padding:10px 14px;border-radius:8px;background:rgba(120,20,20,.25);border:1px solid #8a3a2f;color:#e8a090;font-size:12px;text-align:center}
+.studio-intro-btn:disabled{opacity:.6;cursor:wait}
 
 /* ---- Mobile ---- */
 @media(max-width:640px){
