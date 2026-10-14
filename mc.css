@@ -90,12 +90,13 @@
 .staff-err{color:#ff6ec7;margin-top:12px;min-height:20px;font-size:13px;text-shadow:0 0 8px rgba(255,110,199,.4)}
 
 /* ---- Hidden gold record Easter egg ---- */
-.gold-record{position:relative;display:inline-block;opacity:.92;transition:transform .3s}
-.gold-record:hover{transform:scale(1.04) rotate(-1deg)}
-.gold-record .gr-frame{border:6px solid #8a6a2f;border-radius:4px;background:#1a1208;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,.5)}
-.gold-record .gr-disc{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe9a8 0%,#d4a017 30%,#8a6a1f 60%,#5a4512 100%);position:relative;box-shadow:0 0 20px rgba(212,160,23,.3)}
-.gold-record .gr-disc::after{content:'';position:absolute;top:50%;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#1a1208;border:2px solid #d4a017}
-.gold-record .gr-label{font-size:9px;color:#d4a017;text-align:center;margin-top:6px;letter-spacing:.1em;font-weight:700}
+/* Studio intro video banner — replaces the gold record */
+.studio-intro-wrap{margin:12px auto 6px;text-align:center}
+.studio-intro-btn{background:linear-gradient(180deg,#3a2c14,#241a0c);border:2px solid #8a6a2f;border-radius:8px;color:#ffb347;font-weight:700;font-size:13px;letter-spacing:.08em;padding:10px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,179,71,.15);transition:transform .15s,box-shadow .15s}
+.studio-intro-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,179,71,.25)}
+.studio-intro-btn:active{transform:translateY(1px)}
+.studio-intro-vid{margin:8px auto;max-width:560px}
+.studio-intro-vid video{width:100%;border-radius:8px;border:2px solid #5a4326;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 
 /* ---- Mobile ---- */
 @media(max-width:640px){
