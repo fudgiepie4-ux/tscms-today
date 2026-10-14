@@ -89,6 +89,19 @@ const err=document.getElementById('pwerr');
 if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
 err.textContent='LOADING…';
 const sstage=signonBuild();
+// Start video playback NOW, synchronously in the tap gesture — after the
+// async fetch/decrypt below, mobile browsers will have expired the gesture
+// and block play(). We kick it off here; signonPlay() later just makes it visible.
+(function(){
+var v=document.getElementById('signon-vid');
+if(!v)return;
+try{
+var pr=v.play();
+if(pr&&pr.catch)pr.catch(function(){try{v.muted=true;v.play().catch(function(){});}catch(e){}});
+}catch(e){
+try{v.muted=true;v.play().catch(function(){});}catch(e2){}
+}
+})();
 function gateBack(msg){signonDrop();document.getElementById('admingate').style.display='';err.textContent=msg;}
 let b;
 try{
@@ -134,11 +147,13 @@ vid.addEventListener('ended',finish);
 vid.addEventListener('error',finish);
 setTimeout(function(){if(!finished)finish();},25000);
 stage.style.visibility='visible';
-function playMuted(){
-vid.muted=true;
-var pr2=null;try{pr2=vid.play();}catch(e2){}
-if(pr2&&pr2.catch)pr2.catch(function(){finish();return;});
+// Playback was already kicked off in unlockAdmin (in the tap gesture).
+// If it's not playing by now (e.g. still buffering), ensure it's going.
+try{
+if(vid.paused){
+var pr=vid.play();
+if(pr&&pr.catch)pr.catch(function(){vid.muted=true;vid.play().catch(function(){finish();});});
+}
+}catch(e){finish();}
 var sb=document.getElementById('signon-sound');
-if(sb){sb.style.display='block';sb.addEventListener('click',function(){try{vid.muted=false;}catch(e){}sb.style.display='none';});}}
-var pr=null;try{pr=vid.play();}catch(e){playMuted();return;}
-if(pr&&pr.catch)pr.catch(function(){if(!finished)playMuted();});}
+if(sb&&vid.muted){sb.style.display='block';sb.addEventListener('click',function(){try{vid.muted=false;}catch(e){}sb.style.display='none';});}}
