@@ -140,6 +140,18 @@ document.body.appendChild(stage);
 if(gate)gate.style.display='none';
 return stage;}
 function signonDrop(){var s=document.getElementById('signon-stage');if(s&&s.parentNode)s.parentNode.removeChild(s);}
+/* Inline studio intro: tap the banner, video plays right in the header */
+function playStudioIntro(){
+var btn=document.getElementById('studio-intro-btn');
+var wrap=document.getElementById('studio-intro-vid');
+if(!btn||!wrap||wrap.dataset.playing)return;
+wrap.dataset.playing='1';
+btn.style.display='none';
+wrap.style.display='block';
+wrap.innerHTML='<video src="'+SIGNON_URL+'" controls playsinline preload="auto"></video>';
+var v=wrap.querySelector('video');
+if(v){try{var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
+}
 function signonPlay(stage,done){
 var vid=document.getElementById('signon-vid');
 var finished=false;
