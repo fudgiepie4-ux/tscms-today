@@ -61,8 +61,9 @@ var posts=f.all_posts||[{url:f.url,ts:f.ts,excerpt:f.excerpt}];
 var rows=posts.map(function(p,i){
 var dt=new Date(p.ts*1000);
 var t=dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'});
+var dstr=dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'America/Chicago'});
 return '<div class="iss-post"><span class="iss-num">'+(i+1)+'</span>'+
-'<span class="iss-time">'+t+'</span>'+
+'<span class="iss-time">'+dstr+' · '+t+'</span>'+
 '<span class="iss-ex">'+escHtml(p.excerpt||'')+'</span>'+
 '<a class="iss-link" href="'+escHtml(p.url)+'" target="_blank">OPEN ↗</a></div>';
 }).join('');
