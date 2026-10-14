@@ -129,7 +129,7 @@ if(SIGNON_ENABLED){signonPlay(sstage,showAdmin);}else{showAdmin();}}
 document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
 /* Sign-on video: plays after password unlock, before the admin layout */
 var SIGNON_ENABLED=false; /* TEMPORARILY OFF — set true to bring the intro video back */
-var SIGNON_URL='https://q63l42nl0lcqmn6m.public.blob.vercel-storage.com/tscms-control-room-sign-on.mp4';
+var SIGNON_URL='https://q63l42nl0lcqmn6m.public.blob.vercel-storage.com/tscms-control-room-sign-on.mp4?v=2';
 function signonBuild(){
 if(document.getElementById('signon-stage'))return document.getElementById('signon-stage');
 var gate=document.getElementById('admingate');
