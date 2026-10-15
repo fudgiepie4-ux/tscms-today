@@ -4,12 +4,22 @@
 <title>Today in TSCMS — Country Lounge</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&amp;display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="public-assets/style-1.css"><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<!-- Six-song viewport: preserve every item, scroll the daily list independently. -->
+<!-- Phone-only song batches: natural page scrolling with compact controls. -->
 <style id="tscms-song-scroll-css">
-@media(max-width:640px){#songList.song-list-scroll{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-color:#b88844 #21170e}}
-#songList.song-list-scroll:focus-visible{outline:2px solid #f0a832;outline-offset:3px}
-.song-scroll-note{max-width:960px;margin:9px auto 0;text-align:center;color:#c9a96a;font-size:12px;letter-spacing:.02em}
-@media(prefers-reduced-motion:no-preference){#songList.song-list-scroll{scroll-behavior:smooth}}
+#songList{max-height:none!important;overflow:visible!important}
+.song-batch-controls{max-width:960px;margin:10px auto 4px;display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+.song-batch-controls[hidden],#songList .tscms-song-hidden{display:none!important}
+.song-batch-count{font-size:12px;color:#c9a96a;letter-spacing:.03em}
+.song-batch-btn{display:block;min-width:min(260px,100%);min-height:46px;padding:11px 24px;border:1px solid #dba044;border-radius:10px;background:linear-gradient(180deg,#67431b,#362211);color:#ffdb98;font-size:13px;font-weight:800;letter-spacing:.04em;cursor:pointer;font-family:inherit}
+.song-batch-btn:focus-visible{outline:2px solid #ffdb98;outline-offset:3px}
+@media(max-width:640px){
+  #songList .song{padding:10px 8px;gap:9px}
+  #songList .avatar{flex:0 0 40px;width:40px;height:40px}
+  #songList .song-info{flex:1 1 0;min-width:0}
+  #songList .song-actions{flex:1 1 100%;width:100%;padding-left:0;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.73fr) minmax(0,.73fr) minmax(0,.9fr);gap:5px}
+  #songList .song-actions>*{box-sizing:border-box;flex:none;width:100%;min-width:0;min-height:40px;display:flex;justify-content:center;align-items:center;padding:8px 3px;font-size:11px;line-height:1.2;white-space:nowrap;text-align:center}
+}
+@media(max-width:360px){#songList .song-actions>*{font-size:10px;padding:7px 2px}}
 </style>
 </head><body class="season-fall"><canvas aria-hidden="true" id="fallLeafCanvas"></canvas><div aria-label="Autumn leaves display settings" class="leaf-corner" role="group">
 <button aria-controls="leafModeMenu" aria-expanded="false" aria-label="Falling leaves: Calm. Change intensity" class="harvest-action" id="leavesToggle" type="button">🍁 <span>Calm</span> <span aria-hidden="true">▾</span></button>
@@ -155,60 +165,53 @@
 
 
 <script>
-/* TSCMS SIX-ROW SONG SCROLLER — show six complete cards without limiting the song data. */
+/* TSCMS MOBILE SONG BATCHES — no nested scroll traps; full tablet list unchanged. */
 (function(){
   'use strict';
   const list=document.getElementById('songList');
   if(!list)return;
-  const visibleRows=6;
-  // On tablets and desktops, keep the full list at its natural height.
-  const hint=document.createElement('p');
-  hint.className='song-scroll-note';
-  hint.setAttribute('role','note');
-  list.insertAdjacentElement('afterend',hint);
-  let queued=false;
-  function resizeList(){
+  const BATCH=6;
+  const controls=document.createElement('div');
+  controls.className='song-batch-controls';
+  controls.hidden=true;
+  const count=document.createElement('span');
+  count.className='song-batch-count';
+  count.setAttribute('aria-live','polite');
+  const more=document.createElement('button');
+  more.type='button';
+  more.className='song-batch-btn';
+  controls.appendChild(count);
+  controls.appendChild(more);
+  list.insertAdjacentElement('afterend',controls);
+  let visible=BATCH,queued=false;
+  function paint(){
     queued=false;
-    const rows=Array.from(list.children).filter(el=>el.classList.contains('song'));
-    const isPhone=window.matchMedia('(max-width: 640px)').matches;
-    const scrollable=isPhone && rows.length>visibleRows;
-    list.classList.toggle('song-list-scroll',scrollable);
-    if(scrollable){
-      list.tabIndex=0;
-      list.setAttribute('role','region');
-      list.setAttribute('aria-label','Songs by day. Scroll vertically for additional songs.');
-    }else{
-      list.removeAttribute('tabindex');
-      list.removeAttribute('role');
-      list.removeAttribute('aria-label');
-    }
-    if(!scrollable){
-      list.style.maxHeight='none';
-      list.style.overflowY='visible';
-      hint.hidden=true;
-      return;
-    }
-    const lastVisible=rows[visibleRows-1];
-    const box=list.getBoundingClientRect();
-    const bottom=lastVisible.getBoundingClientRect().bottom-box.top+list.scrollTop;
-    const style=getComputedStyle(list);
-    const paddingBottom=parseFloat(style.paddingBottom)||0;
-    const borderBottom=parseFloat(style.borderBottomWidth)||0;
-    list.style.maxHeight=Math.ceil(bottom+paddingBottom+borderBottom)+'px';
-    list.style.overflowY='auto';
-    hint.hidden=false;
-    hint.textContent='↕ Scroll down to explore all '+rows.length+' songs';
+    const phone=window.matchMedia('(max-width:640px)').matches;
+    const rows=Array.from(list.children).filter(e=>e.classList.contains('song'));
+    // Remove the old inner scrolling behavior completely.
+    list.classList.remove('song-list-scroll');
+    list.style.removeProperty('max-height');
+    list.style.removeProperty('overflow-y');
+    list.style.removeProperty('overflow-x');
+    list.removeAttribute('tabindex');
+    list.removeAttribute('role');
+    list.removeAttribute('aria-label');
+    rows.forEach(function(row,i){
+      row.classList.toggle('tscms-song-hidden',phone&&i>=visible);
+    });
+    const shown=phone?Math.min(visible,rows.length):rows.length;
+    const left=rows.length-shown;
+    controls.hidden=!phone||left<=0;
+    count.textContent='Showing '+shown+' of '+rows.length+' songs';
+    more.textContent='↓ Show '+Math.min(BATCH,left)+' more '+(Math.min(BATCH,left)===1?'song':'songs');
   }
-  function schedule(){if(queued)return;queued=true;requestAnimationFrame(resizeList);}
+  function schedule(){if(queued)return;queued=true;requestAnimationFrame(paint);}
+  more.addEventListener('click',function(){visible+=BATCH;schedule();});
   const observer=new MutationObserver(function(changes){
-    if(changes.some(c=>c.type==='childList'&&c.target===list)){
-      list.scrollTop=0;
-      schedule();
-    }
+    if(changes.some(c=>c.type==='childList'&&c.target===list)){visible=BATCH;schedule();}
   });
   observer.observe(list,{childList:true});
   window.addEventListener('resize',schedule,{passive:true});
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(schedule);
   schedule();
 })();
 </script>
