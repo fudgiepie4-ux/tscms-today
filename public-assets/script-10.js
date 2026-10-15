@@ -6,12 +6,13 @@ const AUTUMN_SONGS = [{"title": "They’re Heeere. The Haunting of Dolly PartHen
 function renderAutumn(){
   const panel = document.getElementById('songList');
   if(!panel) return;
-  // Update tab active states
+  // Clear day tab actives, mark autumn button active
   document.querySelectorAll('.tabs .tab').forEach(function(tab){
-    const isActive = tab.getAttribute('data-day') === 'autumn';
-    tab.classList.toggle('active', isActive);
-    tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    tab.classList.remove('active');
+    tab.setAttribute('aria-selected', 'false');
   });
+  var abtn = document.getElementById('autumnBtn');
+  if(abtn) abtn.classList.add('active');
   if(!AUTUMN_SONGS.length){
     panel.innerHTML = '<div class="status-strip">No autumn songs yet — check back soon! 🎃</div>';
     return;
