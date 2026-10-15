@@ -1,7 +1,16 @@
 (function(){
   'use strict';
   // Intensity is entirely independent of radio, music, video and Dicey Discovery.
-  const canvas=document.getElementById('fallLeafCanvas');
+  const localCanvas=document.getElementById('fallLeafCanvas');
+  // In the ADMIN site's embedded PUBLIC view, draw into the parent viewport.
+  // Otherwise the iframe's full-page height dilutes the leaves across thousands of pixels.
+  let canvas=localCanvas, leafViewport=window;
+  try {
+    if(window.frameElement && window.frameElement.id==='tscmsPublicFrame'){
+      const hostCanvas=window.parent.document.getElementById('tscmsParentLeafCanvas');
+      if(hostCanvas){canvas=hostCanvas;leafViewport=window.parent;if(localCanvas)localCanvas.hidden=true;}
+    }
+  } catch(e) { /* Standalone or cross-origin views retain their own leaf canvas. */ }
   const selector=document.getElementById('leavesToggle');
   const menu=document.getElementById('leafModeMenu');
   const controls=document.querySelector('.leaf-corner');
@@ -40,7 +49,7 @@
     if(leaves.length>count)leaves.length=count;
   }
   function resize(){
-    width=Math.max(window.innerWidth,1);height=Math.max(window.innerHeight,1);dpr=Math.min(window.devicePixelRatio||1,2);
+    width=Math.max(leafViewport.innerWidth,1);height=Math.max(leafViewport.innerHeight,1);dpr=Math.min(leafViewport.devicePixelRatio||1,2);
     canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);resetCount();
   }
@@ -99,7 +108,7 @@
     selector.innerHTML='🍁 <span>'+word+'</span> <span aria-hidden="true">▾</span>';
     selector.setAttribute('aria-label','Falling leaves: '+word+'. Change intensity');
     modeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.leafMode===mode)));
-    canvas.hidden=!enabled();gustBtn.disabled=!enabled();gustBtn.style.opacity=enabled()?'1':'.45';
+    canvas.hidden=!enabled();if(localCanvas && localCanvas!==canvas)localCanvas.hidden=true;gustBtn.disabled=!enabled();gustBtn.style.opacity=enabled()?'1':'.45';
   }
   function closeMenu(){menu.hidden=true;selector.setAttribute('aria-expanded','false')}
   function setMode(next,save){
@@ -122,29 +131,36 @@
       }
     }
   }
+  function pointerInCanvas(ev){
+    if(leafViewport===window)return {x:ev.clientX,y:ev.clientY};
+    const frame=window.frameElement;
+    const rect=frame?frame.getBoundingClientRect():{left:0,top:0};
+    return {x:ev.clientX+rect.left,y:ev.clientY+rect.top};
+  }
   selector.addEventListener('click',function(){menu.hidden=!menu.hidden;selector.setAttribute('aria-expanded',String(!menu.hidden))});
   modeButtons.forEach(button=>button.addEventListener('click',function(){setMode(button.dataset.leafMode,true);selector.focus()}));
   document.addEventListener('pointerdown',function(ev){if(!controls.contains(ev.target))closeMenu()},{passive:true});
   document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&!menu.hidden){closeMenu();selector.focus()}});
   window.addEventListener('pointermove',function(ev){
     if(!enabled()||controls.contains(ev.target))return;
-    const oldX=cursor.x,oldY=cursor.y;cursor.x=ev.clientX;cursor.y=ev.clientY;
+    const pos=pointerInCanvas(ev);const oldX=cursor.x,oldY=cursor.y;cursor.x=pos.x;cursor.y=pos.y;
     cursor.dx=Math.abs(oldX)>10000?0:Math.max(-50,Math.min(50,ev.clientX-oldX));
     cursor.dy=Math.abs(oldY)>10000?0:Math.max(-50,Math.min(50,ev.clientY-oldY));cursor.until=performance.now()+220;
   },{passive:true});
   window.addEventListener('pointerdown',function(ev){
     if(!enabled()||controls.contains(ev.target)||ev.target.closest('button,a,input,select,textarea'))return;
-    touchStart={x:ev.clientX,y:ev.clientY};doGust(ev.clientX,ev.clientY,ev.clientX>width/2?1:-1,false);
+    const pos=pointerInCanvas(ev);touchStart=pos;doGust(pos.x,pos.y,pos.x>width/2?1:-1,false);
   },{passive:true});
   window.addEventListener('pointerup',function(ev){
-    if(!enabled()||!touchStart)return;const dx=ev.clientX-touchStart.x;
-    if(Math.abs(dx)>65)doGust(ev.clientX,ev.clientY,dx>0?1:-1,true);touchStart=null;
+    if(!enabled()||!touchStart)return;const pos=pointerInCanvas(ev);const dx=pos.x-touchStart.x;
+    if(Math.abs(dx)>65)doGust(pos.x,pos.y,dx>0?1:-1,true);touchStart=null;
   },{passive:true});
   gustBtn.addEventListener('click',function(){
     if(!enabled())return;doGust(width/2,height/2,Math.random()>.5?1:-1,true);
     feedback('A gust is moving the leaves!');
   });
-  window.addEventListener('resize',resize,{passive:true});
+  leafViewport.addEventListener('resize',resize,{passive:true});
+  if(leafViewport!==window)window.addEventListener('resize',resize,{passive:true});
   document.addEventListener('visibilitychange',function(){visible=!document.hidden;if(visible)start();else stop()});
   resize();refreshControls();if(enabled())start();
   window.TSCMSAutumnPreview={status:function(){return{mode,enabled:enabled(),count:leaves.length,width,height,frameActive:Boolean(frame),reducedMotion:motionReduced,gustEvents,activeGust:Boolean(gust&&performance.now()-gust.t<1800),burstLeaves:gustBursts.length}}};

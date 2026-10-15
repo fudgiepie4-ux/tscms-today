@@ -81,7 +81,9 @@ function showTab(w){
 document.getElementById('tab-public').style.display=w==='public'?'block':'none';
 document.getElementById('tab-admin').style.display=w==='admin'?'block':'none';
 document.getElementById('tabbtn-public').classList.toggle('on',w==='public');
-document.getElementById('tabbtn-admin').classList.toggle('on',w==='admin');}
+document.getElementById('tabbtn-admin').classList.toggle('on',w==='admin');
+// PUBLIC uses the full-width lounge and viewport leaves; ADMIN keeps its original layout.
+document.body.classList.toggle('public-view',w==='public');}
 async function unlockAdmin(){
 if(document.getElementById('signon-stage'))return;
 const v=document.getElementById('apw').value;
