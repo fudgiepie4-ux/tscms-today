@@ -389,3 +389,7 @@ h1{font-size:30px}
 .leaf-corner .leaf-mode-menu{left:50%;right:auto;transform:translateX(-50%)}
 .season-fall .masthead{padding-top:64px}
 @media(max-width:550px){.leaf-corner{top:7px;left:50%;right:auto;gap:3px}.season-fall .masthead{padding-top:68px}}
+
+.mystery-corner{margin:33px auto 22px;max-width:900px;position:relative;isolation:isolate;text-align:center;padding:28px 20px;border:2px dashed #8b6914;border-radius:12px;background:rgba(20,14,8,.6)}
+.mystery-tape{display:flex;justify-content:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+.mystery-tape span{font-family:monospace;font-size:.75rem;letter-spacing:.15em;padding:6px 14px;background:repeating-linear-gradient(45deg,#c9a227,#c9a227 10px,#1a1a1a 10px,#1a1a1a 20px);color:#fff;border-radius:3px;text-shadow:1px 1px 2px #000}
