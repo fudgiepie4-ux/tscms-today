@@ -90,18 +90,14 @@
 .staff-err{color:#ff6ec7;margin-top:12px;min-height:20px;font-size:13px;text-shadow:0 0 8px rgba(255,110,199,.4)}
 
 /* ---- Hidden gold record Easter egg ---- */
-/* Studio intro video banner — TEMPORARILY DISABLED 2026-10-14 per Fudgie.
-   Video won't play on Android (unsupported error); he + Clara diagnosing.
-   To re-enable: delete the next line. */
-.studio-intro-wrap{display:none!important}
-.studio-intro-wrap{margin:12px auto 6px;text-align:center}
-.studio-intro-btn{background:linear-gradient(180deg,#3a2c14,#241a0c);border:2px solid #8a6a2f;border-radius:8px;color:#ffb347;font-weight:700;font-size:13px;letter-spacing:.08em;padding:10px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,179,71,.15);transition:transform .15s,box-shadow .15s}
-.studio-intro-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,179,71,.25)}
-.studio-intro-btn:active{transform:translateY(1px)}
-.studio-intro-vid{margin:8px auto;max-width:560px}
-.studio-intro-vid video{width:100%;border-radius:8px;border:2px solid #5a4326;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-.studio-intro-err{margin-top:8px;padding:10px 14px;border-radius:8px;background:rgba(120,20,20,.25);border:1px solid #8a3a2f;color:#e8a090;font-size:12px;text-align:center}
-.studio-intro-btn:disabled{opacity:.6;cursor:wait}
+/* ---- TSCMS Studio intro: visible, tap-to-play responsive player ---- */
+.studio-intro-wrap{display:block;margin:22px auto 18px;max-width:810px;width:100%;text-align:center;box-sizing:border-box}
+.studio-intro-label{color:#ffb347;font-size:12px;font-weight:800;letter-spacing:.16em;margin-bottom:9px;text-shadow:0 0 12px rgba(255,179,71,.25)}
+.studio-intro-frame{border:2px solid #836031;border-radius:14px;padding:5px;background:linear-gradient(150deg,#392918,#150f09);box-shadow:0 7px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,200,120,.13);overflow:hidden}
+.studio-intro-video{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:contain;border-radius:9px;background:#070707}
+.studio-intro-error{margin:9px auto 0;padding:10px 12px;border:1px solid #8a3a2f;border-radius:8px;background:rgba(120,20,20,.22);color:#f0b7ac;font-size:12px;line-height:1.5}
+.studio-intro-error[hidden]{display:none!important}
+@media(max-width:640px){.studio-intro-wrap{margin:17px auto 14px}.studio-intro-frame{padding:3px;border-radius:10px}.studio-intro-label{font-size:11px;letter-spacing:.12em}}
 
 /* ---- Mobile ---- */
 @media(max-width:640px){
