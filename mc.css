@@ -90,18 +90,14 @@
 .staff-err{color:#ff6ec7;margin-top:12px;min-height:20px;font-size:13px;text-shadow:0 0 8px rgba(255,110,199,.4)}
 
 /* ---- Hidden gold record Easter egg ---- */
-/* Studio intro video banner — TEMPORARILY DISABLED 2026-10-14 per Fudgie.
-   Video won't play on Android (unsupported error); he + Clara diagnosing.
-   To re-enable: delete the next line. */
-.studio-intro-wrap{display:none!important}
-.studio-intro-wrap{margin:12px auto 6px;text-align:center}
-.studio-intro-btn{background:linear-gradient(180deg,#3a2c14,#241a0c);border:2px solid #8a6a2f;border-radius:8px;color:#ffb347;font-weight:700;font-size:13px;letter-spacing:.08em;padding:10px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,179,71,.15);transition:transform .15s,box-shadow .15s}
-.studio-intro-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,179,71,.25)}
-.studio-intro-btn:active{transform:translateY(1px)}
-.studio-intro-vid{margin:8px auto;max-width:560px}
-.studio-intro-vid video{width:100%;border-radius:8px;border:2px solid #5a4326;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-.studio-intro-err{margin-top:8px;padding:10px 14px;border-radius:8px;background:rgba(120,20,20,.25);border:1px solid #8a3a2f;color:#e8a090;font-size:12px;text-align:center}
-.studio-intro-btn:disabled{opacity:.6;cursor:wait}
+/* Visible tap-to-play studio intro. No autoplay and no modifications to source video. */
+.studio-intro-wrap{display:block!important;box-sizing:border-box;width:100%;max-width:810px;margin:20px auto 6px;text-align:center}
+.studio-intro-label{margin:0 auto 9px;color:#ffb347;font-size:12px;letter-spacing:.14em;font-weight:800}
+.studio-intro-frame{padding:5px;overflow:hidden;border:2px solid #846331;border-radius:14px;background:linear-gradient(150deg,#3b2915,#100d0a);box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.studio-intro-frame video{display:block;width:100%;aspect-ratio:16/9;height:auto;border-radius:8px;background:#080808;object-fit:contain}
+.studio-video-error{font-size:12px;color:#e8a090;padding:8px}
+.studio-video-error[hidden]{display:none}
+@media(max-width:640px){.studio-intro-wrap{margin-top:16px}.studio-intro-frame{padding:3px;border-radius:10px}}
 
 /* ---- Mobile ---- */
 @media(max-width:640px){
