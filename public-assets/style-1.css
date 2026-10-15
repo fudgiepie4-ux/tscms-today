@@ -393,3 +393,7 @@ h1{font-size:30px}
 .mystery-corner{margin:33px auto 22px;max-width:900px;position:relative;isolation:isolate;text-align:center;padding:28px 20px;border:2px dashed #8b6914;border-radius:12px;background:rgba(20,14,8,.6)}
 .mystery-tape{display:flex;justify-content:center;gap:12px;margin-top:16px;flex-wrap:wrap}
 .mystery-tape span{font-family:monospace;font-size:.75rem;letter-spacing:.15em;padding:6px 14px;background:repeating-linear-gradient(45deg,#c9a227,#c9a227 10px,#1a1a1a 10px,#1a1a1a 20px);color:#fff;border-radius:3px;text-shadow:1px 1px 2px #000}
+
+/* Autumn playlist lyrics */
+.autumn-lyrics{margin:8px 0 4px;padding:10px;background:rgba(0,0,0,.25);border-radius:8px;border:1px solid #5a4a2a}
+.autumn-lyrics pre{white-space:pre-wrap;font-family:Georgia,serif;font-size:.85em;line-height:1.5;color:#e8d9b8;margin:0;max-height:250px;overflow-y:auto}
