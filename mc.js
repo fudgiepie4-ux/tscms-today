@@ -53,7 +53,7 @@ if(m&&m.textContent==='No additional eligible posts available.')m.textContent=''
 /* POTENTIAL ISSUES — evidence review, all posts shown */
 function ziIssues(flags){
 var el=document.getElementById('mc-issues-list');if(!el)return;
-var list=(flags||[]).filter(function(f){return f.rule===2;});
+var list=(flags||[]);
 document.getElementById('mc-issues-count').textContent=list.length;
 if(!list.length){el.innerHTML='<div class="mc-empty">No two-post rule flags.<br>Evidence appears here when the detector finds 3+ song posts in a calendar day.</div>';return;}
 el.innerHTML=list.map(function(f){
