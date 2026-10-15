@@ -18,6 +18,27 @@
       }
     } catch(e) {}
     
+    // Update the "ALL TIMES CENTRAL" heading for non-Central viewers
+    if(!isCentral){
+      var headings = document.querySelectorAll('.calendar-rail, .upcoming-shows h2, .upcoming-shows .corner-eyebrow');
+      for(var h=0; h<headings.length; h++){
+        var ht = headings[h].textContent || '';
+        if(ht.indexOf('ALL TIMES CENTRAL') !== -1){
+          headings[h].textContent = ht.replace('ALL TIMES CENTRAL', 'ALL TIMES ' + tzAbbr.toUpperCase());
+        }
+      }
+      // Also check for standalone heading elements
+      var allEls = document.querySelectorAll('*');
+      for(var k=0; k<allEls.length; k++){
+        if(allEls[k].childNodes.length === 1 && allEls[k].childNodes[0].nodeType === 3){
+          var t = allEls[k].textContent || '';
+          if(t.trim() === 'ALL TIMES CENTRAL'){
+            allEls[k].textContent = 'ALL TIMES ' + tzAbbr.toUpperCase();
+          }
+        }
+      }
+    }
+
     var events = document.querySelectorAll('a.show-event[data-start]');
     for(var i = 0; i < events.length; i++){
       var el = events[i];
