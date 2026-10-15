@@ -14,6 +14,8 @@ function renderDay(dayKey){
     tab.classList.toggle('active', isActive);
     tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
+  var abtn2 = document.getElementById('autumnBtn');
+  if(abtn2) abtn2.classList.remove('active');
   if(!songs.length){
     panel.innerHTML = '<div class="status-strip">No songs for this day yet — check back soon!</div>';
     return;
