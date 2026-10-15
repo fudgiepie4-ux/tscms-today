@@ -30,8 +30,8 @@ function renderDay(dayKey){
     h += '<span class="song-actions">';
     if(s.stream){
       h += '<button class="tinybtn gold" data-stream="'+escHtml(s.stream)+'" data-suno="'+escHtml(s.suno)+'" onclick="dayPlay(this)">▶ PLAY</button>';
-      h += '<button class="tinybtn outline" onclick="dayPause(this)" aria-label="Pause">⏸</button>';
-      h += '<button class="tinybtn outline" onclick="dayStop(this)" aria-label="Stop">⏹</button>';
+      h += '<button class="tbtn" onclick="dayPause(this)" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg><span>PAUSE</span></button>';
+      h += '<button class="tbtn stop" onclick="dayStop(this)" aria-label="Stop"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg><span>STOP</span></button>';
     } else if(s.suno){
       h += '<a class="tinybtn gold" href="'+escHtml(s.suno)+'" target="_blank" rel="noopener">▶ PLAY</a>';
     }
