@@ -36,7 +36,7 @@
 </div>
 <button class="harvest-action gust" id="leavesGust" title="Send a gentle gust through the falling leaves" type="button">💨 <span>Gust</span></button>
 <div aria-live="polite" class="corner-feedback" id="windReadout"></div>
-</div><main class="wrap"><header class="masthead"><span aria-hidden="true" class="autumn-leaf-right">🍂</span><div class="kicker mono">★ THE SUNO COUNTRY MUSIC SPOT ★</div><h1 class="slab">Today in <span class="g">TSCMS</span></h1><div class="groupname slab">The Suno Country Music Spot</div><div class="date">A little country music, community &amp; autumn magic · October 2026</div></header><div class="toplinks"><a class="ytbanner" href="https://www.youtube.com/@TSCMSLive" rel="noopener" target="_blank"><span>📺 TSCMS on YouTube</span><small class="mono">@TSCMSLive</small><b>SUBSCRIBE</b></a></div><section aria-labelledby="showsTitle" class="upcoming-shows" id="upcomingShows">
+</div><main class="wrap"><header class="masthead"><span aria-hidden="true" class="autumn-leaf-right">🍂</span><div class="kicker mono">★ THE SUNO COUNTRY MUSIC SPOT ★</div><h1 class="slab">Today in <span class="g">TSCMS</span></h1><div class="groupname slab">The Suno Country Music Spot</div><div class="date">A little country music, community &amp; autumn magic · October 2026</div><div style="text-align:center"><button class="tscms-text-toggle" id="tscms-text-toggle-btn" onclick="tscmsToggleLargeText()">🔍 Larger Text: OFF</button></div></header><div class="toplinks"><a class="ytbanner" href="https://www.youtube.com/@TSCMSLive" rel="noopener" target="_blank"><span>📺 TSCMS on YouTube</span><small class="mono">@TSCMSLive</small><b>SUBSCRIBE</b></a></div><section aria-labelledby="showsTitle" class="upcoming-shows" id="upcomingShows">
 <div class="schedule-sign"><div class="sign-line"><span class="sign-kicker">✦ TSCMS LIVE SHOWS &amp; EVENTS ✦</span><span class="sign-series">MUSIC • COMMUNITY • CREATIVITY</span></div>
 <h2 class="slab" id="showsTitle">WEEKLY <span>SHOW</span> SCHEDULE</h2>
 <div class="schedule-range">OCTOBER 15 – 21, 2026 <span class="tz-label">ALL TIMES CENTRAL</span></div><p>Come on in, pull up a chair, and see what’s happening this week.</p>
@@ -242,6 +242,30 @@
   observer.observe(list,{childList:true});
   window.addEventListener('resize',schedule,{passive:true});
   schedule();
+})();
+</script>
+
+<script>
+/* Larger Text toggle - shared with admin side via localStorage */
+function tscmsToggleLargeText(){
+  var on = document.body.classList.toggle('large-text');
+  var btn = document.getElementById('tscms-text-toggle-btn');
+  if(btn){
+    btn.classList.toggle('active', on);
+    btn.innerHTML = '🔍 Larger Text: ' + (on ? 'ON' : 'OFF');
+  }
+  try{ localStorage.setItem('tscms_large_text', on ? '1' : '0'); }catch(e){}
+}
+(function(){
+  try{
+    if(localStorage.getItem('tscms_large_text')==='1'){
+      document.body.classList.add('large-text');
+      document.addEventListener('DOMContentLoaded', function(){
+        var btn = document.getElementById('tscms-text-toggle-btn');
+        if(btn){ btn.classList.add('active'); btn.innerHTML='🔍 Larger Text: ON'; }
+      });
+    }
+  }catch(e){}
 })();
 </script>
 </body></html>
