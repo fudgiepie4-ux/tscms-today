@@ -71,7 +71,6 @@
   vid.addEventListener('ended',function(){restoreMusic('Sponsor TV finished');});
   vid.addEventListener('error',function(){restoreMusic('Video unavailable');tvButton.hidden=false;});
   tvButton.addEventListener('click',function(){
-    startVideoSession();
     const p=vid.play(); if(p&&p.catch)p.catch(function(){restoreMusic('Video could not start');tvButton.hidden=false;});
   });
   // Fudgie 2026-10-14: explicit video controls (play/pause/stop) below the player
@@ -84,7 +83,6 @@
     if(dPauseBtn)dPauseBtn.style.opacity=playing?1:0.45;
   }
   if(dPlayBtn)dPlayBtn.addEventListener('click',function(){
-    startVideoSession();
     const p=vid.play();if(p&&p.catch)p.catch(function(){restoreMusic('Video could not start');});
     syncDubbyBtns();
   });
