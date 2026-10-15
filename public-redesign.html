@@ -3,7 +3,15 @@
 <html lang="en"><head><base target="_blank"><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/><meta content="#0e0a06" name="theme-color"/>
 <title>Today in TSCMS — Country Lounge</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&amp;display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="public-assets/style-1.css"><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body class="season-fall"><canvas aria-hidden="true" id="fallLeafCanvas"></canvas><div aria-label="Autumn leaves display settings" class="leaf-corner" role="group">
+<link rel="stylesheet" href="public-assets/style-1.css"><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<!-- Six-song viewport: preserve every item, scroll the daily list independently. -->
+<style id="tscms-song-scroll-css">
+#songList.song-list-scroll{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-color:#b88844 #21170e}
+#songList.song-list-scroll:focus-visible{outline:2px solid #f0a832;outline-offset:3px}
+.song-scroll-note{max-width:960px;margin:9px auto 0;text-align:center;color:#c9a96a;font-size:12px;letter-spacing:.02em}
+@media(prefers-reduced-motion:no-preference){#songList.song-list-scroll{scroll-behavior:smooth}}
+</style>
+</head><body class="season-fall"><canvas aria-hidden="true" id="fallLeafCanvas"></canvas><div aria-label="Autumn leaves display settings" class="leaf-corner" role="group">
 <button aria-controls="leafModeMenu" aria-expanded="false" aria-label="Falling leaves: Calm. Change intensity" class="harvest-action" id="leavesToggle" type="button">🍁 <span>Calm</span> <span aria-hidden="true">▾</span></button>
 <div aria-label="Falling leaves intensity" class="leaf-mode-menu" hidden="" id="leafModeMenu" role="group">
 <div class="leaf-menu-title">FALLING LEAVES</div>
@@ -145,4 +153,55 @@
 
 <script src="public-assets/script-09.js"></script>
 
+
+<script>
+/* TSCMS SIX-ROW SONG SCROLLER — show six complete cards without limiting the song data. */
+(function(){
+  'use strict';
+  const list=document.getElementById('songList');
+  if(!list)return;
+  const visibleRows=6;
+  list.classList.add('song-list-scroll');
+  list.tabIndex=0;
+  list.setAttribute('role','region');
+  list.setAttribute('aria-label','Songs by day. Scroll vertically for additional songs.');
+  const hint=document.createElement('p');
+  hint.className='song-scroll-note';
+  hint.setAttribute('role','note');
+  list.insertAdjacentElement('afterend',hint);
+  let queued=false;
+  function resizeList(){
+    queued=false;
+    const rows=Array.from(list.children).filter(el=>el.classList.contains('song'));
+    const scrollable=rows.length>visibleRows;
+    if(!scrollable){
+      list.style.maxHeight='none';
+      list.style.overflowY='visible';
+      hint.hidden=true;
+      return;
+    }
+    const lastVisible=rows[visibleRows-1];
+    const box=list.getBoundingClientRect();
+    const bottom=lastVisible.getBoundingClientRect().bottom-box.top+list.scrollTop;
+    const style=getComputedStyle(list);
+    const paddingBottom=parseFloat(style.paddingBottom)||0;
+    const borderBottom=parseFloat(style.borderBottomWidth)||0;
+    list.style.maxHeight=Math.ceil(bottom+paddingBottom+borderBottom)+'px';
+    list.style.overflowY='auto';
+    hint.hidden=false;
+    hint.textContent='↕ Scroll down to explore all '+rows.length+' songs';
+  }
+  function schedule(){if(queued)return;queued=true;requestAnimationFrame(resizeList);}
+  const observer=new MutationObserver(function(changes){
+    if(changes.some(c=>c.type==='childList'&&c.target===list)){
+      list.scrollTop=0;
+      schedule();
+    }
+  });
+  observer.observe(list,{childList:true});
+  window.addEventListener('resize',schedule,{passive:true});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(schedule);
+  schedule();
+})();
+</script>
 </body></html>
