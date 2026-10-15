@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="public-assets/style-1.css"><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <!-- Six-song viewport: preserve every item, scroll the daily list independently. -->
 <style id="tscms-song-scroll-css">
-#songList.song-list-scroll{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-color:#b88844 #21170e}
+@media(max-width:640px){#songList.song-list-scroll{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-color:#b88844 #21170e}}
 #songList.song-list-scroll:focus-visible{outline:2px solid #f0a832;outline-offset:3px}
 .song-scroll-note{max-width:960px;margin:9px auto 0;text-align:center;color:#c9a96a;font-size:12px;letter-spacing:.02em}
 @media(prefers-reduced-motion:no-preference){#songList.song-list-scroll{scroll-behavior:smooth}}
@@ -161,10 +161,7 @@
   const list=document.getElementById('songList');
   if(!list)return;
   const visibleRows=6;
-  list.classList.add('song-list-scroll');
-  list.tabIndex=0;
-  list.setAttribute('role','region');
-  list.setAttribute('aria-label','Songs by day. Scroll vertically for additional songs.');
+  // On tablets and desktops, keep the full list at its natural height.
   const hint=document.createElement('p');
   hint.className='song-scroll-note';
   hint.setAttribute('role','note');
@@ -173,7 +170,18 @@
   function resizeList(){
     queued=false;
     const rows=Array.from(list.children).filter(el=>el.classList.contains('song'));
-    const scrollable=rows.length>visibleRows;
+    const isPhone=window.matchMedia('(max-width: 640px)').matches;
+    const scrollable=isPhone && rows.length>visibleRows;
+    list.classList.toggle('song-list-scroll',scrollable);
+    if(scrollable){
+      list.tabIndex=0;
+      list.setAttribute('role','region');
+      list.setAttribute('aria-label','Songs by day. Scroll vertically for additional songs.');
+    }else{
+      list.removeAttribute('tabindex');
+      list.removeAttribute('role');
+      list.removeAttribute('aria-label');
+    }
     if(!scrollable){
       list.style.maxHeight='none';
       list.style.overflowY='visible';
