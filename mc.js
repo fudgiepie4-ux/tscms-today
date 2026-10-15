@@ -7,9 +7,15 @@ function zq(n){ZS=n;
 document.getElementById('mc-q5').classList.toggle('active',n===5);
 document.getElementById('mc-q10').classList.toggle('active',n===10);
 zFill();zr();}
-function zi(dangerData){
+function zi(dangerData,generated){
 ZD=(dangerData||[]).slice().sort(function(a,b){return (b.wait_h||0)-(a.wait_h||0);});
 document.getElementById('mc-danger-total').textContent=ZD.length;
+var tsEl=document.getElementById('mc-danger-ts');
+if(tsEl&&generated){
+  var dt=new Date(generated);
+  var opts={month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'};
+  tsEl.textContent='Last updated '+dt.toLocaleString('en-US',opts)+' CT · Refreshes when admin data is rebuilt';
+}
 zFill();zr();}
 function zFill(){
 // Fill visible batch with oldest eligible (non-done) posts
@@ -125,7 +131,7 @@ err.textContent='';
 function showAdmin(){
 document.getElementById('admingate').style.display='none';
 document.getElementById('adminbody').style.display='block';
-if(typeof zi==='function')zi(d.danger||[]);
+if(typeof zi==='function')zi(d.danger||[],d.generated);
 if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
 if(SIGNON_ENABLED){signonPlay(sstage,showAdmin);}else{showAdmin();}}
 document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
