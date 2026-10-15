@@ -382,3 +382,10 @@ h1{font-size:30px}
 .t-rank{grid-column:1/-1}
 .d-go{grid-column:1/-1;text-align:center}
 }
+
+/* PUBLIC top controls: centered as approved; the leaves fall from the top of the viewport.
+   The canvas is drawn in the parent viewport when inside admin.html's PUBLIC iframe. */
+.leaf-corner{position:absolute;top:9px;left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 16px);justify-content:center;z-index:50}
+.leaf-corner .leaf-mode-menu{left:50%;right:auto;transform:translateX(-50%)}
+.season-fall .masthead{padding-top:64px}
+@media(max-width:550px){.leaf-corner{top:7px;left:50%;right:auto;gap:3px}.season-fall .masthead{padding-top:68px}}
