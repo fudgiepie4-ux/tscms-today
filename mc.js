@@ -215,3 +215,28 @@ if(pr&&pr.catch)pr.catch(function(){vid.muted=true;vid.play().catch(function(){f
 }catch(e){finish();}
 var sb=document.getElementById('signon-sound');
 if(sb&&vid.muted){sb.style.display='block';sb.addEventListener('click',function(){try{vid.muted=false;}catch(e){}sb.style.display='none';});}}
+
+/* ============ READABILITY TOGGLE (2026-10-15, Fudgie-approved) ============ */
+/* Larger Text button: uniform scaling for older admins, saved per device */
+function mcToggleLargeText(){
+  var on = document.body.classList.toggle('large-text');
+  var btn = document.getElementById('mc-text-toggle-btn');
+  if(btn){
+    btn.classList.toggle('active', on);
+    btn.innerHTML = '<span class="tt-ico">🔍</span> Larger Text: ' + (on ? 'ON' : 'OFF');
+  }
+  try{ localStorage.setItem('tscms_large_text', on ? '1' : '0'); }catch(e){}
+}
+/* Restore saved preference on load */
+(function(){
+  try{
+    if(localStorage.getItem('tscms_large_text')==='1'){
+      document.body.classList.add('large-text');
+      // Button label updated when admin HTML renders it
+      document.addEventListener('DOMContentLoaded', function(){
+        var btn = document.getElementById('mc-text-toggle-btn');
+        if(btn){ btn.classList.add('active'); btn.innerHTML='<span class="tt-ico">🔍</span> Larger Text: ON'; }
+      });
+    }
+  }catch(e){}
+})();
