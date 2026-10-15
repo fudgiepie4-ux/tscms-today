@@ -426,3 +426,13 @@ body.large-text .dice-member{font-size:30px}
 body.large-text .dice-song{font-size:19px}
 body.large-text .tab .t-d{font-size:15px}
 body.large-text .tab .t-m{font-size:13px}
+
+/* ============ Transport buttons Option C (2026-10-15, Fudgie-approved) ============ */
+/* Designed SVG icons + tiny labels — no more emoji white-box */
+.tbtn{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:10px 18px;border-radius:10px;cursor:pointer;border:1px solid rgba(240,168,50,.45);background:linear-gradient(180deg,#3a2c1c,#241a0e);color:#e8c98a;font-family:inherit;transition:transform .1s}
+.tbtn:active{transform:scale(.94)}
+.tbtn svg{width:18px;height:18px;fill:#e8c98a}
+.tbtn span{font-size:10px;font-weight:700;letter-spacing:1.5px}
+.tbtn.stop{border-color:rgba(192,57,43,.6)}
+.tbtn.stop svg{fill:#ff8080}
+.tbtn.stop span{color:#ff8080}
