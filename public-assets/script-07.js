@@ -130,4 +130,4 @@ document.querySelectorAll('.tabs .tab').forEach(function(tab){
   });
 });
 // Render default day (Wednesday = today per prototype)
-renderDay('wed');
+(function(){var days=['sun','mon','tue','wed','thu','fri','sat'];var today=days[new Date().getDay()];renderDay(today);})();
