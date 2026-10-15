@@ -126,7 +126,9 @@ function clearDayPlaying(){
 // Wire up day tabs
 document.querySelectorAll('.tabs .tab').forEach(function(tab){
   tab.addEventListener('click', function(){
-    renderDay(tab.getAttribute('data-day'));
+    var d = tab.getAttribute('data-day');
+    if(d === 'autumn' && typeof renderAutumn === 'function'){ renderAutumn(); return; }
+    renderDay(d);
   });
 });
 // Render default day (Wednesday = today per prototype)
