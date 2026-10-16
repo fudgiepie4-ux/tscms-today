@@ -105,7 +105,12 @@ const RendererBinding = (() => {
     }
     
     // Position for tableau fanning
-    if (opts.from === 'tableau' && opts.offsetY) {
+    // (Locked visual: adapter is the single authority on positioning.
+    // Setting transform here causes a visible jump when the adapter
+    // overwrites it via MutationObserver. Skip when adapter present.)
+    const hasVisualAdapter = typeof document !== 'undefined' &&
+      document.getElementById && document.getElementById('btn-exit');
+    if (opts.from === 'tableau' && opts.offsetY && !hasVisualAdapter) {
       el.style.transform = `translateY(${opts.offsetY}px)`;
     }
     
