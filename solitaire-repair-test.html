@@ -1144,7 +1144,7 @@ const SaloonRenderer = (() => {
     for (let i = 0; i < 4; i++) {
       const fp = $('foundation-' + i);
       if (!fp) continue;
-      // Always use the canonical suit symbol (textContent may be polluted with card+badge text)
+      // Use clean suit symbol.
       const suitSym = SUIT_SYMBOL[SaloonEngine.SUITS[i]];
       fp.innerHTML = '';
       const pile = state.foundations[i];
@@ -1240,9 +1240,9 @@ const SaloonRenderer = (() => {
     if (!state || state.gameWon) return;
     clearHints();
     if (e.target.closest && e.target.closest('#stockSlot')) return; // stock handled by click
-    // Foundation slot tap (empty or not) — create tap info for handleTap
+    // Foundation tap: move selected card here.
     const fndSlot = e.target.closest ? e.target.closest('[id^="foundation-"]') : null;
-    if (fndSlot && !getCardEl(e.target)) {
+    if (fndSlot) {
       const f = parseInt(fndSlot.id.split('-')[1], 10);
       // Create a tap-only dragInfo for foundation slot
       dragInfo = { from: 'foundation', col: f, idx: null, cards: [], el: fndSlot, x0: 0, y0: 0, moved: false };
@@ -1281,9 +1281,7 @@ const SaloonRenderer = (() => {
   }
 
   function onPointerMove(e) {
-    // TAP-ONLY MODE (Fudgie 2026-10-16): drag-and-drop disabled for release.
-    // All pointer interactions are taps. Re-enable drag post-release if desired.
-    return;
+    return; // TAP-ONLY: drag disabled
     if (!dragInfo) return;
     const pt = e.type.startsWith('touch')
       ? (e.touches[0] || e.changedTouches[0]) : e;
@@ -1320,11 +1318,16 @@ const SaloonRenderer = (() => {
   function onPointerUp(e) {
     if (!dragInfo) return;
     const d = dragInfo; dragInfo = null;
-    d.el.style.transform = '';
-    d.el.classList.remove('dragging');
+    if (d.el) {
+      d.el.style.transform = '';
+      d.el.classList.remove('dragging');
+    }
     document.querySelectorAll('.drop-ok').forEach(el => el.classList.remove('drop-ok'));
 
     if (!d.moved) { handleTap(d); return; }
+    // TAP-ONLY: drag does nothing.
+    render(SaloonEngine.getState());
+    return;
 
     const pt = e.type.startsWith('touch') ? e.changedTouches[0] : e;
     const below = document.elementFromPoint(pt.clientX, pt.clientY);
