@@ -429,20 +429,40 @@ const RendererBinding = (() => {
       PauseSystem.pause('manual');
     });
     
+  /* ----- P1 fix: Get saved prefs for new game ----- */
+  function getSavedPrefs() {
+    let timerMode = 'stopwatch', drawMode = 1;
+    if (typeof SessionManager !== 'undefined' && SessionManager.getPrefs) {
+      const prefs = SessionManager.getPrefs() || {};
+      if (prefs.timerMode) timerMode = prefs.timerMode;
+      if (prefs.drawMode) drawMode = prefs.drawMode;
+    }
+    return { timerMode, drawMode };
+  }
+  
+  function resetVictoryOnNewGame() {
+    if (typeof VictoryDicey !== 'undefined' && VictoryDicey.resetVictoryState) {
+      VictoryDicey.resetVictoryState();
+    }
+  }
+
     const btnNew = document.getElementById('btn-newgame');
     if (btnNew) btnNew.addEventListener('click', () => {
       PauseSystem.recordActivity();
+      const prefs = getSavedPrefs();
+      const startNew = () => {
+        SaveSystem.clear();
+        selected = null;
+        resetVictoryOnNewGame();
+        SaloonEngine.newGame(prefs.timerMode, prefs.drawMode);
+        render();
+      };
       if (SaveSystem.hasSave()) {
         if (confirm('Start a new game? Your current progress will be lost.')) {
-          SaveSystem.clear();
-          selected = null;
-          SaloonEngine.newGame();
-          render();
+          startNew();
         }
       } else {
-        selected = null;
-        SaloonEngine.newGame();
-        render();
+        startNew();
       }
     });
     
@@ -565,7 +585,9 @@ const RendererBinding = (() => {
         SaveSystem.clear();
         const _ps = document.getElementById('pause-screen'); if (_ps) { _ps.setAttribute('hidden', ''); _ps.style.display = 'none'; }
         selected = null;
-        SaloonEngine.newGame();
+        resetVictoryOnNewGame();
+        const prefs = getSavedPrefs();
+        SaloonEngine.newGame(prefs.timerMode, prefs.drawMode);
         PauseSystem.resume();
         render();
       }
@@ -671,22 +693,21 @@ const RendererBinding = (() => {
       }
       const cardEl = document.getElementById('fullCard');
       if (cardEl) {
+        // P2 fix: render fallback IMMEDIATELY, swap only on successful load
+        cardEl.innerHTML = buildViewerFallback(detail);
         if (detail.artId) {
-          cardEl.innerHTML = '';
           const img = new Image();
           img.onload = () => {
-            cardEl.innerHTML = '';
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '100%';
-            cardEl.appendChild(img);
+            if (cardEl.isConnected) {
+              cardEl.innerHTML = '';
+              img.style.maxWidth = '100%';
+              img.style.maxHeight = '100%';
+              img.style.objectFit = 'contain';
+              cardEl.appendChild(img);
+            }
           };
-          img.onerror = () => {
-            // Phase 1B: structured Western-style fallback (not plain text)
-            cardEl.innerHTML = buildViewerFallback(detail);
-          };
+          // onerror: keep fallback already showing (don't clear)
           img.src = `card-art/${detail.artId}.png`;
-        } else {
-          cardEl.innerHTML = buildViewerFallback(detail);
         }
       }
     });
