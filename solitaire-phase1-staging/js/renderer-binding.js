@@ -17,6 +17,24 @@
 
 const RendererBinding = (() => {
   
+  /* ----- P0 fix (Clara review): Module-scope helpers for New Game ----- */
+  /* These must be accessible from all button handlers, not nested in wireButtons() */
+  function getSavedPrefs() {
+    let timerMode = 'stopwatch', drawMode = 1;
+    if (typeof SessionManager !== 'undefined' && SessionManager.getPrefs) {
+      const prefs = SessionManager.getPrefs() || {};
+      if (prefs.timerMode) timerMode = prefs.timerMode;
+      if (prefs.drawMode) drawMode = prefs.drawMode;
+    }
+    return { timerMode, drawMode };
+  }
+  
+  function resetVictoryOnNewGame() {
+    if (typeof VictoryDicey !== 'undefined' && VictoryDicey.resetVictoryState) {
+      VictoryDicey.resetVictoryState();
+    }
+  }
+  
   // Card dimensions (relative to pile container)
   const CARD_W = 100;  // percent of pile width
   // Tableau fan offset scales with stage width (Clara's review)
@@ -59,8 +77,8 @@ const RendererBinding = (() => {
   }
   
   function cardArtPath(card) {
-    // Use artId if available (maps to ~/workspace/game-room-ref/card-art/)
-    if (card.artId) return 'card-art/' + card.artId + '.png';
+    // Use artId if available (maps to solitaire-phase1-staging/card-art/)
+    if (card.artId) return 'solitaire-phase1-staging/card-art/' + card.artId + '.png';
     return null;
   }
   
@@ -429,22 +447,6 @@ const RendererBinding = (() => {
       PauseSystem.pause('manual');
     });
     
-  /* ----- P1 fix: Get saved prefs for new game ----- */
-  function getSavedPrefs() {
-    let timerMode = 'stopwatch', drawMode = 1;
-    if (typeof SessionManager !== 'undefined' && SessionManager.getPrefs) {
-      const prefs = SessionManager.getPrefs() || {};
-      if (prefs.timerMode) timerMode = prefs.timerMode;
-      if (prefs.drawMode) drawMode = prefs.drawMode;
-    }
-    return { timerMode, drawMode };
-  }
-  
-  function resetVictoryOnNewGame() {
-    if (typeof VictoryDicey !== 'undefined' && VictoryDicey.resetVictoryState) {
-      VictoryDicey.resetVictoryState();
-    }
-  }
 
     const btnNew = document.getElementById('btn-newgame');
     if (btnNew) btnNew.addEventListener('click', () => {
@@ -497,12 +499,11 @@ const RendererBinding = (() => {
         if (PauseSystem.paused()) return;
         if (selected && (e.target === fnd || !e.target.closest('.live-card'))) {
           PauseSystem.recordActivity();
-          const result = SaloonEngine.moveToSpecificFoundation(
-            selected.from, selected.col, i
-          );
+          // P1 fix (Clara review): route through tryMove for validation
+          // (ensures buried tableau cards can't move a different top card)
+          const result = tryMove(selected, { from: 'foundation', col: i });
           selected = null;
-          if (result) render();
-          else render();
+          render();
         }
       });
     }
@@ -707,7 +708,7 @@ const RendererBinding = (() => {
             }
           };
           // onerror: keep fallback already showing (don't clear)
-          img.src = `card-art/${detail.artId}.png`;
+          img.src = `solitaire-phase1-staging/card-art/${detail.artId}.png`;
         }
       }
     });
