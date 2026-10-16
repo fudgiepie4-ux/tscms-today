@@ -342,8 +342,28 @@ const RendererBinding = (() => {
       return;
     }
     
-    // Try to move to foundation
-    const result = SaloonEngine.moveToFoundation(from, col, idx);
+    // P1 fix (Clara v3 review): Validate card position before auto-foundation
+    // The engine's moveToFoundation() ignores idx and acts on the top card,
+    // so we must ensure the double-tapped card IS the top card.
+    const S = SaloonEngine.getState();
+    if (from === 'tableau') {
+      const pile = S.tableau[col];
+      if (!pile || idx !== pile.length - 1) {
+        return; // Buried card - do not move a different top card
+      }
+      // Also ensure it's face-up
+      if (!pile[idx].faceUp) return;
+    } else if (from === 'waste') {
+      if (idx !== S.waste.length - 1) {
+        return; // Not the top waste card
+      }
+    } else if (from === 'foundation') {
+      return; // Foundation cards don't auto-move
+    }
+    
+    // Try to move to foundation (engine auto-selects destination)
+    // Note: engine uses top card, which we've now validated is the clicked card
+    const result = SaloonEngine.moveToFoundation(from, col);
     if (result) {
       selected = null;
       render();
@@ -589,7 +609,13 @@ const RendererBinding = (() => {
         resetVictoryOnNewGame();
         const prefs = getSavedPrefs();
         SaloonEngine.newGame(prefs.timerMode, prefs.drawMode);
-        PauseSystem.resume();
+        // P1 fix: use resetForNewGame (not resume) - don't start timer prematurely
+        // Timer begins on first valid move per engine behavior
+        if (PauseSystem.resetForNewGame) {
+          PauseSystem.resetForNewGame();
+        } else {
+          PauseSystem.resume(); // Fallback for older PauseSystem
+        }
         render();
       }
     });
