@@ -110,6 +110,27 @@ const PauseSystem = (() => {
     }
   }
   
+  /* ----- Reset for new game (P1 fix: don't start timer) ----- */
+  /* Clears paused state without setting startTime.
+     A fresh game starts with startTime=null; timer begins on first move. */
+  function resetForNewGame() {
+    isPaused = false;
+    pauseReason = null;
+    try {
+      const S = SaloonEngine._getState();
+      if (S) {
+        S._paused = false;
+        S._pauseReason = null;
+        // Do NOT touch S.startTime - new game has startTime=null
+        // Timer starts on first valid move per engine behavior
+      }
+    } catch (e) {}
+    // Restart inactivity timer for the new game
+    resetInactivityTimer();
+    fire('resumed', { forNewGame: true });
+    return true;
+  }
+  
   /* ----- Inactivity timer ----- */
   function resetInactivityTimer() {
     clearInactivityTimer();
@@ -191,6 +212,7 @@ const PauseSystem = (() => {
     isGameUnderway,
     init,
     on,
+    resetForNewGame
   };
 })();
 
