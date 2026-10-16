@@ -1144,8 +1144,8 @@ const SaloonRenderer = (() => {
     for (let i = 0; i < 4; i++) {
       const fp = $('foundation-' + i);
       if (!fp) continue;
-      // Preserve the suit symbol when empty
-      const suitSym = fp.textContent.trim() || SUIT_SYMBOL[SaloonEngine.SUITS[i]];
+      // Always use the canonical suit symbol (textContent may be polluted with card+badge text)
+      const suitSym = SUIT_SYMBOL[SaloonEngine.SUITS[i]];
       fp.innerHTML = '';
       const pile = state.foundations[i];
       if (pile.length) {
@@ -1281,6 +1281,9 @@ const SaloonRenderer = (() => {
   }
 
   function onPointerMove(e) {
+    // TAP-ONLY MODE (Fudgie 2026-10-16): drag-and-drop disabled for release.
+    // All pointer interactions are taps. Re-enable drag post-release if desired.
+    return;
     if (!dragInfo) return;
     const pt = e.type.startsWith('touch')
       ? (e.touches[0] || e.changedTouches[0]) : e;
