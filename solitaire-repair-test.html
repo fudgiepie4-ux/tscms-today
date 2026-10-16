@@ -1324,10 +1324,10 @@ const SaloonRenderer = (() => {
     }
     document.querySelectorAll('.drop-ok').forEach(el => el.classList.remove('drop-ok'));
 
-    if (!d.moved) { handleTap(d); return; }
-    // TAP-ONLY: drag does nothing.
-    render(SaloonEngine.getState());
-    return;
+    const pt = e.type.startsWith('touch') ? e.changedTouches[0] : e;
+    const dist = Math.hypot(pt.clientX - d.x0, pt.clientY - d.y0);
+    if (dist > 12) { render(SaloonEngine.getState()); return; }
+    handleTap(d); return;
 
     const pt = e.type.startsWith('touch') ? e.changedTouches[0] : e;
     const below = document.elementFromPoint(pt.clientX, pt.clientY);
