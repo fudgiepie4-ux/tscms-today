@@ -11,6 +11,7 @@ const VictoryDicey = (() => {
   const DANGER_ZONE_URL = 'danger-zone-public.json';
   let dangerPool = null;
   let victoryShown = false;
+  let pendingVictoryTimeout = null;  // P2 fix: track for cancellation
   
   /* ----- Load danger zone pool (public-safe only) ----- */
   async function loadPool() {
@@ -40,9 +41,10 @@ const VictoryDicey = (() => {
   }
   
   /* ----- Show victory overlay ----- */
-  function showVictory() {
+  function showVictory(finalElapsedMs) {
     if (victoryShown) return;
     victoryShown = true;
+    pendingVictoryTimeout = null;
     
     // Create overlay if not exists
     let overlay = document.getElementById('victory-screen');
@@ -56,6 +58,7 @@ const VictoryDicey = (() => {
         <div class="panel victory-panel">
           <h2>🎉 YOU WIN! 🎉</h2>
           <p class="victory-sub">Howdy, champion! You cleared the saloon!</p>
+          <p class="victory-time" id="victory-time"></p>
           <div id="dicey-result" hidden>
             <div class="dicey-label">🎲 DICEY DISCOVERY 🎲</div>
             <div id="dicey-member" class="dicey-member"></div>
@@ -134,6 +137,16 @@ const VictoryDicey = (() => {
       });
     }
     
+    // P1 fix (Clara v5): show completion time in victory dialog
+    if (typeof finalElapsedMs === 'number' && finalElapsedMs > 0) {
+      const timeEl = document.getElementById('victory-time');
+      if (timeEl) {
+        const mins = Math.floor(finalElapsedMs / 60000);
+        const secs = Math.floor((finalElapsedMs % 60000) / 1000);
+        timeEl.textContent = `⏱️ Completed in ${mins}:${String(secs).padStart(2, '0')}`;
+      }
+    }
+    
     overlay.removeAttribute('hidden');
     overlay.style.display = 'flex';
   }
@@ -154,15 +167,41 @@ const VictoryDicey = (() => {
       if (S && S.gameWon && !victoryShown) {
         // P1 fix (Clara v4 review): finalize timer on victory
         // Capture final elapsed time so display doesn't reset to 00:00
+        let finalElapsed = 0;
         try {
           const live = SaloonEngine._getState();
-          if (live && live.startTime) {
-            live.elapsed = (live.elapsed || 0) + (Date.now() - live.startTime);
-            live.startTime = null;
+          if (live) {
+            if (live.startTime) {
+              live.elapsed = (live.elapsed || 0) + (Date.now() - live.startTime);
+              live.startTime = null;
+            }
+            finalElapsed = live.elapsed || 0;
+            // P1 fix (Clara v5 review): refresh HUD AFTER finalization
+            // (renderer already updated HUD with stale 00:00 before we finalized)
+            if (typeof RendererBinding !== 'undefined' && RendererBinding.render) {
+              RendererBinding.render();
+            } else {
+              // Fallback: update timer display directly
+              const timerEl = document.getElementById('timer-display');
+              if (timerEl) {
+                const mins = Math.floor(finalElapsed / 60000);
+                const secs = Math.floor((finalElapsed % 60000) / 1000);
+                timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+              }
+            }
           }
         } catch (e) {}
-        // Small delay for dramatic effect
-        setTimeout(showVictory, 800);
+        // P2 fix: track timeout so it can be cancelled on new game
+        // P1 fix (Clara v5): verify still won before showing
+        pendingVictoryTimeout = setTimeout(() => {
+          pendingVictoryTimeout = null;
+          try {
+            const cur = SaloonEngine.getState();
+            if (cur && cur.gameWon && !victoryShown) {
+              showVictory(finalElapsed);
+            }
+          } catch (e) {}
+        }, 800);
       }
     } catch (e) {}
   }
@@ -177,7 +216,12 @@ const VictoryDicey = (() => {
   }
   
   // P1 fix: Reset victory state on any new deal (not just dismiss)
+  // P2 fix (Clara v5): cancel pending victory popup
   function resetVictoryState() {
+    if (pendingVictoryTimeout) {
+      clearTimeout(pendingVictoryTimeout);
+      pendingVictoryTimeout = null;
+    }
     victoryShown = false;
     hideVictory();
   }
