@@ -633,6 +633,28 @@ const RendererBinding = (() => {
     if (draw3) draw3.addEventListener('click', () => setDrawMode(3));
     
     // Card viewer: listen for card:view, show viewer
+    // Phase 1B: Build high-contrast Western-style card fallback
+    function buildViewerFallback(detail) {
+      const suits = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
+      const isRed = detail.suit === 'hearts' || detail.suit === 'diamonds';
+      const colorClass = isRed ? 'red' : 'black';
+      
+      if (detail.isJoker) {
+        const jokerName = detail.jokerName || 'WILD CARD';
+        return `<div class="viewer-fallback">
+          <div class="rank ${colorClass}">🃏</div>
+          <div class="joker-name">${jokerName}</div>
+        </div>`;
+      }
+      
+      const valStr = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' }[detail.value] || detail.value || '?';
+      const suitSym = suits[detail.suit] || '?';
+      return `<div class="viewer-fallback">
+        <div class="rank ${colorClass}">${valStr}</div>
+        <div class="suit ${colorClass}">${suitSym}</div>
+      </div>`;
+    }
+    
     document.addEventListener('card:view', (e) => {
       const viewer = document.getElementById('viewer');
       if (!viewer) return;
@@ -659,15 +681,12 @@ const RendererBinding = (() => {
             cardEl.appendChild(img);
           };
           img.onerror = () => {
-            cardEl.textContent = detail.isJoker
-              ? (detail.jokerName || 'WILD CARD')
-              : `${detail.value || ''} ${detail.suit || ''}`;
+            // Phase 1B: structured Western-style fallback (not plain text)
+            cardEl.innerHTML = buildViewerFallback(detail);
           };
           img.src = `card-art/${detail.artId}.png`;
         } else {
-          cardEl.textContent = detail.isJoker
-            ? (detail.jokerName || 'WILD CARD')
-            : `${detail.value || ''} of ${detail.suit || ''}`;
+          cardEl.innerHTML = buildViewerFallback(detail);
         }
       }
     });
