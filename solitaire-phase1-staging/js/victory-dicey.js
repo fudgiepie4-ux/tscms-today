@@ -8,7 +8,7 @@
 
 const VictoryDicey = (() => {
   
-  const DANGER_ZONE_URL = '../danger-zone-public.json';
+  const DANGER_ZONE_URL = 'danger-zone-public.json';
   let dangerPool = null;
   let victoryShown = false;
   
@@ -74,13 +74,26 @@ const VictoryDicey = (() => {
       // Wire buttons
       document.getElementById('victory-again').addEventListener('click', () => {
         hideVictory();
+        victoryShown = false;  // Reset BEFORE new game so next win shows overlay
         if (typeof SaveSystem !== 'undefined') SaveSystem.clear();
         if (typeof SaloonEngine !== 'undefined') {
-          const prefs = (typeof SessionManager !== 'undefined' && SessionManager.getPrefs()) || {};
-          SaloonEngine.newGame(prefs.timerMode || 'countup', prefs.drawMode || 1);
+          // P1 fix: carry saved prefs through (don't default to countup/1)
+          let timerMode = 'stopwatch', drawMode = 1;
+          if (typeof SessionManager !== 'undefined' && SessionManager.getPrefs) {
+            const prefs = SessionManager.getPrefs() || {};
+            if (prefs.timerMode) timerMode = prefs.timerMode;
+            if (prefs.drawMode) drawMode = prefs.drawMode;
+          } else if (typeof localStorage !== 'undefined') {
+            // Fallback: read from localStorage directly
+            try {
+              const saved = JSON.parse(localStorage.getItem('tscms_solitaire_prefs_v1') || '{}');
+              if (saved.timerMode) timerMode = saved.timerMode;
+              if (saved.drawMode) drawMode = saved.drawMode;
+            } catch (e) {}
+          }
+          SaloonEngine.newGame(timerMode, drawMode);
         }
         if (typeof RendererBinding !== 'undefined') RendererBinding.render();
-        victoryShown = false;
       });
       
       document.getElementById('victory-notnow').addEventListener('click', () => {
@@ -154,7 +167,31 @@ const VictoryDicey = (() => {
     setInterval(checkWin, 2000);
   }
   
-  return { init, showVictory, hideVictory, checkWin, loadPool };
+  // P1 fix: Reset victory state on any new deal (not just dismiss)
+  function resetVictoryState() {
+    victoryShown = false;
+    hideVictory();
+  }
+  
+  /* ----- STAGING ONLY: Win fixture for testing -----
+     Call VictoryDicey.testWin() in console to simulate a win
+     without playing a full game. NOT for production. */
+  function testWin() {
+    console.log('[VictoryDicey] Test fixture: simulating win...');
+    victoryShown = false;
+    showVictory();
+  }
+  
+  function testSecondWin() {
+    console.log('[VictoryDicey] Test fixture: simulating second win...');
+    resetVictoryState();
+    setTimeout(() => {
+      victoryShown = false;
+      showVictory();
+    }, 100);
+  }
+  
+  return { init, showVictory, hideVictory, checkWin, loadPool, resetVictoryState, testWin, testSecondWin };
 })();
 
 // Auto-init on DOM ready
