@@ -54,7 +54,11 @@ const PauseSystem = (() => {
       // Stop the timer — save elapsed, clear startTime
       // P1 fix (Clara v4 review): track whether timer was running
       // so resume() doesn't start it prematurely on a fresh game
-      S._timerWasRunning = !!S.startTime;
+      // P1 fix (Clara v5 review): restored games (moves>0) should restart timer
+      // even though restore() sets startTime=null. Distinguish fresh (0 moves)
+      // from in-progress (moves>0) games.
+      S._timerWasRunning = !!S.startTime || 
+        (S.timerMode === 'stopwatch' && (S.moves || 0) > 0);
       if (S.startTime) {
         S.elapsed = (S.elapsed || 0) + (Date.now() - S.startTime);
         S.startTime = null;
