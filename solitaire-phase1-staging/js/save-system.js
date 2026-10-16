@@ -28,6 +28,15 @@ const SaveSystem = (() => {
         return null;
       }
       
+      // P1 fix (Clara v6 review): include active stopwatch segment in saved elapsed
+      // If timer is running (startTime set), the saved elapsed must include
+      // the time from startTime to now. Do NOT modify live S.elapsed/S.startTime
+      // (keeps stopwatch running; avoids double-count on later pause/save).
+      let effectiveElapsed = S.elapsed || 0;
+      if (S.startTime) {
+        effectiveElapsed += Math.max(0, Date.now() - S.startTime);
+      }
+      
       const data = {
         version: SAVE_VERSION,
         savedAt: Date.now(),
@@ -40,8 +49,9 @@ const SaveSystem = (() => {
         
         // Progress
         moves: S.moves,
-        elapsed: S.elapsed || 0,
+        elapsed: effectiveElapsed,
         // Note: startTime NOT saved — timer pauses while away
+        // effectiveElapsed includes active segment up to save moment
         timerMode: S.timerMode,
         drawMode: S.drawMode,
         gameWon: S.gameWon || false,
