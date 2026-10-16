@@ -74,3 +74,48 @@ html,body { background: #100705; }
 .stage #timer-display.engine-value-pending {left:84.0%!important;right:auto!important;top:8.28%!important}
 .stage #move-counter.engine-value-pending {left:88.3%!important;right:auto!important;top:11.72%!important}
 #toast {font:14px system-ui;}
+
+/* Phase 1B: Viewer card fallback - clean Western-style readable card
+   Used when card art PNG is not yet uploaded. High contrast, large text. */
+#fullCard {
+  width: 200px;
+  height: 280px;
+  margin: 0 auto;
+  background: #faf8f0; /* ivory, not cream-on-cream */
+  border: 3px solid #8b6914; /* aged gold */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+#fullCard .viewer-fallback {
+  text-align: center;
+  font-family: Georgia, serif;
+  padding: 16px;
+}
+#fullCard .viewer-fallback .rank {
+  font-size: 64px;
+  font-weight: bold;
+  line-height: 1;
+}
+#fullCard .viewer-fallback .rank.red { color: #a00000; }
+#fullCard .viewer-fallback .rank.black { color: #1a1a1a; }
+#fullCard .viewer-fallback .suit {
+  font-size: 48px;
+  line-height: 1.2;
+}
+#fullCard .viewer-fallback .suit.red { color: #a00000; }
+#fullCard .viewer-fallback .suit.black { color: #1a1a1a; }
+#fullCard .viewer-fallback .joker-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #8b6914;
+  margin-top: 8px;
+}
+#fullCard img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
