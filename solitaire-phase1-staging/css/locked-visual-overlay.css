@@ -199,3 +199,11 @@ html,body { background: #100705; }
   color: #c9a227;
   text-decoration: underline;
 }
+
+/* Phase 1B v6: Victory completion time */
+#victory-screen .victory-time {
+  font-size: 18px;
+  color: #c9a227;
+  margin: 8px 0 0 0;
+  font-weight: bold;
+}
