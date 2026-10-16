@@ -459,10 +459,18 @@ const SaloonEngine = (() => {
     const prev = S.history.pop();
     const keepTimerMode = S.timerMode;
     const keepDrawMode = S.drawMode;
+    // P1 fix (Clara v7 review, 2026-10-16): preserve current timer on undo
+    // Snapshots contain outdated startTime/elapsed (e.g. from 24h ago).
+    // Restoring them causes wild time jumps (1:10→1:50, 0:33→24:00:33).
+    // Undo restores cards/moves/history only; timer keeps running accurately.
+    const keepElapsed = S.elapsed;
+    const keepStartTime = S.startTime;
     S.stock = prev.stock; S.waste = prev.waste;
     S.foundations = prev.foundations; S.tableau = prev.tableau;
-    S.moves = prev.moves; S.elapsed = prev.elapsed;
-    S.startTime = prev.startTime; S.gameWon = false;
+    S.moves = prev.moves;
+    S.elapsed = keepElapsed;
+    S.startTime = keepStartTime;
+    S.gameWon = false;
     S.timerMode = keepTimerMode;
     S.drawMode = keepDrawMode;
     emit();
