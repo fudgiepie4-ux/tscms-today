@@ -1,35 +1,5 @@
 <!doctype html>
-<!-- ============================================================
-  TSCMS SOLITAIRE SALOON — Integrated Staging Build
-  Built: 2026-10-15 | STAGING ONLY — not for live deployment
 
-  VISUAL SHELL: Clara (ChatGPT) — approved western saloon layout.
-    Preserved exactly; only foundation IDs added + game settings
-    wired into the existing settings dialog. Do not restyle.
-
-  GAME ENGINE: Cherish (Muse) — SaloonEngine pure-logic Klondike
-    with 54-card 2-Joker rules per v5 mechanics (v4 clarifications).
-    Includes: Draw 1/Draw 3, Stopwatch/Relaxed timer, Undo,
-    double-tap to foundation, move counter, Hint (findHints),
-    Dicey Victory Reward (danger-zone-public.json bridge).
-
-  PENDING FUDGIE'S FINAL SIGN-OFF (working but not yet approved):
-    - Undo button, double-tap-to-foundation, move counter display.
-  APPROVED FOR V1: Hint feature (visual highlight only, never
-    auto-moves). Auto-move (automatic card movement) is NOT approved
-    and is NOT implemented.
-
-  CARD ART: 14 illustrated cards not yet delivered. CARD_ART config
-    in the script below provides clean loading + CSS fallback.
-    Deck concept collage is NOT approved production art.
-
-  FOUNDATION ID MAP (engine SUITS order):
-    #foundation-0 = spades (♠), #foundation-1 = hearts (♥),
-    #foundation-2 = diamonds (♦), #foundation-3 = clubs (♣).
-    Visual order in shell is ♠♥♣♦; IDs follow engine indices.
-
-  TESTS: 93 passing (56 unit + 15 integration + 22 hint).
-  ============================================================ -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1b100c"><title>TSCMS Gamehouse · Approved Contrast + Improved Vinyl · Preview</title><style>
 :root{color-scheme:dark;--wood:url('data:image/gif;base64,R0lGODlhAQABAAAAACw=');--saloon:data:image/gif;base64,R0lGODlhAQABAAAAACw=;--card-gap:clamp(4px,1.5vw,13px);--paper:#fff7e8;--gold:#ecd098}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#130b08;color:#efddba;font-family:Georgia,'Times New Roman',serif;overflow-x:hidden}button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible{outline:3px solid #ffdc92;outline-offset:4px}
@@ -1368,6 +1338,15 @@ const SaloonRenderer = (() => {
     }
     if (cardId && lastTapByCard[cardId] && now - lastTapByCard[cardId] < 500) {
       // Double-tap: send to foundation
+      // Joker: player chooses destination.
+      const isJokerCard = d.cards && d.cards.length === 1 && d.cards[0].isJoker;
+      if (isJokerCard) {
+        delete lastTapByCard[cardId];
+        // Select the Joker so player can tap their chosen destination
+        selected = { from: d.from, col: d.col, idx: d.idx };
+        render(SaloonEngine.getState());
+        return;
+      }
       const ok = d.from === 'waste'
         ? SaloonEngine.moveToFoundation('waste')
         : SaloonEngine.moveToFoundation('tableau', d.col);
