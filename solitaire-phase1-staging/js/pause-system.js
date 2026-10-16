@@ -52,6 +52,9 @@ const PauseSystem = (() => {
       if (!S) return false;
       
       // Stop the timer — save elapsed, clear startTime
+      // P1 fix (Clara v4 review): track whether timer was running
+      // so resume() doesn't start it prematurely on a fresh game
+      S._timerWasRunning = !!S.startTime;
       if (S.startTime) {
         S.elapsed = (S.elapsed || 0) + (Date.now() - S.startTime);
         S.startTime = null;
@@ -87,7 +90,11 @@ const PauseSystem = (() => {
       if (!S) return false;
       
       // Restart timer from saved elapsed
-      S.startTime = Date.now();
+      // P1 fix (Clara v4 review): only restart if timer was running before pause
+      // Fresh game (startTime was null) stays at null until first move
+      if (S._timerWasRunning) {
+        S.startTime = Date.now();
+      }
       // elapsed stays as-is
       
       S._paused = false;
