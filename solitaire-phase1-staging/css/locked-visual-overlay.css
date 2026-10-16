@@ -119,3 +119,83 @@ html,body { background: #100705; }
   max-height: 100%;
   object-fit: contain;
 }
+
+/* Phase 1B: Victory overlay */
+#victory-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#victory-screen .victory-panel {
+  background: linear-gradient(180deg, #3a2410, #2a1808);
+  border: 3px solid #c9a227;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  color: #f5e6c8;
+}
+#victory-screen h2 {
+  font-size: 28px;
+  margin: 0 0 8px 0;
+  color: #c9a227;
+}
+#victory-screen .victory-sub {
+  font-size: 16px;
+  margin: 0 0 20px 0;
+  opacity: 0.9;
+}
+#victory-screen .victory-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+#victory-screen .p-btn {
+  padding: 12px 20px;
+  font-size: 16px;
+  background: #5a3a1a;
+  color: #f5e6c8;
+  border: 2px solid #c9a227;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#victory-screen .p-btn:hover {
+  background: #6a4a2a;
+}
+#victory-screen .p-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+#dicey-result {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(201, 162, 39, 0.1);
+  border: 1px solid #c9a227;
+  border-radius: 8px;
+}
+#dicey-result .dicey-label {
+  font-size: 14px;
+  color: #c9a227;
+  margin-bottom: 8px;
+}
+#dicey-result .dicey-member {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+#dicey-result .dicey-song {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+#dicey-result .dicey-link {
+  color: #c9a227;
+  text-decoration: underline;
+}
