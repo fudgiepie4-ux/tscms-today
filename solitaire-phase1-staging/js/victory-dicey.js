@@ -152,6 +152,15 @@ const VictoryDicey = (() => {
       if (typeof SaloonEngine === 'undefined') return;
       const S = SaloonEngine.getState();
       if (S && S.gameWon && !victoryShown) {
+        // P1 fix (Clara v4 review): finalize timer on victory
+        // Capture final elapsed time so display doesn't reset to 00:00
+        try {
+          const live = SaloonEngine._getState();
+          if (live && live.startTime) {
+            live.elapsed = (live.elapsed || 0) + (Date.now() - live.startTime);
+            live.startTime = null;
+          }
+        } catch (e) {}
         // Small delay for dramatic effect
         setTimeout(showVictory, 800);
       }
