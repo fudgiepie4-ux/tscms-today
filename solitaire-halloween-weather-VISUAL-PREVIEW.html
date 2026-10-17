@@ -77,6 +77,61 @@ input{accent-color:#50d7ef}
 .toast{position:fixed;z-index:90;left:50%;bottom:20px;transform:translateX(-50%);max-width:min(90vw,460px);background:#2e1a10;border:1px solid #b5834a;border-radius:9px;padding:12px;color:#ffe7bb;text-align:center;box-shadow:0 5px 20px #000d;font:13px system-ui,sans-serif}
 @media(max-width:720px){.columns{grid-template-columns:1fr}.parchment{padding:10px 13px}.parchment ul{display:none}.parchment p{margin:5px}.dialog{max-height:92dvh}.setting-grid{grid-template-columns:1fr 1fr}.setting-grid fieldset:last-child{grid-column:1 / -1}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.subtitle{margin-top:0}.dialog h2{margin:3px 24px 8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.window-weather line{opacity:.33}}
+
+/* V2 mobile/tablet one-screen visual layout. Keep the ORIGINAL art, no cropping. */
+html,body{width:100%;height:100%;height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
+body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hidden}
+.mast,.foot{display:none!important}
+.preview-controls{
+  height:52px;min-height:52px;max-height:52px;flex:0 0 52px;
+  width:100%;max-width:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;padding:5px max(5px,env(safe-area-inset-right)) 5px max(5px,env(safe-area-inset-left));
+  position:relative;z-index:2;overflow:hidden;
+}
+.preview-controls .pill{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;min-width:0;min-height:40px;max-height:42px;
+  font:700 clamp(11px,2.45vw,16px)/1.1 Georgia,"Times New Roman",serif;
+  padding:5px 4px;white-space:normal;text-align:center;border-radius:9px;
+}
+.preview-controls .status{
+  position:absolute;width:1px;height:1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap;
+}
+.frame{
+  flex:1 1 0%;min-height:0;height:auto;width:100%;max-width:none;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;box-shadow:none;background:#140b0a;
+}
+.stage{
+  /* Exact 941:1672 proportions, limited by the available height OR screen width. */
+  display:block;flex:0 0 auto;box-sizing:border-box;
+  height:min(100%,177.683vw);
+  width:auto;max-width:100vw;max-height:100%;
+  aspect-ratio:941 / 1672;
+  overflow:hidden;contain:layout paint;
+}
+.stage-art{display:block;width:100%;height:100%;object-fit:fill}
+.haunt-tint{background:linear-gradient(90deg,#150c2b33 0%,#15264c2a 55%,#0b183322 100%)}
+.haunt-glow{opacity:.56}
+.window-weather line{stroke:#c9e8ff;stroke-width:1.75;opacity:.78}
+.rain-haze{mix-blend-mode:screen;opacity:.5}
+/* Realistic visual direction: no sticker-like cartoon emoji/cobweb overlays. */
+.bat,.pumpkin,.web{display:none!important}
+@media(max-width:510px){
+  .preview-controls{height:46px;min-height:46px;max-height:46px;flex-basis:46px}
+  .preview-controls .pill{min-height:36px;max-height:37px;font-size:clamp(10px,3vw,13px)}
+}
+@media(max-height:490px){
+  .preview-controls{height:43px;min-height:43px;max-height:43px;flex-basis:43px}
+  .preview-controls .pill{min-height:33px;max-height:34px}
+}
+.layer{max-height:100dvh}
+@media(prefers-reduced-motion:reduce){
+  .storm-light,.lightning-bolt{display:none!important}
+  .window-weather line{animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -85,9 +140,9 @@ input{accent-color:#50d7ef}
 <small>Unlinked visual staging · approved game board · experimental Halloween weather · no real gameplay</small>
 </div>
 <div class="preview-controls" aria-label="Visual preview controls">
-<button class="pill" id="classicBtn" type="button">🏜️ Classic Saloon</button>
-<button class="pill active" id="halloweenBtn" type="button">🎃 Halloween Storm</button>
-<button class="pill" id="welcomeBtn" type="button">📜 Startup Popup</button>
+<button class="pill" id="classicBtn" type="button">Classic Saloon</button>
+<button class="pill active" id="halloweenBtn" type="button">Halloween Storm</button>
+<button class="pill" id="welcomeBtn" type="button">Startup Popup</button>
 <span class="status" id="status" role="status">Halloween · rain + lightning</span>
 </div>
 <main class="frame">
@@ -105,10 +160,8 @@ input{accent-color:#50d7ef}
 <g class="rain" id="rainLayer"></g>
 </svg>
 <div class="rain-haze halloween-only" aria-hidden="true"></div>
-<svg class="web halloween-only" viewBox="0 0 170 160" aria-hidden="true"><g stroke="#dad4d0" fill="none" stroke-width="1.1" opacity=".8"><path d="M0 0 L165 0 M0 0 L0 158 M0 0 Q90 35 165 0 M0 0 Q42 90 0 155"/><path d="M0 0 L46 49 L87 84 L125 121 M0 0 L60 12 L103 25 L148 37 M0 0 L20 65 L32 110 L40 151"/><path d="M0 28 Q28 29 51 20 M0 59 Q52 53 100 27 M0 93 Q84 70 146 41"/></g></svg>
-<svg class="web right halloween-only" viewBox="0 0 170 160" aria-hidden="true"><g stroke="#d5d0e7" fill="none" stroke-width="1.1" opacity=".8"><path d="M0 0 L165 0 M0 0 L0 158 M0 0 Q90 35 165 0 M0 0 Q42 90 0 155"/><path d="M0 0 L46 49 L87 84 L125 121 M0 0 L60 12 L103 25 L148 37 M0 0 L20 65 L32 110 L40 151"/><path d="M0 28 Q28 29 51 20 M0 59 Q52 53 100 27 M0 93 Q84 70 146 41"/></g></svg>
-<div class="bat one halloween-only" aria-hidden="true">🦇</div><div class="bat two halloween-only" aria-hidden="true">🦇</div>
-<div class="pumpkin p1 halloween-only" aria-hidden="true">🎃</div><div class="pumpkin p2 halloween-only" aria-hidden="true">🎃</div>
+
+
 <div class="storm-light" id="stormLight" aria-hidden="true"></div>
 <svg class="lightning-bolt" id="bolt" viewBox="0 0 80 140" aria-hidden="true"><path d="M47 5 L19 63 L41 62 L26 134 L69 53 L44 53 Z" stroke="#f1f6ff" stroke-width="5" fill="#d7eeff"/></svg>
 <button class="hit exit-hit" type="button" id="exitHit" aria-label="Exit, preview only">Exit</button>
@@ -131,7 +184,7 @@ input{accent-color:#50d7ef}
 <span><strong>Lightning Flashes</strong><small>Turn this OFF to prevent lightning flashes. Rain stays visible in Halloween mode.</small></span>
 </label>
 <div class="menu-option" aria-label="Rain behavior"><span aria-hidden="true">🌧️</span><span><strong>Rain Outside</strong><small>Always part of the Halloween theme. It continues even if lightning is switched off.</small></span></div>
-<div class="menu-option"><span aria-hidden="true">🎃</span><span><strong>Theme</strong><small>Use the Classic/Halloween buttons above the game, or the approved startup popup, to preview either appearance.</small></span></div>
+<div class="menu-option"><span aria-hidden="true"></span><span><strong>Theme</strong><small>Use the Classic/Halloween buttons above the game, or the approved startup popup, to preview either appearance.</small></span></div>
 <p>Accessibility: if your device requests reduced motion, lightning starts disabled and the rain is shown without movement.</p>
 <button class="bigbutton blue" type="button" data-close="menuLayer" style="width:100%">RETURN TO SALOON</button>
 </section>
@@ -144,7 +197,7 @@ input{accent-color:#50d7ef}
 <div class="columns">
 <article class="parchment"><h3>HOW TO PLAY</h3><p>Build each foundation from Ace to King by suit. Build tableau piles downward, alternating red and black. Only Kings may move into empty tableau spaces.</p><ul><li>Choose Draw 1 or Draw 3.</li><li>Pause or Exit to preserve progress in the real game.</li></ul></article>
 <article class="parchment"><h3>JOKER RULES</h3><p>🃏 Two Jokers are shuffled into this game. They work on <b>foundations only</b>—not tableau piles. A Joker fills the next needed foundation card.</p><p>Find the real card later? Replace the Joker and reuse it from the waste pile.</p></article>
-<article class="parchment"><h3>MEET SWIPER</h3><div class="swiper-face" aria-hidden="true">👻🎩</div><p>Swiper may appear during play. He can take an exposed top card and hide it beneath another tableau pile. The card is not destroyed, but the theft cannot be Undone.</p><p>An exposed Joker scares Swiper away.</p></article>
+<article class="parchment"><h3>MEET SWIPER</h3><p>Swiper may appear during play. He can take an exposed top card and hide it beneath another tableau pile. The card is not destroyed, but the theft cannot be Undone.</p><p>An exposed Joker scares Swiper away.</p></article>
 </div>
 <div class="options"><h3>START OPTIONS</h3>
 <div class="setting-grid">
