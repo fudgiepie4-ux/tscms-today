@@ -62,7 +62,7 @@ Audio sample prototype V5/V6 uses WebAudio-generated noise. **Owner reported sou
 4. Integrate approved Swiper into Solitaire staging with engine authority and dynamic card overlay; test safely with Halloween enabled and disabled.
 5. Wire licensed/proper SFX and ambient audio to gameplay events, taking precedence rules for music/radio and device activation into account; test after user interaction.
 6. Regression: 55 original approved card PNGs, correct foundation mapping, Save/Exit, Draw1/Draw3, time/HUD, pause/resume, no-scroll mobile/tablet, readability, visual toggle, 25/35% modes, Swiper Undo barrier and Joker scare, audio toggles on actual mobile.
-7. Maintain separate owner gates: **visual V5 APPROVED; V6 hamburger-menu design APPROVED INCLUDING Halloween Ambience toggle; current ambience AUDIO REJECTED; functional menu implementation UNVERIFIED; audio NOT WORKING/PENDING; Swiper PENDING; integrated game PENDING; public deployment NO-GO**. Final launch requires explicit owner approval.
+7. Maintain separate owner gates: **visual V5 APPROVED; V6 hamburger-menu design APPROVED including Halloween Ambience toggle; V5 synthetic static-like audio REJECTED; NEW real field-recorded storm sound direction and 4 independent sliders LIKED / APPROVED IN CONCEPT; functional menu/audio integration UNVERIFIED; Swiper PENDING; integrated game PENDING; public deployment NO-GO**. Final launch requires explicit owner approval.
 
 **Reviewer response requested:** identify contract mismatches with the *current* Cherish engine, highlight blocker/priority, and report test evidence before proposing a consolidated implementation plan. This note does not grant permission to implement or deploy.
 ## 7. Owner clarification — ambience audio specifically rejected (2026-10-17)
@@ -78,3 +78,14 @@ User explicitly distinguishes an approved **hamburger-menu design and its Hallow
 
 ### Audio acceptance before production
 A/B compare candidate field recordings on owner's Android phone, with radio simultaneously playing, respecting browser user-gesture unlock. Audio must fade/reduce on theme switch, menu sound toggle off, pause/exit, inactive tab; thunder must follow visible lightning with a plausible short delay, be distinguishable from rainfall and not play constantly. Keep original card sounds separately adjustable. No approval without owner listening.
+
+## 8. Owner listening-test feedback — sound direction selected (2026-10-17)
+
+The owner listened to the separate real-environmental-sound listening page `solitaire-halloween-REAL-STORM-AUDIO-LISTENING-LAB.html` and **liked all four sound types**: (1) rain against windows, (2) outdoor rainfall, (3) wind gusts and (4) rolling thunder. The owner **especially liked the independent per-effect volume sliders**, describing them as a sophisticated, advanced feature and a major step forward. This is **positive directional approval of the sample choices and four-slider mixer user experience**, NOT a report that the full integrated sound system has been implemented/tested or final deployment clearance.
+
+### Requirements preserved from owner feedback
+- Retain separate, clearly labeled volume sliders for window rain, outdoor rain, wind and thunder within the approved hamburger-menu direction. Keep an obvious global Halloween Ambience on/off switch; players can customize individual levels.
+- Keep ambient categories independent from game-card/Swiper SFX and the shared TSCMS Radio player. Never pause, restart, replace, mute or duck the currently playing radio song because thunder, rain, or other game/seasonal effects occur.
+- The predecessor V5 WebAudio synthetic-noise ambience is **still rejected** (flat, TV-static-like). Do not revert to it or mistake approval of the listening test for approval of that old sound.
+- The new audio test page uses third-party remote media for demonstration; ensure self-hosted, reviewed, correctly licensed final files and attribution records before staging integration. Verify mobile autoplay/user-gesture, pause/visibility, relative loudness, looping seams, crossfades, thunder/lightning timing, and sound-on/off state retention.
+- This listening-test feedback changes neither the V5 visual approval nor the outstanding Swiper/engine/public-launch gates. Cherish should validate against the existing `SessionManager` and the shared jukebox audio architecture, not install a second player or parallel preference store.
