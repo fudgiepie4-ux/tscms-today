@@ -205,11 +205,14 @@ body.large-text .ehrs{flex:none;margin-left:auto}
 body.large-text .epill{flex:none}
 body.large-text .etier{white-space:normal}
 
-/* ---- Phone: Danger Zone rows wrap instead of overlapping (Cherish fix 2026-10-16) ---- */
+/* ---- Danger Zone: tier label removed — redundant on this list (Fudgie 2026-10-16) ---- */
+.erow .etier{display:none!important}
+
+/* ---- Phone: Danger Zone rows — uniform, button tucked under time (Fudgie 2026-10-16) ---- */
 @media (max-width:480px){
 .erow{flex-wrap:wrap;row-gap:8px}
 .emain{flex:1 1 60%;min-width:140px}
 .et{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ehrs{flex:none;margin-left:auto}
-.epill{flex:none}
+.epill{flex:none;margin-left:auto;font-size:10px;padding:5px 10px}
 }
