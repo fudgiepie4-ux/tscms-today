@@ -78,6 +78,22 @@ input{accent-color:#50d7ef}
 @media(max-width:720px){.columns{grid-template-columns:1fr}.parchment{padding:10px 13px}.parchment ul{display:none}.parchment p{margin:5px}.dialog{max-height:92dvh}.setting-grid{grid-template-columns:1fr 1fr}.setting-grid fieldset:last-child{grid-column:1 / -1}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.subtitle{margin-top:0}.dialog h2{margin:3px 24px 8px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.window-weather line{opacity:.33}}
 
+
+/* V3 decorative cobweb silk. Thin asymmetric strands, softly faded into wood. */
+.realweb{position:absolute;top:0;left:0;z-index:9;width:clamp(120px,24%,215px);height:auto;max-height:12.6%;opacity:.66;pointer-events:none;filter:drop-shadow(0 1px 2px #121018aa);overflow:visible}
+.realweb.right{left:auto;right:0;transform:scaleX(-1);opacity:.62}
+/* Visible but localized lightning at the distant windows; never over card faces. */
+.storm-light{inset:0 0 64% 0;background:radial-gradient(ellipse at 60% 36%,#c4ddff85 0%,#b1d5ff38 24%,#7b99f715 50%,transparent 75%);mix-blend-mode:screen;transition:opacity .08s ease-out}
+.lightning-bolt{left:56.5%;top:9%;width:7%;height:7%;filter:drop-shadow(0 0 6px #eff9ff) drop-shadow(0 0 12px #7fbdff);transition:opacity .08s}
+.lightning-bolt.flash{opacity:.95}
+/* Respect OS reduced-motion by default, while still permitting a deliberate
+   opt-in via the explicitly requested Lightning Flashes menu setting. */
+@media(prefers-reduced-motion:reduce){
+  .storm-light,.lightning-bolt{display:none!important}
+  .stage.user-flash-opt-in .storm-light,
+  .stage.user-flash-opt-in .lightning-bolt{display:block!important}
+}
+
 /* V2 mobile/tablet one-screen visual layout. Keep the ORIGINAL art, no cropping. */
 html,body{width:100%;height:100%;height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
 body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hidden}
@@ -160,6 +176,39 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 <g class="rain" id="rainLayer"></g>
 </svg>
 <div class="rain-haze halloween-only" aria-hidden="true"></div>
+<svg class="realweb left halloween-only" viewBox="0 0 230 210" aria-hidden="true" focusable="false">
+  <defs><linearGradient id="webSilk" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#c5c2cd" stop-opacity=".64"/><stop offset=".6" stop-color="#e8dee5" stop-opacity=".36"/><stop offset="1" stop-color="#d9dfed" stop-opacity=".07"/></linearGradient></defs>
+  <g fill="none" stroke="url(#webSilk)" stroke-linecap="round">
+    <g stroke-width=".75"><path d="M0 0L227 21 M0 0L229 64 M0 0L217 116 M0 0L167 168 M0 0L96 207 M0 0L20 209"/>
+    <path d="M0 0L177 0 M0 0L0 192"/></g>
+    <g stroke-width=".72"><path d="M36 3 Q39 17 29 30 Q37 41 32 54 Q25 68 14 72"/>
+    <path d="M81 7 Q78 30 65 46 Q64 66 48 80 Q40 95 30 113"/>
+    <path d="M126 12 Q121 42 99 66 Q94 83 74 98 Q58 112 46 136"/>
+    <path d="M175 16 Q157 58 137 85 Q120 106 103 122 Q86 139 71 159"/>
+    <path d="M221 20 Q198 67 172 103 Q154 131 132 148 Q111 170 95 193"/></g>
+    <g stroke-width=".42" opacity=".8"><path d="M3 24 Q47 28 77 36 Q120 39 157 44 Q188 49 216 53"/>
+    <path d="M9 48 Q52 55 77 65 Q117 76 158 87 Q186 93 214 105"/>
+    <path d="M15 79 Q43 81 61 98 Q99 115 129 134 Q156 152 164 158"/>
+    <path d="M23 111 Q46 120 69 145 Q82 159 96 190"/>
+    <path d="M0 6 Q37 8 70 12"/></g>
+  </g>
+</svg>
+<svg class="realweb right halloween-only" viewBox="0 0 230 210" aria-hidden="true" focusable="false">
+  <g fill="none" stroke="#ded8dc" stroke-linecap="round">
+    <g stroke-width=".7" opacity=".3"><path d="M0 0L223 20 M0 0L220 61 M0 0L213 117 M0 0L162 168 M0 0L86 205 M0 0L14 210"/>
+    <path d="M0 0L171 0 M0 0L0 184"/></g>
+    <g stroke-width=".7" opacity=".27"><path d="M35 3Q32 18 28 29 Q39 41 30 53 Q23 67 14 76"/>
+    <path d="M80 8 Q77 28 66 45 Q60 61 47 79 Q35 102 28 114"/>
+    <path d="M122 12 Q116 38 98 62 Q89 85 71 101 Q55 116 44 138"/>
+    <path d="M175 16 Q153 56 133 82 Q117 103 98 124 Q77 144 65 158"/>
+    <path d="M215 19 Q196 63 169 97 Q150 124 130 146 Q112 169 91 191"/></g>
+    <g stroke-width=".42" opacity=".32"><path d="M4 24 Q46 30 78 34 Q119 40 156 44 Q195 52 210 51"/>
+    <path d="M9 47 Q46 59 77 65 Q120 75 155 85 Q181 96 213 108"/>
+    <path d="M14 77 Q39 90 61 98 Q100 117 128 133 Q154 151 164 159"/>
+    <path d="M21 109 Q48 123 64 147 Q85 163 92 185"/></g>
+  </g>
+</svg>
+
 
 
 <div class="storm-light" id="stormLight" aria-hidden="true"></div>
@@ -181,11 +230,8 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 <p class="kicker">Visual preview controls · available while playing in the final design</p>
 <label class="menu-option">
 <input id="lightningToggle" type="checkbox" checked>
-<span><strong>Lightning Flashes</strong><small>Turn this OFF to prevent lightning flashes. Rain stays visible in Halloween mode.</small></span>
+<span><strong>Lightning Flashes</strong></span>
 </label>
-<div class="menu-option" aria-label="Rain behavior"><span aria-hidden="true">🌧️</span><span><strong>Rain Outside</strong><small>Always part of the Halloween theme. It continues even if lightning is switched off.</small></span></div>
-<div class="menu-option"><span aria-hidden="true"></span><span><strong>Theme</strong><small>Use the Classic/Halloween buttons above the game, or the approved startup popup, to preview either appearance.</small></span></div>
-<p>Accessibility: if your device requests reduced motion, lightning starts disabled and the rain is shown without movement.</p>
 <button class="bigbutton blue" type="button" data-close="menuLayer" style="width:100%">RETURN TO SALOON</button>
 </section>
 </div>
@@ -236,16 +282,15 @@ var classicBtn=document.getElementById("classicBtn"),halloweenBtn=document.getEl
 var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 var canStore=true;function get(k){try{return localStorage.getItem(k)}catch(e){canStore=false;return null}}function put(k,v){if(!canStore)return;try{localStorage.setItem(k,v)}catch(e){}}
 var stored=get("tscms_visual_demo_lightning_v1");var lightningOn=stored===null?!reduced:stored==="on";
-if(reduced)lightningOn=false;
 toggle.checked=lightningOn;
 var theme="halloween",timer=null,paused=false,vis=document.visibilityState==="visible",toastTimer=null;
 function say(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true},3600)}
 function updateStatus(){status.textContent=theme==="classic"?"Classic saloon · no storm":(paused?"Halloween · paused":(lightningOn?"Halloween · rain + lightning":"Halloween · rain only"))}
 function clearFlash(){lighting.classList.remove("flash");bolt.classList.remove("flash")}
-function stormTick(){clearTimeout(timer);clearFlash();if(theme!=="halloween"||!lightningOn||reduced||paused||!vis)return;timer=setTimeout(function(){if(theme!=="halloween"||!lightningOn||reduced||paused||!vis)return;lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},340)},5000+Math.random()*8000)}
+function stormTick(){clearTimeout(timer);clearFlash();if(theme!=="halloween"||!lightningOn||paused||!vis)return;timer=setTimeout(function(){if(theme!=="halloween"||!lightningOn||paused||!vis)return;lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},270)},7500+Math.random()*6500)}
 function setTheme(value){theme=value;stage.classList.toggle("halloween",theme==="halloween");classicBtn.classList.toggle("active",theme==="classic");halloweenBtn.classList.toggle("active",theme==="halloween");updateStatus();stormTick();document.querySelectorAll('input[name="theme"]').forEach(function(r){r.checked=r.value===value});}
-function setLightning(v){lightningOn=!!v;toggle.checked=lightningOn;put("tscms_visual_demo_lightning_v1",lightningOn?"on":"off");updateStatus();stormTick();}
-toggle.addEventListener("change",function(){if(reduced&&toggle.checked){say("Your device requests reduced motion. Lightning remains off in this preview.");setLightning(false)}else setLightning(toggle.checked)});
+function setLightning(v){lightningOn=!!v;toggle.checked=lightningOn;stage.classList.toggle("user-flash-opt-in",lightningOn);put("tscms_visual_demo_lightning_v1",lightningOn?"on":"off");updateStatus();stormTick();}
+toggle.addEventListener("change",function(){setLightning(toggle.checked);if(lightningOn&&theme==="halloween"){clearTimeout(timer);timer=setTimeout(function(){if(theme==="halloween"&&lightningOn&&!paused&&vis){lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},270)}},1400)}});
 classicBtn.addEventListener("click",function(){setTheme("classic")});halloweenBtn.addEventListener("click",function(){setTheme("halloween")});
 document.getElementById("welcomeBtn").addEventListener("click",function(){show("welcomeLayer")});
 document.getElementById("newHit").addEventListener("click",function(){show("welcomeLayer")});
@@ -265,6 +310,7 @@ document.addEventListener("visibilitychange",function(){vis=document.visibilityS
 var NS="http://www.w3.org/2000/svg";
 var rand=function(a,b){return a+Math.random()*(b-a)};
 for(var i=0;i<115;i++){var line=document.createElementNS(NS,"line");var x=rand(0,941),y=rand(100,310);line.setAttribute("x1",x.toFixed(1));line.setAttribute("x2",(x-3).toFixed(1));line.setAttribute("y1",y.toFixed(1));line.setAttribute("y2",(y+rand(9,22)).toFixed(1));line.style.animationDuration=rand(.65,1.22).toFixed(2)+"s";line.style.animationDelay=(-rand(0,2)).toFixed(2)+"s";line.style.opacity=rand(.20,.64).toFixed(2);rain.appendChild(line)}
+stage.classList.toggle("user-flash-opt-in",lightningOn);
 setTheme("halloween");
 })();
 </script>
