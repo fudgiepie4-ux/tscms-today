@@ -714,18 +714,27 @@ const RendererBinding = (() => {
       const detail = e.detail || {};
       const titleEl = document.getElementById('cardTitle');
       if (titleEl) {
+        // Viewer caption only: map engine rank numbers to reader-friendly names.
+        // Do not alter card values, art filenames, or gameplay logic. (v9 — Clara handoff)
+        const faceNames = { 1: 'Ace', 11: 'Jack', 12: 'Queen', 13: 'King' };
+        const rankName = faceNames[Number(detail.value)] || String(detail.value ?? '');
+        const suitName = detail.suit
+          ? detail.suit.charAt(0).toUpperCase() + detail.suit.slice(1)
+          : '';
         titleEl.textContent = detail.isJoker
           ? (detail.jokerName || 'WILD CARD')
-          : `${detail.value || ''} of ${detail.suit || ''}`;
+          : [rankName, suitName ? `of ${suitName}` : ''].filter(Boolean).join(' ');
       }
       const cardEl = document.getElementById('fullCard');
       if (cardEl) {
         // P2 fix: render fallback IMMEDIATELY, swap only on successful load
+        cardEl.classList.remove('art-loaded');
         cardEl.innerHTML = buildViewerFallback(detail);
         if (detail.artId) {
           const img = new Image();
           img.onload = () => {
             if (cardEl.isConnected) {
+              cardEl.classList.add('art-loaded');
               cardEl.innerHTML = '';
               img.style.maxWidth = '100%';
               img.style.maxHeight = '100%';
