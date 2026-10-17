@@ -82,17 +82,6 @@ input{accent-color:#50d7ef}
 /* V3 decorative cobweb silk. Thin asymmetric strands, softly faded into wood. */
 .realweb{position:absolute;top:0;left:0;z-index:9;width:clamp(120px,24%,215px);height:auto;max-height:12.6%;opacity:.66;pointer-events:none;filter:drop-shadow(0 1px 2px #121018aa);overflow:visible}
 .realweb.right{left:auto;right:0;transform:scaleX(-1);opacity:.62}
-/* Visible but localized lightning at the distant windows; never over card faces. */
-.storm-light{inset:0 0 64% 0;background:radial-gradient(ellipse at 60% 36%,#c4ddff85 0%,#b1d5ff38 24%,#7b99f715 50%,transparent 75%);mix-blend-mode:screen;transition:opacity .08s ease-out}
-.lightning-bolt{left:56.5%;top:9%;width:7%;height:7%;filter:drop-shadow(0 0 6px #eff9ff) drop-shadow(0 0 12px #7fbdff);transition:opacity .08s}
-.lightning-bolt.flash{opacity:.95}
-/* Respect OS reduced-motion by default, while still permitting a deliberate
-   opt-in via the explicitly requested Lightning Flashes menu setting. */
-@media(prefers-reduced-motion:reduce){
-  .storm-light,.lightning-bolt{display:none!important}
-  .stage.user-flash-opt-in .storm-light,
-  .stage.user-flash-opt-in .lightning-bolt{display:block!important}
-}
 
 /* V2 mobile/tablet one-screen visual layout. Keep the ORIGINAL art, no cropping. */
 html,body{width:100%;height:100%;height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
@@ -143,10 +132,7 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
   .preview-controls .pill{min-height:33px;max-height:34px}
 }
 .layer{max-height:100dvh}
-@media(prefers-reduced-motion:reduce){
-  .storm-light,.lightning-bolt{display:none!important}
-  .window-weather line{animation:none!important}
-}
+@media(prefers-reduced-motion:reduce){ .window-weather line{animation:none!important} .stage:not(.user-flash-opt-in) .storm-light,.stage:not(.user-flash-opt-in) .lightning-bolt{display:none!important} }
 
 </style>
 </head>
@@ -287,10 +273,10 @@ var theme="halloween",timer=null,paused=false,vis=document.visibilityState==="vi
 function say(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true},3600)}
 function updateStatus(){status.textContent=theme==="classic"?"Classic saloon · no storm":(paused?"Halloween · paused":(lightningOn?"Halloween · rain + lightning":"Halloween · rain only"))}
 function clearFlash(){lighting.classList.remove("flash");bolt.classList.remove("flash")}
-function stormTick(){clearTimeout(timer);clearFlash();if(theme!=="halloween"||!lightningOn||paused||!vis)return;timer=setTimeout(function(){if(theme!=="halloween"||!lightningOn||paused||!vis)return;lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},270)},7500+Math.random()*6500)}
+function stormTick(){clearTimeout(timer);clearFlash();if(theme!=="halloween"||!lightningOn||paused||!vis)return;timer=setTimeout(function(){if(theme!=="halloween"||!lightningOn||paused||!vis)return;lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},340)},5000+Math.random()*8000)}
 function setTheme(value){theme=value;stage.classList.toggle("halloween",theme==="halloween");classicBtn.classList.toggle("active",theme==="classic");halloweenBtn.classList.toggle("active",theme==="halloween");updateStatus();stormTick();document.querySelectorAll('input[name="theme"]').forEach(function(r){r.checked=r.value===value});}
 function setLightning(v){lightningOn=!!v;toggle.checked=lightningOn;stage.classList.toggle("user-flash-opt-in",lightningOn);put("tscms_visual_demo_lightning_v1",lightningOn?"on":"off");updateStatus();stormTick();}
-toggle.addEventListener("change",function(){setLightning(toggle.checked);if(lightningOn&&theme==="halloween"){clearTimeout(timer);timer=setTimeout(function(){if(theme==="halloween"&&lightningOn&&!paused&&vis){lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},270)}},1400)}});
+toggle.addEventListener("change",function(){setLightning(toggle.checked)});
 classicBtn.addEventListener("click",function(){setTheme("classic")});halloweenBtn.addEventListener("click",function(){setTheme("halloween")});
 document.getElementById("welcomeBtn").addEventListener("click",function(){show("welcomeLayer")});
 document.getElementById("newHit").addEventListener("click",function(){show("welcomeLayer")});
