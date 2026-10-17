@@ -134,6 +134,33 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 .layer{max-height:100dvh}
 @media(prefers-reduced-motion:reduce){ .window-weather line{animation:none!important} .stage:not(.user-flash-opt-in) .storm-light,.stage:not(.user-flash-opt-in) .lightning-bolt{display:none!important} }
 
+
+/* Halloween V5: branching sky lightning; same approved art and fitted geometry. */
+.window-weather{pointer-events:none}
+.storm-light{
+  position:absolute;inset:0 0 65% 0;
+  background:radial-gradient(ellipse at 59% 41%,#b9d1ff89 0%,#a4bafa48 16%,#5e76bd22 35%,transparent 63%);
+  mix-blend-mode:screen;transition:opacity .12s ease-out;opacity:0;
+}
+.storm-light.violet{
+  background:radial-gradient(ellipse at 59% 41%,#e5c7ff83 0%,#a775e84a 16%,#5c378a21 35%,transparent 63%);
+}
+.lightning-bolt{
+  position:absolute;z-index:7;inset:0;width:100%;height:100%;
+  max-width:none;opacity:0;filter:none;pointer-events:none;transition:opacity .12s ease-out;
+}
+.lightning-bolt.flash{opacity:1}
+.audio-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.p-test{min-width:0;min-height:44px;padding:8px 6px;color:#ffeac0;
+  background:linear-gradient(#58371e,#2b150e);border:1px solid #a9793e;border-radius:8px;
+  font:bold clamp(12px,2.7vw,15px) Georgia,serif}
+.p-test:active{filter:brightness(1.2)}
+/* Prevent effects from covering the approved controls. */
+.stage .realweb{max-height:12.5%}
+/* Reduced-motion keeps motion/lightning disabled by default, with an explicit opt-in. */
+@media(prefers-reduced-motion:reduce){
+ .stage.user-flash-opt-in .lightning-bolt,.stage.user-flash-opt-in .storm-light{display:block!important}
+}
 </style>
 </head>
 <body>
@@ -198,7 +225,16 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 
 
 <div class="storm-light" id="stormLight" aria-hidden="true"></div>
-<svg class="lightning-bolt" id="bolt" viewBox="0 0 80 140" aria-hidden="true"><path d="M47 5 L19 63 L41 62 L26 134 L69 53 L44 53 Z" stroke="#f1f6ff" stroke-width="5" fill="#d7eeff"/></svg>
+<svg class="lightning-bolt" id="bolt" viewBox="0 0 941 1672" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+ <defs>
+  <clipPath id="skyCut"><path d="M497 160 Q510 147 533 151 L546 153 L546 253 L497 253 Z M560 155 Q581 145 610 161 L615 252 L560 252 Z"/></clipPath>
+  <filter id="electricBloom" x="-75%" y="-75%" width="250%" height="250%"><feGaussianBlur stdDeviation="3.6"/></filter>
+ </defs>
+ <g id="electricArcs" clip-path="url(#skyCut)">
+   <g id="electricGlow" filter="url(#electricBloom)"></g>
+   <g id="electricCore"></g>
+ </g>
+</svg>
 <button class="hit exit-hit" type="button" id="exitHit" aria-label="Exit, preview only">Exit</button>
 <button class="hit menu-hit" type="button" id="menuHit" aria-label="Open Saloon Settings">Menu</button>
 <button class="hit bottom-hit undo" type="button" data-demo="Undo is not active in this visual preview." aria-label="Undo, preview only">Undo</button>
@@ -218,6 +254,18 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 <input id="lightningToggle" type="checkbox" checked>
 <span><strong>Lightning Flashes</strong></span>
 </label>
+<label class="menu-option">
+<input id="gameAudioToggle" type="checkbox" checked>
+<span><strong>Game Sound Effects</strong></span>
+</label>
+<label class="menu-option">
+<input id="ambientAudioToggle" type="checkbox">
+<span><strong>Halloween Ambience</strong></span>
+</label>
+<div class="audio-actions">
+<button class="p-test" id="testStorm" type="button">TEST STORM</button>
+<button class="p-test" id="testCards" type="button">HEAR CARD DEAL</button>
+</div>
 <button class="bigbutton blue" type="button" data-close="menuLayer" style="width:100%">RETURN TO SALOON</button>
 </section>
 </div>
@@ -265,34 +313,190 @@ body{display:flex;flex-direction:column;min-height:0;max-width:100%;overflow:hid
 "use strict";
 var stage=document.getElementById("stage"),status=document.getElementById("status"),rain=document.getElementById("rainLayer");
 var classicBtn=document.getElementById("classicBtn"),halloweenBtn=document.getElementById("halloweenBtn"),lighting=document.getElementById("stormLight"),bolt=document.getElementById("bolt"),toggle=document.getElementById("lightningToggle");
+var gameSoundToggle=document.getElementById("gameAudioToggle"),ambientSoundToggle=document.getElementById("ambientAudioToggle");
+var arcGlow=document.getElementById("electricGlow"),arcCore=document.getElementById("electricCore");
+var strikeOff=null,thunderDelay=null;
+
 var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 var canStore=true;function get(k){try{return localStorage.getItem(k)}catch(e){canStore=false;return null}}function put(k,v){if(!canStore)return;try{localStorage.setItem(k,v)}catch(e){}}
 var stored=get("tscms_visual_demo_lightning_v1");var lightningOn=stored===null?!reduced:stored==="on";
-toggle.checked=lightningOn;
+var gameSoundOn=get("tscms_storm_v5_game_sound")!=="off";
+var ambienceOn=get("tscms_storm_v5_ambience")==="on";
+toggle.checked=lightningOn;gameSoundToggle.checked=gameSoundOn;ambientSoundToggle.checked=ambienceOn;
 var theme="halloween",timer=null,paused=false,vis=document.visibilityState==="visible",toastTimer=null;
 function say(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true},3600)}
 function updateStatus(){status.textContent=theme==="classic"?"Classic saloon · no storm":(paused?"Halloween · paused":(lightningOn?"Halloween · rain + lightning":"Halloween · rain only"))}
-function clearFlash(){lighting.classList.remove("flash");bolt.classList.remove("flash")}
-function stormTick(){clearTimeout(timer);clearFlash();if(theme!=="halloween"||!lightningOn||paused||!vis)return;timer=setTimeout(function(){if(theme!=="halloween"||!lightningOn||paused||!vis)return;lighting.classList.add("flash");bolt.classList.add("flash");setTimeout(function(){clearFlash();stormTick()},340)},5000+Math.random()*8000)}
-function setTheme(value){theme=value;stage.classList.toggle("halloween",theme==="halloween");classicBtn.classList.toggle("active",theme==="classic");halloweenBtn.classList.toggle("active",theme==="halloween");updateStatus();stormTick();document.querySelectorAll('input[name="theme"]').forEach(function(r){r.checked=r.value===value});}
-function setLightning(v){lightningOn=!!v;toggle.checked=lightningOn;stage.classList.toggle("user-flash-opt-in",lightningOn);put("tscms_visual_demo_lightning_v1",lightningOn?"on":"off");updateStatus();stormTick();}
+/* Original browser-side lightning geometry: no third-party shader code or copied assets. */
+function clearFlash(){
+  clearTimeout(strikeOff);clearTimeout(thunderDelay);
+  lighting.classList.remove("flash","violet");bolt.classList.remove("flash");
+}
+function makeLightning(violet){
+  var NS="http://www.w3.org/2000/svg", minX=502,maxX=608;
+  var baseX=535+Math.random()*46,points=[[baseX,149]],x=baseX,y=149;
+  for(var i=0;i<13;i++){
+    y=Math.min(255,y+8+Math.random()*4);
+    x=Math.max(minX,Math.min(maxX,x+(Math.random()-.5)*21));
+    points.push([x,y]);
+  }
+  var paths=[points];
+  for(var k=0;k<7;k++){
+    var ix=2+Math.floor(Math.random()*(points.length-5));
+    var p=points[ix],way=Math.random()<.5?-1:1,branch=[p],bx=p[0],by=p[1];
+    for(var t=0;t<3;t++){
+      bx=Math.max(minX,Math.min(maxX,bx+way*(6+Math.random()*12)));
+      by+=5+Math.random()*7;branch.push([bx,by]);
+    }
+    paths.push(branch);
+  }
+  arcCore.textContent="";arcGlow.textContent="";
+  var coreColor=violet?"#f2deff":"#edfaff",aura=violet?"#b46cff":"#5fa8ff";
+  paths.forEach(function(arr,index){
+    var d=arr.map(function(p,j){return (j?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)}).join(" ");
+    var glow=document.createElementNS(NS,"path");
+    glow.setAttribute("d",d);glow.setAttribute("fill","none");
+    glow.setAttribute("stroke",aura);glow.setAttribute("stroke-width",index?4.5:8);
+    glow.setAttribute("stroke-linecap","round");arcGlow.appendChild(glow);
+    var core=document.createElementNS(NS,"path");
+    core.setAttribute("d",d);core.setAttribute("fill","none");
+    core.setAttribute("stroke",index?aura:coreColor);
+    core.setAttribute("stroke-width",index?0.8:1.9);
+    core.setAttribute("stroke-linecap","round");arcCore.appendChild(core);
+  });
+}
+function stormAllowed(){return theme==="halloween"&&!paused&&vis}
+function strikeStorm(fromTest){
+  clearTimeout(timer);clearFlash();
+  if(!stormAllowed())return;
+  var violet=Math.random()<.38;
+  if(lightningOn){
+    makeLightning(violet);
+    if(violet)lighting.classList.add("violet");
+    lighting.classList.add("flash");bolt.classList.add("flash");
+    strikeOff=setTimeout(function(){clearFlash();stormTick()},310);
+  }else{stormTick()}
+  if(ambienceOn){
+    thunderDelay=setTimeout(function(){if(ambienceOn&&stormAllowed())playThunder()},360);
+  }
+  if(fromTest && !lightningOn && !ambienceOn)say("Enable Lightning Flashes or Halloween Ambience to preview the storm.");
+}
+function stormTick(){
+  clearTimeout(timer);
+  if(!stormAllowed()){clearFlash();return;}
+  timer=setTimeout(function(){strikeStorm(false)},7000+Math.random()*9000);
+}
+function setTheme(value){theme=value;stage.classList.toggle("halloween",theme==="halloween");classicBtn.classList.toggle("active",theme==="classic");halloweenBtn.classList.toggle("active",theme==="halloween");updateStatus();stormTick();syncRain();document.querySelectorAll('input[name="theme"]').forEach(function(r){r.checked=r.value===value});}
+function setLightning(v){lightningOn=!!v;toggle.checked=lightningOn;stage.classList.toggle("user-flash-opt-in",lightningOn);put("tscms_visual_demo_lightning_v1",lightningOn?"on":"off");clearFlash();updateStatus();stormTick();}
 toggle.addEventListener("change",function(){setLightning(toggle.checked)});
 classicBtn.addEventListener("click",function(){setTheme("classic")});halloweenBtn.addEventListener("click",function(){setTheme("halloween")});
 document.getElementById("welcomeBtn").addEventListener("click",function(){show("welcomeLayer")});
-document.getElementById("newHit").addEventListener("click",function(){show("welcomeLayer")});
+document.getElementById("newHit").addEventListener("click",function(){playCardNoise("tap",0);show("welcomeLayer")});
 document.getElementById("menuHit").addEventListener("click",function(){show("menuLayer")});
 document.getElementById("exitHit").addEventListener("click",function(){say("Preview only: nothing to save or exit. No actual game has been started.")});
-document.querySelectorAll("[data-demo]").forEach(function(b){b.addEventListener("click",function(){say(b.getAttribute("data-demo"))})});
-document.getElementById("pauseHit").addEventListener("click",function(){paused=!paused;stage.querySelector(".window-weather").style.animationPlayState=paused?"paused":"running";document.querySelectorAll(".window-weather line").forEach(function(n){n.style.animationPlayState=paused?"paused":"running"});updateStatus();stormTick();say(paused?"Weather preview paused. Tap Pause again to resume.":"Weather preview resumed.")});
+document.querySelectorAll("[data-demo]").forEach(function(b){b.addEventListener("click",function(){playCardNoise("tap",0);say(b.getAttribute("data-demo"))})});
+document.getElementById("pauseHit").addEventListener("click",function(){paused=!paused;stage.querySelector(".window-weather").style.animationPlayState=paused?"paused":"running";document.querySelectorAll(".window-weather line").forEach(function(n){n.style.animationPlayState=paused?"paused":"running"});updateStatus();stormTick();syncRain();say(paused?"Weather preview paused. Tap Pause again to resume.":"Weather preview resumed.")});
 function show(id){document.getElementById(id).hidden=false;var f=document.getElementById(id).querySelector("button");if(f)f.focus()}
 function hide(id){document.getElementById(id).hidden=true}
 document.querySelectorAll("[data-close]").forEach(function(b){b.addEventListener("click",function(){hide(b.dataset.close)})});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")["menuLayer","welcomeLayer"].forEach(hide)});
 document.getElementById("previewStart").addEventListener("click",function(){var checked=document.querySelector('input[name="theme"]:checked');var selected=checked?checked.value:"classic";hide("welcomeLayer");if(selected==="halloween"&&document.getElementById("swiperPref").checked){show("spiritLayer")}else{setTheme(selected);say("Visual preview only: no Solitaire game or Swiper encounter was started.")}});
 document.getElementById("spiritClassic").addEventListener("click",function(){hide("spiritLayer");setTheme("classic");say("Classic Saloon preview selected.")});
-document.getElementById("spiritAccept").addEventListener("click",function(){hide("spiritLayer");setTheme("halloween");say("Halloween weather preview selected. Open Menu to disable lightning.")});
+document.getElementById("spiritAccept").addEventListener("click",function(){hide("spiritLayer");setTheme("halloween");playDeal();say("Halloween preview selected. Audio and lightning options are under Menu.")});
 document.getElementById("moreHelp").addEventListener("click",function(){say("In the final game, this opens the expanded rulebook. This preview demonstrates layout and atmosphere only.")});
-document.addEventListener("visibilitychange",function(){vis=document.visibilityState==="visible";stormTick()});
+document.addEventListener("visibilitychange",function(){vis=document.visibilityState==="visible";stormTick();syncRain()});window.addEventListener("pagehide",function(){stopRain();clearTimeout(timer);clearFlash()});
+
+/* Self-contained AUDIO PROTOTYPE. These are generated samples; final production
+   may replace them with properly licensed recorded sounds after review. */
+var audioCtx=null,master=null,rainSource=null,rainGain=null,rainBuf=null;
+function soundReady(){
+  try{
+    var C=window.AudioContext||window.webkitAudioContext;if(!C)return false;
+    if(!audioCtx){audioCtx=new C();master=audioCtx.createGain();master.gain.value=.5;master.connect(audioCtx.destination);}
+    if(audioCtx.state==="suspended")audioCtx.resume().catch(function(){});
+    return audioCtx.state!=="closed";
+  }catch(e){return false}
+}
+function noiseData(seconds){
+  var rate=audioCtx.sampleRate,buf=audioCtx.createBuffer(1,Math.ceil(rate*seconds),rate),d=buf.getChannelData(0),last=0;
+  for(var i=0;i<d.length;i++){var w=Math.random()*2-1;last=(last+.04*w)/1.04;d[i]=w*.45+last*.55}
+  return buf;
+}
+function stopRain(){
+  if(!rainSource)return;
+  try{rainGain.gain.cancelScheduledValues(audioCtx.currentTime);rainGain.gain.setTargetAtTime(0,audioCtx.currentTime,.10);
+    rainSource.stop(audioCtx.currentTime+.5);}catch(e){}
+  rainSource=null;rainGain=null;
+}
+function syncRain(){
+  if(!ambienceOn||theme!=="halloween"||paused||!vis){stopRain();return}
+  if(!soundReady()||rainSource)return;
+  if(!rainBuf)rainBuf=noiseData(3);
+  var src=audioCtx.createBufferSource(),high=audioCtx.createBiquadFilter(),low=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();
+  src.buffer=rainBuf;src.loop=true;
+  high.type="highpass";high.frequency.value=360;
+  low.type="lowpass";low.frequency.value=4000;
+  gain.gain.value=0;gain.gain.setTargetAtTime(.13,audioCtx.currentTime,.7);
+  src.connect(high);high.connect(low);low.connect(gain);gain.connect(master);src.start();
+  rainSource=src;rainGain=gain;
+}
+function oneNoise(dur,freq,amp,t){
+  if(!audioCtx||audioCtx.state==="closed")return;
+  var now=audioCtx.currentTime+(t||0);
+  var src=audioCtx.createBufferSource(),flt=audioCtx.createBiquadFilter(),vol=audioCtx.createGain();
+  src.buffer=noiseData(dur+.15);flt.type="lowpass";flt.frequency.value=freq;
+  vol.gain.setValueAtTime(.0001,now);
+  vol.gain.exponentialRampToValueAtTime(Math.max(.001,amp),now+.075);
+  vol.gain.exponentialRampToValueAtTime(.0001,now+dur);
+  src.connect(flt);flt.connect(vol);vol.connect(master);src.start(now);src.stop(now+dur+.05);
+}
+function playThunder(){
+  if(!ambienceOn||!soundReady())return;
+  oneNoise(2.7,210,.27,0);
+  oneNoise(2.2,140,.22,.23);
+  oneNoise(1.6,450,.11,.5);
+}
+function playCardNoise(flavour,offset){
+  if(!gameSoundOn||!soundReady())return;
+  var now=audioCtx.currentTime+(offset||0);
+  var src=audioCtx.createBufferSource(),flt=audioCtx.createBiquadFilter(),gain=audioCtx.createGain();
+  src.buffer=noiseData(.17);
+  flt.type="bandpass";flt.frequency.value=flavour==="deal"?1000:1500;flt.Q.value=.8;
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.linearRampToValueAtTime(flavour==="deal"?.28:.17,now+.009);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+(flavour==="deal"?.10:.055));
+  src.connect(flt);flt.connect(gain);gain.connect(master);src.start(now);src.stop(now+.15);
+}
+function playDeal(){
+  if(!gameSoundOn)return;
+  for(var n=0;n<7;n++)playCardNoise("deal",n*.085);
+}
+function playSwipe(){
+  if(!gameSoundOn||!soundReady())return;
+  var now=audioCtx.currentTime,src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();
+  src.buffer=noiseData(.75);f.type="bandpass";f.frequency.setValueAtTime(280,now);
+  f.frequency.exponentialRampToValueAtTime(2200,now+.42);
+  g.gain.setValueAtTime(.0001,now);g.gain.linearRampToValueAtTime(.13,now+.16);
+  g.gain.exponentialRampToValueAtTime(.0001,now+.66);
+  src.connect(f);f.connect(g);g.connect(master);src.start(now);src.stop(now+.7);
+}
+gameSoundToggle.addEventListener("change",function(){
+  gameSoundOn=gameSoundToggle.checked;put("tscms_storm_v5_game_sound",gameSoundOn?"on":"off");
+  if(gameSoundOn)playCardNoise("tap",0);
+});
+ambientSoundToggle.addEventListener("change",function(){
+  ambienceOn=ambientSoundToggle.checked;put("tscms_storm_v5_ambience",ambienceOn?"on":"off");
+  if(ambienceOn)soundReady();
+  syncRain();
+});
+document.getElementById("testStorm").addEventListener("click",function(){
+  hide("menuLayer");if(theme!=="halloween")setTheme("halloween");
+  if(ambienceOn)soundReady();strikeStorm(true);
+});
+document.getElementById("testCards").addEventListener("click",function(){
+  if(!gameSoundOn){say("Turn on Game Sound Effects to hear the cards.");return}
+  playDeal();setTimeout(playSwipe,700);
+});
+
 var NS="http://www.w3.org/2000/svg";
 var rand=function(a,b){return a+Math.random()*(b-a)};
 for(var i=0;i<115;i++){var line=document.createElementNS(NS,"line");var x=rand(0,941),y=rand(100,310);line.setAttribute("x1",x.toFixed(1));line.setAttribute("x2",(x-3).toFixed(1));line.setAttribute("y1",y.toFixed(1));line.setAttribute("y2",(y+rand(9,22)).toFixed(1));line.style.animationDuration=rand(.65,1.22).toFixed(2)+"s";line.style.animationDelay=(-rand(0,2)).toFixed(2)+"s";line.style.opacity=rand(.20,.64).toFixed(2);rain.appendChild(line)}
