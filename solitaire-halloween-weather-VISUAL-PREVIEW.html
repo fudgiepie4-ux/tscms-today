@@ -373,7 +373,7 @@ function strikeStorm(fromTest){
     makeLightning(violet);
     if(violet)lighting.classList.add("violet");
     lighting.classList.add("flash");bolt.classList.add("flash");
-    strikeOff=setTimeout(function(){clearFlash();stormTick()},310);
+    strikeOff=setTimeout(function(){lighting.classList.remove("flash","violet");bolt.classList.remove("flash");stormTick()},310);
   }else{stormTick()}
   if(ambienceOn){
     thunderDelay=setTimeout(function(){if(ambienceOn&&stormAllowed())playThunder()},360);
@@ -462,8 +462,8 @@ function playCardNoise(flavour,offset){
   src.buffer=noiseData(.17);
   flt.type="bandpass";flt.frequency.value=flavour==="deal"?1000:1500;flt.Q.value=.8;
   gain.gain.setValueAtTime(.0001,now);
-  gain.gain.linearRampToValueAtTime(flavour==="deal"?.28:.17,now+.009);
-  gain.gain.exponentialRampToValueAtTime(.0001,now+(flavour==="deal"?.10:.055));
+  gain.gain.linearRampToValueAtTime(flavour==="deal" ? 0.28 : 0.17,now+.009);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+(flavour==="deal" ? 0.10 : 0.055));
   src.connect(flt);flt.connect(gain);gain.connect(master);src.start(now);src.stop(now+.15);
 }
 function playDeal(){
