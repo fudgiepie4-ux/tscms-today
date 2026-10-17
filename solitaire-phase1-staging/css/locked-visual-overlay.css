@@ -207,3 +207,33 @@ html,body { background: #100705; }
   margin: 8px 0 0 0;
   font-weight: bold;
 }
+
+/* Viewer correction v9 (Clara handoff 2026-10-16) — apply ONLY when the full PNG is loaded.
+   Do not change approved PNGs; keep ivory/high-contrast fallback unchanged. */
+#fullCard.art-loaded {
+  width: auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  max-width: calc(100vw - 70px);
+  aspect-ratio: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  overflow: visible;
+  display: block;
+}
+#fullCard.art-loaded img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(82vw, 340px);
+  max-height: calc(100dvh - 190px);
+  aspect-ratio: auto;
+  object-fit: contain;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, .55);
+}
