@@ -1,15 +1,15 @@
 # TSCMS Gamehouse — Single Halloween + Swiper integration-readiness handoff
 **Date:** 2026-10-17
-**Status:** REVIEW/HANDOFF ONLY. **Do not implement, merge into the playable Solitaire stage, or deploy publicly based on this note.** Owner has approved *visual V5 only*. The independent V6 menu preview has not received owner approval. This document is a mapping of existing source contracts and known validation needs.
+**Status:** REVIEW/HANDOFF ONLY. **Do not implement, merge into the playable Solitaire stage, or deploy publicly based on this note.** Owner approved *visual V5* and subsequently approved the **hamburger menu design in V6 except for Halloween Ambience, which is explicitly NOT approved**. This is not a full V6 functional signoff; sound is not working on the owner's device. This document is a mapping of existing source contracts and known validation needs.
 
 ## 1. Sources and authoritative approvals
 
 - **Approved saloon master:** `assets/TSCMS_APPROVED_MASTER_DOWNLOAD.png`. Keep pixel-identical; card-free portrait board with actual approved controls, colored TSCMS Radio jukebox and slots.
 - **Halloween visual reference (owner-approved V5 appearance only):** `solitaire-halloween-weather-VISUAL-PREVIEW.html` at the V5 review point. This page has undergone updates in place, so obtain the exact visual approval snapshot/commit before moving assets rather than assuming the current tip is identical to the approved moment.
-- **Menu experiment (awaiting owner visual/functional review):** `solitaire-halloween-V6-FUNCTIONAL-MENU-PREVIEW.html`.
+- **V6 hamburger-menu layout approved, except Halloween Ambience NOT approved:** `solitaire-halloween-V6-FUNCTIONAL-MENU-PREVIEW.html`. Do not infer working feature approval or deploy it without independent review.
 - **Live gameplay staging (not authorized for public release):** `solitaire-phase1-LOCKED-visual-STAGING.html`.
 - User affirmed Halloween and Swiper are **equal first-launch priorities**; neither is deferred.
-- **Sign-off scope:** Owner approved Halloween atmosphere (rain, dramatic blue/purple lightning, subtle realistic cobwebs), original saloon preservation, and fitting the whole gameplay surface with controls on mobile/tablet. Owner did **not** approve working menu, audio, final Swiper integration, testing, or public launch.
+- **Sign-off scope:** Owner approved Halloween atmosphere (rain, dramatic blue/purple lightning, subtle realistic cobwebs), original saloon preservation, and fitting the whole gameplay surface with controls on mobile/tablet. Owner approved the **V6 hamburger-menu arrangement**, but **explicitly withheld approval for its Halloween Ambience feature**. Owner has **not** approved functioning audio, final Swiper integration, testing, or public launch. The rejected ambience option is not cleared for integration.
 - Do not add clip-art, emojis, new branding/title, substitute jukebox, or another card design. Interior card faces/timer/controls must remain legible. Do not replace the approved menu location.
 - V6 source is an **interactive mockup**. Its card-handling, Swiper, and saved-game functions are not real and must not be described as operational.
 
@@ -41,7 +41,7 @@
 Audio sample prototype V5/V6 uses WebAudio-generated noise. **Owner reported sound did not work on their device**. This remains a defect/open requirement, not approved, regardless of other preview settings.
 - Desired game SFX: dealing, card selection, placement, Undo, victory; Swiper entry/theft/flee/scare.
 - Halloween ambience: outside rain, thunder timed *after* lightning, wind/wood creaks if approved. Keep naturalistic, not comedic.
-- Expose simple independent saved `Game Sound Effects`, `Halloween Ambience`, and `Lightning Flashes` controls. Music/radio remains separately controlled; effects must not interrupt/restart the shared jukebox.
+- `Lightning Flashes` and the hamburger-menu design are approved in concept. `Game Sound Effects` remain functionally unverified. **`Halloween Ambience` was expressly NOT approved by owner in V6 review**; do not count its menu toggle or current implementation as approved. Preserve the earlier requested possibility of optional rain/thunder audio only as an *open requirement* for owner reconsideration, not a permission to integrate this rejected version. Music/radio remains separately controlled; effects must not interrupt/restart the shared jukebox.
 - Browser policies: start/resume audio on a direct user interaction and report `AudioContext.state` honestly; pause/visibility/Exit must stop/fade loops; one loop only. Respect muted device/browser/OS and failures without blocking game. Use appropriately licensed or newly produced assets for real production.
 - **Do not call this functionality complete until physical Android/tablet tests play sound reliably.**
 
@@ -56,12 +56,12 @@ Audio sample prototype V5/V6 uses WebAudio-generated noise. **Owner reported sou
 
 ## 6. Next build order and acceptance gates
 
-1. Owner may test V6 menu separately; **do not infer approval from “next”**. Carry forward V5-only visual signoff.
+1. **Updated owner decision:** V5 Halloween visuals APPROVED; V6 hamburger-menu design APPROVED *except Halloween Ambience NOT APPROVED*. Do not infer any further signoff from “next”; carry forward audio and true engine behavior as unapproved.
 2. Cherish independently reviews this mapping against her latest engine files and corrects stale details **without modifying production**.
-3. Once owner approves functional menu concept, extend the **existing** staging menu and session prefs—do not create a second parallel startup/menu stack. Integrate theme renderer as visual-only subscriber to genuine game DOM; no state mutation from weather/sprites.
+3. With hamburger-menu design approved but its Halloween Ambience item excluded, extend the **existing** staging menu only after an explicit separate implementation go-ahead and session prefs—do not create a second parallel startup/menu stack. Integrate theme renderer as visual-only subscriber to genuine game DOM; no state mutation from weather/sprites.
 4. Integrate approved Swiper into Solitaire staging with engine authority and dynamic card overlay; test safely with Halloween enabled and disabled.
 5. Wire licensed/proper SFX and ambient audio to gameplay events, taking precedence rules for music/radio and device activation into account; test after user interaction.
 6. Regression: 55 original approved card PNGs, correct foundation mapping, Save/Exit, Draw1/Draw3, time/HUD, pause/resume, no-scroll mobile/tablet, readability, visual toggle, 25/35% modes, Swiper Undo barrier and Joker scare, audio toggles on actual mobile.
-7. Maintain separate owner gates: **visual V5 APPROVED; menu V6 PENDING; audio PENDING; Swiper PENDING; integrated game PENDING; public deployment NO-GO**. Final launch requires explicit owner approval.
+7. Maintain separate owner gates: **visual V5 APPROVED; V6 hamburger-menu design APPROVED EXCEPT Halloween Ambience NOT APPROVED; functional menu implementation UNVERIFIED; audio NOT WORKING/PENDING; Swiper PENDING; integrated game PENDING; public deployment NO-GO**. Final launch requires explicit owner approval.
 
 **Reviewer response requested:** identify contract mismatches with the *current* Cherish engine, highlight blocker/priority, and report test evidence before proposing a consolidated implementation plan. This note does not grant permission to implement or deploy.
