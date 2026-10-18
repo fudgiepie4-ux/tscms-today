@@ -83,13 +83,18 @@
 <script src="solitaire-phase1-staging/js/save-system.js"></script>
 <script src="solitaire-phase1-staging/js/pause-system.js"></script>
 <script src="solitaire-phase1-staging/js/session-manager.js"></script>
+<script src="solitaire-phase1-staging/js/mischief-engine.js"></script>
+<script src="solitaire-phase1-staging/js/mischief-integration.js"></script>
+<script src="solitaire-phase1-staging/js/tscms-swiper-testmode.js"></script>
+<script src="solitaire-phase1-staging/js/swiper-testmode-integration.js"></script>
+<script src="solitaire-phase1-staging/js/swiper-launch-bootstrap.js"></script>
 <script src="solitaire-phase1-staging/js/renderer-binding.js"></script>
 <script src="solitaire-phase1-staging/js/locked-visual-adapter.js"></script><script>
-// Initialize on DOM ready
+// Initialize on DOM ready — Swiper bootstrap wraps renderer init
 document.addEventListener('DOMContentLoaded', function() {
   try {
-    RendererBinding.init();
-    console.log('Phase 1 staging initialized');
+    SwiperLaunchBootstrap.start(() => RendererBinding.init());
+    console.log('Phase 1 staging initialized (Swiper bootstrap)');
   } catch (e) {
     console.error('Phase 1 init failed:', e);
   }
