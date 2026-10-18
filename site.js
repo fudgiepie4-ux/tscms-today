@@ -1,0 +1,1 @@
+fetch('banner.jpg').then(r=>r.text()).then(t=>{ const b=document.getElementById('bannerImg'); b.src='data:image/jpeg;base64,'+t.replace(/\s+/g,''); b.style.display='block'; }).catch(()=>{});
