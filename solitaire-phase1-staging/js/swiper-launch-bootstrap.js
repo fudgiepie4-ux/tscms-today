@@ -175,7 +175,7 @@ const SwiperLaunchBootstrap = (() => {
     const field=document.createElement('div');field.id='swiper-mode-field';
     field.style.cssText='border-top:1px solid #b68b4d;padding-top:12px;margin-top:14px;text-align:left;';
     const heading=document.createElement('h3');heading.textContent='SWIPER GHOST';field.appendChild(heading);
-    const p=document.createElement('p');p.style.fontSize='13px';p.textContent='Mode changes apply when you begin your next deal.';field.appendChild(p);
+    const p=document.createElement('p');p.style.fontSize='13px';p.textContent="Changes to Swiper take effect when you start your next new game. Your current game won't change.";field.appendChild(p);
     const classic=makeButton('Play Classic next deal',()=>{setPreference('ghostMode',false);announce('Classic selected for next new deal.');});
     const swiper=makeButton('Play with Swiper next deal',()=>{setPreference('ghostMode',true);announce('Swiper selected for next new deal.');});
     classic.style.marginRight='8px'; field.append(classic,swiper);

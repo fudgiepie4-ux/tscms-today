@@ -7,14 +7,16 @@
    provides a TRUTHFUL visible diagnostic: it shows exactly what the
    engine did, when, and to which card. It is NOT a fake animation.
 
-   ASSET STATUS (per Clara's instruction to state exactly):
+   ASSET STATUS (truthful, updated 2026-10-18):
    - Approved 4-panel "GHOST ENCOUNTER / JOKER SCARE" comic: exists
      in Drive (01_Public_Website) but NOT in the repo. Cannot be
      referenced from the staging page.
    - Approved 7-panel animation reference + 10-frame asset sheet:
      exists in Drive, NOT in the repo. No cut-out sprite PNGs exist.
-   - CONCLUSION: No usable Swiper sprite assets exist in the repo.
-     This diagnostic uses text + emoji only, clearly labeled.
+   - Approved V2 ghost art (7 poses): INSTALLED in the repo at
+     solitaire-phase1-staging/swiper-v2-approved-art/ (commit 35fea6c),
+     wired by swiper-visual-bridge-v2.js.
+   CONCLUSION: The V2 7-pose ghost art set is installed and staged.
 
    EVENTS WIRED:
      mischief:strike  — encounter scheduled/fired
@@ -108,7 +110,8 @@
         e.detail + '</div>';
     }
     html += '<div class="diag-note">This is a test diagnostic, not the final ' +
-      'Swiper animation. Approved sprite art is not yet in the repo.</div>';
+      'Swiper animation. Approved V2 ghost art (7 poses) is installed in the ' +
+      'repo at solitaire-phase1-staging/swiper-v2-approved-art/ (commit 35fea6c).</div>';
     panel.innerHTML = html;
     panel.hidden = false;
 
