@@ -95,7 +95,15 @@ const SwiperLaunchBootstrap = (() => {
         const str = localStorage.getItem(activeKey());
         if (!str) return null;
         const data = JSON.parse(str);
-        return S.validate(data) ? data : null;
+        if (!S.validate(data)) return null;
+        // Test mode: re-apply forced override on reload. Saved test games
+        // are sanitized (no forced scheduling), so without this a reload
+        // of ?swiper_test=100 would restore a clean game with no encounter.
+        // The URL param is still present, so the user expects a forced test.
+        if (config && data.mischief) {
+          T.applyToNewGame(data.mischief, config);
+        }
+        return data;
       } catch(e) {return null;}
     };
     // Original hasSave internally calls lexical load(), so it MUST be wrapped.
