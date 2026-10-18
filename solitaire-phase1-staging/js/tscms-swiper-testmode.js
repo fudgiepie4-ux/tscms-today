@@ -20,7 +20,7 @@
 const SwiperTestMode = (() => {
 
   const BADGE_FORCED = '👻 SWIPER TEST MODE — FORCED';
-  const BADGE_SCARE = '👻 SWIPER TEST — JOKER SCARE';
+  const BADGE_SCARE = '👻 SWIPER TEST — JOKER SCARE · DETERMINISTIC DEAL';
   const STRIKE_MOVE = 3;
   const HALLOWEEN_SECOND_STRIKE = 18;
 
@@ -118,6 +118,69 @@ const SwiperTestMode = (() => {
     return null;  // no exposed Joker — tester must rig one
   }
 
+
+  /**
+   * Deterministic scare deal (Fudgie 2026-10-18 via Clara): preload ONE real
+   * Joker face-up on a tableau top at deal time, so the move-3 scare check
+   * always finds an eligible target — no blind drawing.
+   *
+   * Staging/test-only: called only from the test integration when
+   * testConfig.mode === 'scare'. Swaps the Joker with the top card of the
+   * tallest tableau pile. 54 unique cards preserved; faceUp flags kept
+   * consistent with positions (tableau top = exposed). Foundations are
+   * empty on a fresh deal and are never touched. Returns true on success.
+   */
+  function rigDeterministicScareDeal(gameState) {
+    if (!gameState || !Array.isArray(gameState.tableau)) return false;
+    const stock = gameState.stock || [];
+    const waste = gameState.waste || [];
+
+    // Find the first Joker: prefer stock/waste over an already-exposed one.
+    let from = null;
+    const piles = [['stock', stock], ['waste', waste]];
+    for (const [pname, pile] of piles) {
+      for (let i = 0; i < pile.length; i++) {
+        if (pile[i] && pile[i].isJoker) { from = { pname, idx: i }; break; }
+      }
+      if (from) break;
+    }
+    if (!from) {
+      for (let col = 0; col < gameState.tableau.length; col++) {
+        const pile = gameState.tableau[col] || [];
+        for (let i = 0; i < pile.length; i++) {
+          if (pile[i] && pile[i].isJoker) { from = { pname: 'tableau', col, idx: i }; break; }
+        }
+        if (from) break;
+      }
+    }
+    if (!from) return false; // no Joker in deal (should never happen: 2 in 54)
+
+    // Destination: top of the tallest tableau pile (most visible).
+    let destCol = 0, destLen = -1;
+    gameState.tableau.forEach((pile, col) => {
+      if (pile && pile.length > destLen) { destLen = pile.length; destCol = col; }
+    });
+    const destPile = gameState.tableau[destCol];
+    if (!destPile || destPile.length === 0) return false;
+    const destIdx = destPile.length - 1;
+
+    // Already rigged: Joker exposed on the destination top.
+    if (from.pname === 'tableau' && from.col === destCol && from.idx === destIdx) return true;
+
+    const getPile = (loc) => loc.pname === 'stock' ? stock
+      : loc.pname === 'waste' ? waste : gameState.tableau[loc.col];
+    const fromPile = getPile(from);
+    const jokerCard = fromPile[from.idx];
+    const displaced = destPile[destIdx];
+    const jokerWasFaceUp = !!jokerCard.faceUp;
+
+    fromPile[from.idx] = displaced;
+    displaced.faceUp = jokerWasFaceUp;   // keeps the Joker's old exposure
+    destPile[destIdx] = jokerCard;
+    jokerCard.faceUp = true;             // exposed on the tableau top
+    return true;
+  }
+
   /**
    * G4 (fixed per Clara v2 review): Strip test-forced fields before the state
    * is serialized. Detects test state via _testModeWasActive BEFORE stripping,
@@ -192,6 +255,7 @@ const SwiperTestMode = (() => {
     parseFromUrl,
     applyOverride,
     selectScareTarget,
+    rigDeterministicScareDeal,
     sanitizeForSave,
     isTestState,
     badgeText,
