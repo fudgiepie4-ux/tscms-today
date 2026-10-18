@@ -130,7 +130,9 @@ const SwiperLaunchBootstrap = (() => {
       const live = E._getState();
       if (live && live.mischief) {
         live.mischief.enabled = p.ghostMode === true;
-        if(config) T.applyToNewGame(live.mischief,config);
+        // Pass the live game state so scare test mode can rig the
+        // deterministic Joker-exposed deal (staging/test-only).
+        if(config) T.applyToNewGame(live.mischief,config,live);
       }
       return result;
     };
