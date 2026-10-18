@@ -64,6 +64,19 @@
     return v + s;
   }
 
+  function cardNameFromArtId(artId) {
+    if (!artId) return '(none)';
+    if (artId.indexOf('joker') === 0) return '🃏 Joker';
+    // artId format: {suit}{value} e.g. "s4", "h11", "d1", "c13"
+    var m = artId.match(/^([shdc])(\d+)$/);
+    if (!m) return artId;
+    var suits = { s: '♠', h: '♥', d: '♦', c: '♣' };
+    var vals = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+    var v = vals[m[2]] || m[2];
+    var s = suits[m[1]] || m[1];
+    return v + s;
+  }
+
   function ensurePanel() {
     var panel = document.getElementById(PANEL_ID);
     if (panel) return panel;
@@ -134,34 +147,35 @@
     document.addEventListener('mischief:strike', function (e) {
       if (!isTestActive()) return;
       var d = (e && e.detail) || {};
-      log('STRIKE 👻', 'Swiper encounter fired at move ' + (d.moveCount || '?'));
+      log('STRIKE 👻', d.flyby ? 'Swiper flyby — no target found' : 'Swiper encounter #' + (d.encounterNumber + 1) + ' fired');
     });
 
     document.addEventListener('mischief:target', function (e) {
       if (!isTestActive()) return;
       var d = (e && e.detail) || {};
-      log('TARGET 🎯', 'Targeting ' + cardName(d.card) +
-        (d.from ? ' from ' + d.from : ''));
+      var targetDesc = (d.card && d.card.isJoker) ? '🃏 Joker (scare)' : 'card';
+      log('TARGET 🎯', 'Targeting ' + targetDesc +
+        (d.from ? ' from ' + d.from + (d.col !== undefined ? ' col ' + d.col : '') : ''));
     });
 
     document.addEventListener('mischief:steal', function (e) {
       if (!isTestActive()) return;
       var d = (e && e.detail) || {};
-      log('STEAL 😈', 'Stole ' + cardName(d.card));
+      log('STEAL 😈', 'Stole ' + cardNameFromArtId(d.cardId));
     });
 
     document.addEventListener('mischief:place', function (e) {
       if (!isTestActive()) return;
       var d = (e && e.detail) || {};
-      log('HIDDEN 🫣', 'Card hidden ' +
-        (d.destination ? 'at ' + d.destination : 'face-down'));
+      var placeDesc = d.to === 'stock' ? 'at stock bottom (face-down)' :
+        d.to === 'tableau' ? 'under tableau col ' + d.col + ' (face-down)' : 'face-down';
+      log('HIDDEN 🫣', 'Card hidden ' + placeDesc);
     });
 
     document.addEventListener('mischief:burned', function (e) {
       if (!isTestActive()) return;
       var d = (e && e.detail) || {};
-      log('SCARED 😱', 'Joker scared Swiper! Zero cards moved. ' +
-        cardName(d.card) + ' untouched.');
+      log('SCARED 😱', 'Joker scared Swiper! Zero cards moved. 🃏 Joker untouched.');
     });
 
     document.addEventListener('mischief:leave', function (e) {
