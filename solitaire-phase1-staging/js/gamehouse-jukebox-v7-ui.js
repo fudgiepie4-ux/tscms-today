@@ -209,6 +209,19 @@
           overlay.appendChild(caption);
           // Only import inert, owner-approved cabinet markup, never standalone scripts/audio.
           const approvedCabinet = document.importNode(cabinet, true);
+          // V8 seam cleanup: preload corrected source image without touching audio/EQ.
+          // On failure, keep original approved V7 photo and its mirror patch.
+          const cabinetPhoto = approvedCabinet.querySelector('.photo');
+          const comparisonPatch = approvedCabinet.querySelector('.photo-mirror');
+          const repairedPhoto = new Image();
+          repairedPhoto.onload = function () {
+            if (cabinetPhoto) cabinetPhoto.src = repairedPhoto.src;
+            if (comparisonPatch) comparisonPatch.remove();
+          };
+          repairedPhoto.onerror = function () {
+            console.warn('V8 seamless cabinet photo unavailable; retaining V7 original');
+          };
+          repairedPhoto.src = new URL('solitaire-phase1-staging/assets/TSCMS_V7_CABINET_SEAM_CLEAN_v8.jpg', document.baseURI).href;
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
           overlay.appendChild(approvedCabinet);
