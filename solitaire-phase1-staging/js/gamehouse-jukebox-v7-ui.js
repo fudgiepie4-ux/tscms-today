@@ -9,7 +9,7 @@
   const PREVIEW = 'solitaire-gamehouse-jukebox-DESIGN-B-v7-APPROVED-PREVIEW.html';
   const PLAYLIST = 'radio-data.json';
   const required = ['close','title','artist','trackNum','original','play','previous','next',
-    'volume','seek','elapsed','duration','equalizer','eqAccess','analysisState','liveLed','status'];
+    'volume','seek','elapsed','duration','equalizer','eqTitle','eqAccess','analysisState','liveLed','status'];
   function init() {
     const trigger = document.getElementById('btn-jukebox');
     const J = window.TSCMSJukebox;
@@ -20,6 +20,58 @@
     trigger.removeAttribute('aria-pressed');
 
     let panel = null, ui = null, preparing = null, lastFocus = null;
+    let spectrumRaf = 0, lastSpectrumTime = 0, spectrumMode='idle', spriteLevels = Array(35).fill(0);
+    function stopSpectrum(){if(spectrumRaf) cancelAnimationFrame(spectrumRaf);spectrumRaf=0;}
+    // Direct FFT only. Never invent music-reactive values from timers/randomness.
+    function spectrumFrame(t) {
+      spectrumRaf=0;
+      if(!ui||!panel||panel.hidden||!J.isPlaying())return;
+      // 20fps max; reduce expensive canvas redraws on S24.
+      if(t-lastSpectrumTime<50){spectrumRaf=requestAnimationFrame(spectrumFrame);return;}
+      lastSpectrumTime=t;
+      const frame=typeof J.getSpectrumFrame==='function'?J.getSpectrumFrame():null;
+      if(frame && frame.bins && frame.bins.length){
+        const bins=frame.bins, c=ui.equalizer;
+        const width=c.width/Math.min(window.devicePixelRatio||1,2),height=c.height/Math.min(window.devicePixelRatio||1,2);
+        const dpr=Math.min(window.devicePixelRatio||1,2);
+        const ctx=c.getContext('2d');
+        if(ctx){
+          ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+          const count=35,gap=3,bw=(width-gap*(count-1))/count;
+          const nyquist=(frame.sampleRate||44100)/2, hi=Math.min(14500,nyquist);
+          for(let i=0;i<count;i++){
+            const hz1=45*Math.pow(hi/45,i/count),hz2=45*Math.pow(hi/45,(i+1)/count);
+            const a=Math.max(1,Math.floor(hz1/nyquist*bins.length)),b=Math.max(a,Math.min(bins.length-1,Math.ceil(hz2/nyquist*bins.length)));
+            let peak=0,sum=0;for(let j=a;j<=b;j++){const e=bins[j]/255;peak=Math.max(peak,e);sum+=e;}
+            const level=Math.min(1,(.65*peak+.35*sum/(b-a+1))*1.24);
+            spriteLevels[i]=Math.max(level,spriteLevels[i]*.66); // realistic quick-fall decay
+            const h=height*spriteLevels[i]*.87;
+            const x=i*(bw+gap),y=height-h-3;
+            const palette=[['#65ecff','#0979ba'],['#fc7fd0','#92376b'],['#ffe583','#aa7935']][i%3];
+            const g=ctx.createLinearGradient(0,y,0,height);g.addColorStop(0,palette[0]);g.addColorStop(1,palette[1]);
+            ctx.fillStyle=g;ctx.fillRect(x,y,bw,h);
+          }
+        }
+        spectrumMode='live';
+        ui.analysisState.textContent='REAL MUSIC FREQUENCIES · DIRECT FFT';
+        ui.eqAccess.textContent='AUDIO REACTIVE';
+        ui.eqTitle.textContent='LIVE DIGITAL EQUALIZER';
+      } else {
+        // Unverified/denied CORS -> honest idle bars; never silence normal music.
+        const eq=typeof J.getSpectrumStatus==='function'?J.getSpectrumStatus():{reason:'UNVERIFIED'};
+        if(spectrumMode!=='idle'){idleBars();spectrumMode='idle';}
+        ui.eqAccess.textContent='SOUND ON · EQ LIMITED';
+        ui.analysisState.textContent='IDLE — REAL FFT UNAVAILABLE';
+        ui.analysisState.title=eq.reason||'Music plays normally; real analysis unavailable';
+      }
+      spectrumRaf=requestAnimationFrame(spectrumFrame);
+    }
+    function syncSpectrum(){
+      stopSpectrum();
+      if(!ui||!panel||panel.hidden)return;
+      if(J.isPlaying()){lastSpectrumTime=0;spectrumRaf=requestAnimationFrame(spectrumFrame);}
+      else { idleBars();spectrumMode='idle'; }
+    }
     let originStatus = document.getElementById('gamehouse-radio-status');
     function notify(message) {
       if (!originStatus) {
@@ -77,6 +129,7 @@
       ui.play.setAttribute('aria-label', playing ? 'Pause music' : 'Play music');
       ui.eqAccess.textContent = playing ? 'MUSIC ON' : 'STANDBY';
       ui.liveLed.style.opacity = playing ? '1' : '.45';
+      syncSpectrum();
     }
     function idleBars() {
       if (!ui || !panel || panel.hidden) return;
@@ -103,6 +156,7 @@
     function close() {
       if (!panel || panel.hidden) return;
       panel.hidden = true;
+      stopSpectrum();
       document.removeEventListener('keydown', keydown);
       (lastFocus && lastFocus.isConnected ? lastFocus : trigger).focus();
       // Intentionally NO playback/volume/playlist changes here.
@@ -121,7 +175,7 @@
       if (!panel) return;
       lastFocus = document.activeElement;
       panel.hidden = false;
-      track(); reflect(); progress(); idleBars();
+      track(); progress(); idleBars(); reflect();
       document.addEventListener('keydown', keydown);
       ui.close.focus();
       notify('');
@@ -186,7 +240,7 @@
               d.state === 'loading' ? 'Loading TSCMS Radio…' : 'TSCMS Radio');
             track(); reflect();
           });
-          window.addEventListener('resize',idleBars);
+          window.addEventListener('resize',() => {idleBars();syncSpectrum();});
           track(); reflect(); progress();
           return true;
         })
@@ -200,7 +254,7 @@
       build().then(ok => { if (ok) open(); });
     });
     // Load official playlist without autoplay; all playback stays user-gesture gated.
-    J.init({playlistUrl:PLAYLIST});
+    J.init({playlistUrl:PLAYLIST,enableEq:true});
     // Prefetch photographic HTML during idle rather than on the critical tap path.
     // Do not create a second audio element or execute any scripts from the preview.
     if ('requestIdleCallback' in window) window.requestIdleCallback(build,{timeout:2500});

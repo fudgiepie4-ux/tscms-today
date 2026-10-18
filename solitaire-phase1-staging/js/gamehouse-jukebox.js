@@ -1,4 +1,4 @@
-/* TSCMS Gamehouse jukebox — v2.1 module API (STAGING ONLY — owner-approved 2026-10-18).
+/* TSCMS Gamehouse jukebox — v2.1 module API (DEV ONLY, not staged).
  * v2.1 fixes two integration-contract holes found by Clara's independent
  * review of the v2 ZIP (2026-10-18 01:24 CT):
  *   (1) playlist map dropped artist/suno — V7's artist plate and View Song
@@ -17,6 +17,97 @@
   'use strict';
   var audio = null, tracks = [], index = 0, ready = false, initPromise = null;
   var requestedPlaying = false, playGeneration = 0, streamFailures = 0;
+  // EQ PROTECTION: never put an ordinary no-CORS Suno player through WebAudio.
+  var eqRequested = false, eqContext = null, eqAnalyser = null, eqData = null;
+  var eqAttachedAudio = null, eqApproved = Object.create(null), eqProbes = Object.create(null);
+  var eqLastReason = 'UNVERIFIED';
+
+  function sourceKey(url) { return typeof url === 'string' ? url : ''; }
+  // Read-only, tiny range probe. NO changes to the live media element.
+  function verifyStreamCORS(url) {
+    var key = sourceKey(url);
+    if (!/^https:\/\//i.test(key) || !/(^|\.)suno\.ai$/i.test((function () { try { return new URL(key).hostname; } catch(e) { return ''; } })())) return Promise.resolve(false);
+    if (eqApproved[key] === true) return Promise.resolve(true);
+    if (eqProbes[key]) return eqProbes[key];
+    if (typeof AbortController !== 'function') return Promise.resolve(false);
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, 2500);
+    eqProbes[key] = fetch(key, {
+      mode:'cors', headers:{Range:'bytes=0-1'}, signal:controller.signal, cache:'no-store', credentials:'omit'
+    }).then(function (response) {
+      if (!response || !response.ok || response.type === 'opaque') return false;
+      // Do not download the song; a successful CORS read of the first bytes is enough.
+      if (response.body && typeof response.body.cancel === 'function') {
+        try { response.body.cancel().catch(function(){}); } catch(e) {}
+      }
+      eqApproved[key] = true; return true;
+    }).catch(function(){return false;}).then(function(ok){
+      clearTimeout(timeout); delete eqProbes[key]; return ok;
+    });
+    return eqProbes[key];
+  }
+  function closeGraph() {
+    eqAnalyser=null;eqData=null;eqAttachedAudio=null;
+    if(eqContext){ try {eqContext.close().catch(function(){});}catch(e){} eqContext=null; }
+  }
+  function createPlayer(allowCors) {
+    var old=audio, previousVolume=old?old.volume:1;
+    if(old){try{old.pause();}catch(e){} }
+    closeGraph();
+    audio=document.createElement('audio');
+    audio.preload='none';
+    if(allowCors) audio.crossOrigin='anonymous';
+    try{audio.volume=previousVolume;}catch(e){}
+    wireMedia(audio);
+  }
+  function wireMedia(player) {
+    player.addEventListener('ended', function () {
+      if(player!==audio || !requestedPlaying || !tracks.length)return;
+      loadTrack(index+1); fireTrackChange(); requestPlay();
+    });
+    player.addEventListener('timeupdate', function () {
+      if(player!==audio)return;
+      if(audio.currentTime>1)streamFailures=0;
+      if(canDispatch())document.dispatchEvent(new CustomEvent(EVT_TIMEUPDATE, {
+        detail:{currentTime:audio.currentTime,duration:audio.duration}
+      }));
+    });
+    player.addEventListener('error', function () {
+      if(player!==audio || !requestedPlaying || !tracks.length)return;
+      // CORS might have failed after preflight. Restore normal playback of SAME track.
+      if(player.crossOrigin==='anonymous'){
+        eqApproved[sourceKey(tracks[index].stream)]=false;
+        eqLastReason='STREAM CORS FAILED — NATIVE RADIO RESTORED';
+        createPlayer(false);audio.src=tracks[index].stream;requestPlay();return;
+      }
+      streamFailures++;
+      if(streamFailures>=tracks.length){++playGeneration;requestedPlaying=false;announce('unavailable','Radio streams are temporarily unavailable.');return;}
+      loadTrack(index+1);fireTrackChange();requestPlay();
+    });
+  }
+  function ensureGraph() {
+    if(!eqRequested || !audio || audio.crossOrigin!=='anonymous' || !eqApproved[sourceKey(tracks[index] && tracks[index].stream)])return false;
+    if(eqAttachedAudio===audio && eqAnalyser) {
+      if(eqContext && eqContext.state==='suspended')Promise.resolve(eqContext.resume()).catch(function(){});
+      return true;
+    }
+    if(!(window.AudioContext||window.webkitAudioContext)){eqLastReason='WEB AUDIO NOT SUPPORTED';return false;}
+    try {
+      eqContext=new (window.AudioContext||window.webkitAudioContext)();
+      eqAnalyser=eqContext.createAnalyser(); eqAnalyser.fftSize=2048;
+      eqAnalyser.smoothingTimeConstant=.72; eqAnalyser.minDecibels=-96; eqAnalyser.maxDecibels=-18;
+      var source=eqContext.createMediaElementSource(audio);
+      source.connect(eqAnalyser);eqAnalyser.connect(eqContext.destination);
+      eqData=new Uint8Array(eqAnalyser.frequencyBinCount);
+      eqAttachedAudio=audio;eqLastReason='REAL AUDIO FFT';
+      if(eqContext.state==='suspended')Promise.resolve(eqContext.resume()).catch(function(){});
+      return true;
+    }catch(e){
+      eqLastReason='WEB AUDIO ERROR — NATIVE RADIO RESTORED';
+      createPlayer(false);audio.src=tracks[index].stream;return false;
+    }
+  }
+
 
   var EVT_TRACKCHANGE = 'tscms:jukebox:trackchange';
   var EVT_TIMEUPDATE = 'tscms:jukebox:timeupdate';
@@ -66,13 +157,21 @@
   function loadTrack(i) {
     if (!tracks.length) return;
     index = ((i % tracks.length) + tracks.length) % tracks.length;
-    audio.src = tracks[index].stream;
+    var allowCors=eqRequested && eqApproved[sourceKey(tracks[index].stream)]===true;
+    if(!audio || Boolean(audio.crossOrigin)==Boolean(allowCors)) {
+      // Reuse normal player unless switching protected stream modes.
+    } else createPlayer(allowCors);
+    audio.src=tracks[index].stream;
+    // Warm the next track permission in the background; never touch audible music.
+    if(eqRequested && tracks.length>1)verifyStreamCORS(tracks[(index+1)%tracks.length].stream);
   }
 
   function requestPlay() {
     if (!ready) return false;
     requestedPlaying = true;
     var generation = ++playGeneration;
+    // CORS is confirmed BEFORE routing WebAudio. False -> native audio untouched.
+    ensureGraph();
     try {
       // CRITICAL: execute play() synchronously inside the tap handler for Android.
       var attempt = audio.play();
@@ -84,7 +183,12 @@
       }, function () {
         if (generation === playGeneration && requestedPlaying) {
           requestedPlaying = false;
-          announce('blocked', 'Sound could not start. Tap the jukebox to try again.');
+          if(audio && audio.crossOrigin==='anonymous') {
+            eqApproved[sourceKey(tracks[index].stream)]=false;
+            createPlayer(false);audio.src=tracks[index].stream;
+            eqLastReason='STREAM CORS REFUSED — NATIVE RADIO READY';
+          }
+          announce('blocked', 'Sound could not start. Tap Play to try native radio.');
         }
       });
     } catch (e) {
@@ -103,38 +207,8 @@
       opts = opts || {};
       if (ready) return Promise.resolve(true);
       if (initPromise) return initPromise;
-      if (!audio) {
-        audio = document.createElement('audio');
-        audio.preload = 'none';
-        audio.addEventListener('ended', function () {
-          if (!requestedPlaying || !tracks.length) return;
-          loadTrack(index + 1);
-          fireTrackChange();
-          requestPlay();
-        });
-        audio.addEventListener('timeupdate', function () {
-          if (audio.currentTime > 1) streamFailures = 0;
-          if (canDispatch()) {
-            document.dispatchEvent(new CustomEvent(EVT_TIMEUPDATE, {
-              detail: { currentTime: audio.currentTime, duration: audio.duration }
-            }));
-          }
-        });
-        audio.addEventListener('error', function () {
-          // Skip a failed media stream, but stop after one full cycle (no loop).
-          if (!requestedPlaying || !tracks.length) return;
-          streamFailures++;
-          if (streamFailures >= tracks.length) {
-            ++playGeneration;
-            requestedPlaying = false;
-            announce('unavailable', 'Radio streams are temporarily unavailable.');
-            return;
-          }
-          loadTrack(index + 1);
-          fireTrackChange();
-          requestPlay();
-        });
-      }
+      eqRequested = opts.enableEq === true;
+      if (!audio) createPlayer(false);
       var url = opts.playlistUrl || 'radio-data.json';
       announce('loading');
       initPromise = fetch(url, { cache: 'no-store' })
@@ -158,9 +232,13 @@
             };
           });
           ready = tracks.length > 0;
-          if (ready) { loadTrack(0); fireTrackChange(); announce('ready'); }
-          else announce('unavailable', 'No playable TSCMS Radio tracks are available.');
-          return ready;
+          if(!ready){announce('unavailable', 'No playable TSCMS Radio tracks are available.');return false;}
+          // Optional first-track probe is bounded; if it fails native radio plays as before.
+          var permit=eqRequested?verifyStreamCORS(tracks[0].stream):Promise.resolve(false);
+          return Promise.resolve(permit).then(function(ok){
+            eqLastReason=ok?'CORS STREAM VERIFIED — FFT READY':'STREAM CORS RESTRICTED — NATIVE RADIO';
+            loadTrack(0);fireTrackChange();announce('ready');return true;
+          });
         })
         .catch(function () {
           ready = false;
@@ -212,6 +290,16 @@
       return v;
     },
     getVolume: function () { return audio ? audio.volume : 1; },
+    // Returns only actual frequency samples from verified-CORS playing audio.
+    // NEVER returns synthesized/fake-reactive values.
+    getSpectrumFrame: function () {
+      if(!eqAnalyser || !eqData || !eqAttachedAudio || eqAttachedAudio!==audio || !audio || audio.paused)return null;
+      try {eqAnalyser.getByteFrequencyData(eqData);return {bins:eqData,sampleRate:eqContext.sampleRate};}
+      catch(e){return null;}
+    },
+    getSpectrumStatus: function () {
+      return {active:!!(eqAnalyser && eqAttachedAudio===audio),reason:eqLastReason};
+    },
 
     // v2.1: guarded seek. Returns false unless an actual seekable TimeRange
     // exists — finite duration alone is NOT enough (Clara's probe). Clamps
