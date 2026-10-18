@@ -53,7 +53,14 @@
       const defaultStep = Math.min(36, Math.max(18, Math.round(stage.clientWidth*0.07)));
       const step = cards.length>1 ? Math.min(defaultStep, available/(cards.length-1)) : 0;
       cards.forEach((card,i) => {
+        // Suppress the CSS transform transition for this programmatic write
+        // so rebuilt cards land at their final fan positions with no visible
+        // motion (no 0.15s settle animation on every draw). The forced reflow
+        // commits the transform before the transition is restored.
+        card.style.transition = 'none';
         card.style.transform = 'translateY('+ (i*step).toFixed(2) +'px)';
+        void card.offsetHeight;
+        card.style.transition = '';
       });
     }
   }
@@ -63,12 +70,14 @@
     // themselves do not retrigger this observer.
     const stage = document.querySelector('.stage');
     if (stage && typeof MutationObserver !== 'undefined') {
-      let pending = false;
-      const observer = new MutationObserver(() => {
-        if (pending) return;
-        pending=true;
-        requestAnimationFrame(()=>{pending=false;boundFans();});
-      });
+      // Full-render flash fix (2026-10-18, Cherish isolated dev — Fudgie
+      // authorized): fan SYNCHRONOUSLY in the mutation callback. Mutation
+      // callbacks run as microtasks, before the next paint, so transforms
+      // land before anything is drawn — no one-frame row snap. The old
+      // requestAnimationFrame deferral painted one frame of un-fanned cards
+      // (visible on the S24 as the tableau snapping into a single row).
+      // boundFans() is idempotent; resize + init rAF calls are unchanged.
+      const observer = new MutationObserver(() => { boundFans(); });
       for(let c=0;c<7;c++) {
         const t=document.getElementById('tableau-'+c);
         if(t) observer.observe(t,{childList:true});
