@@ -15,6 +15,12 @@ const SwiperLaunchBootstrap = (() => {
   let originalShouldStrike = null;
   let startGame = null;
 
+  // Staging preview shares its GitHub Pages origin with the public game.
+  // Never read or mutate the public game save/prefs/session keys here.
+  const STAGING_SAVE_KEY = 'tscms_solitaire_save_swiper_staging_v1';
+  const STAGING_PREFS_KEY = 'tscms_solitaire_prefs_swiper_staging_v1';
+  const STAGING_SESSION_KEY = 'tscms_solitaire_session_swiper_staging_v1';
+
   const deps = () => ({
     E: SaloonEngine, M: MischiefEngine, I: MischiefIntegration,
     T: SwiperTestModeIntegration, S: SaveSystem, P: SessionManager
@@ -28,6 +34,32 @@ const SwiperLaunchBootstrap = (() => {
     const {P} = deps();
     const p = preferences(); p[key] = value;
     P.savePrefs(p);
+  }
+  function wireStagePreferences() {
+    const {P} = deps();
+    // RendererBinding and the intro use SessionManager's public methods.
+    // Override ONLY inside this staging bootstrap, without touching source SessionManager.
+    P.getPrefs = function() {
+      try { const v = localStorage.getItem(STAGING_PREFS_KEY); return v ? JSON.parse(v) : null; }
+      catch(e) { return null; }
+    };
+    P.savePrefs = function(prefs) {
+      try {
+        const next = {...prefs, version:1, hasSeenSetup:true};
+        localStorage.setItem(STAGING_PREFS_KEY, JSON.stringify(next));
+        return true;
+      } catch(e) { return false; }
+    };
+    P.getVisitType = function() {
+      try {
+        if(sessionStorage.getItem(STAGING_SESSION_KEY)==='active') return 'continuous';
+        return localStorage.getItem(STAGING_PREFS_KEY)!==null ? 'returning' : 'first';
+      } catch(e) { return 'first'; }
+    };
+    P.markSessionActive = function() {
+      try { sessionStorage.setItem(STAGING_SESSION_KEY,'active'); }
+      catch(e) { /* disabled storage is nonfatal */ }
+    };
   }
   function isTest() { return !!config; }
   function announce(message) {
@@ -44,23 +76,21 @@ const SwiperLaunchBootstrap = (() => {
     const {E,T,S} = deps();
     if (realSave) return;
     realSave = {save:S.save,load:S.load,hasSave:S.hasSave,clear:S.clear};
-    function activeKey() {return config ? T.TEST_SAVE_KEY : S.SAVE_KEY;}
+    function activeKey() {return config ? T.TEST_SAVE_KEY : STAGING_SAVE_KEY;}
     // Test namespace is selected from the exact staging origin/path, independently
     // of mutable/sanitized state. An already-clean restored test game stays isolated.
     S.save = function() {
-      if (!config) return realSave.save();
       const live = E._getState();
       if (!live) return false;
       const data = S.serialize();
       if (!data) return false;
-      const safe = T.prepareForSave(live.mischief);
+      const payload = config ? {...data, mischief:T.prepareForSave(live.mischief)} : data;
       try {
-        localStorage.setItem(activeKey(), JSON.stringify({...data,mischief:safe}));
+        localStorage.setItem(activeKey(), JSON.stringify(payload));
         return true;
       } catch(e) { console.error('Swiper test save failed',e); return false; }
     };
     S.load = function() {
-      if (!config) return realSave.load();
       try {
         const str = localStorage.getItem(activeKey());
         if (!str) return null;
@@ -70,11 +100,9 @@ const SwiperLaunchBootstrap = (() => {
     };
     // Original hasSave internally calls lexical load(), so it MUST be wrapped.
     S.hasSave = function() {
-      if (!config) return realSave.hasSave();
       const data = S.load(); return !!(data && !data.gameWon);
     };
     S.clear = function() {
-      if (!config) return realSave.clear();
       try { localStorage.removeItem(activeKey());return true;}catch(e){return false;}
     };
   }
@@ -194,7 +222,7 @@ const SwiperLaunchBootstrap = (() => {
     if(typeof initializeRenderer!=='function') throw new Error('Renderer initializer required');
     const {T}=deps();
     config=T.initTestMode(window.location.search,window.location.href);
-    wireMischief();wireSaves();active=true;
+    wireStagePreferences();wireMischief();wireSaves();active=true;
     if(config && typeof SwiperTestMode!=='undefined') SwiperTestMode.logActivation(config);
     showTestBadge();
     showIntro(()=>{initializeRenderer();modeHelp();});
