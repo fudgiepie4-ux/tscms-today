@@ -95,7 +95,7 @@
 // Initialize on DOM ready — Swiper bootstrap wraps renderer init
 document.addEventListener('DOMContentLoaded', function() {
   try {
-    SwiperVisualBridge.init();
+    SwiperVisualBridgeV2.init();
     SwiperLaunchBootstrap.start(() => RendererBinding.init());
     console.log('Phase 1 staging initialized (Swiper bootstrap)');
   } catch (e) {
