@@ -120,10 +120,13 @@ const RendererBinding = (() => {
     return null;
   }
   
-  // Art-readiness cache (full-render flash fix, 2026-10-18): artPaths whose
-  // PNG has completed loading at least once. Browser-cached, so re-applying
-  // is synchronous — rebuilt cards never flash their text fallback.
-  const artReady = new Set();
+  // Art cache (full-render flash fix, 2026-10-18; pin fix 2026-10-18):
+  // Maps artPath -> loaded HTMLImageElement. Keeping the Image objects alive
+  // pins their decoded bitmaps in memory, so re-applying art to a rebuilt
+  // card is truly synchronous — the S24 was evicting decoded PNGs (GC of the
+  // temporary Image), causing a white-text flash on every rebuild even for
+  // previously-seen cards. (Bug 1, Fudgie S24 report 2026-10-18.)
+  const artCache = new Map();
 
   /* ----- Create a card DOM element ----- */
   function createCardEl(card, opts = {}) {
@@ -148,13 +151,15 @@ const RendererBinding = (() => {
       // flashing white text cards for a frame on the S24.)
       const artPath = cardArtPath(card);
       if (artPath) {
-        if (artReady.has(artPath)) {
+        const cached = artCache.get(artPath);
+        if (cached && cached.complete && cached.naturalWidth > 0) {
+          // Pinned decoded bitmap — synchronous, no flash.
           el.style.backgroundImage = `url('${artPath}')`;
           el.classList.add('has-art');
-        } else {
+        } else if (!cached) {
           const img = new Image();
           img.onload = () => {
-            artReady.add(artPath);
+            artCache.set(artPath, img);  // pin it: prevents GC eviction
             el.style.backgroundImage = `url('${artPath}')`;
             el.classList.add('has-art');
           };
@@ -163,6 +168,8 @@ const RendererBinding = (() => {
           };
           img.src = artPath;
         }
+        // else: load in flight from another element — its onload will populate
+        // the card when ready; text shows meanwhile (first sighting only).
       }
     } else {
       el.classList.add('face-down');
