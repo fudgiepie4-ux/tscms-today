@@ -75,6 +75,44 @@ const RendererBinding = (() => {
     if (card.isJoker) return 'joker-' + (card.jokerId || card.id || 'x');
     return (card.suit || '?') + '-' + (card.value || '?');
   }
+
+  /* ----- Hint visual feedback (P1 fix 2026-10-17: listener was console.log only) ----- */
+  function pulseEl(el) {
+    if (!el || !el.style) return;
+    el.style.outline = '3px solid #ffd75e';
+    el.style.outlineOffset = '2px';
+    setTimeout(() => {
+      el.style.outline = '';
+      el.style.outlineOffset = '';
+    }, 1800);
+  }
+
+  let hintToastTimer = null;
+  function showHintToast(msg) {
+    let toast = document.getElementById('hint-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'hint-toast';
+      toast.style.cssText = 'position:fixed;left:50%;bottom:18%;transform:translateX(-50%);' +
+        'background:rgba(20,12,4,0.92);color:#f5e6c8;border:2px solid #c9a227;border-radius:10px;' +
+        'padding:10px 16px;font-size:15px;z-index:9999;pointer-events:none;text-align:center;' +
+        'max-width:82vw;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    if (hintToastTimer) clearTimeout(hintToastTimer);
+    hintToastTimer = setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+
+  function describeHint(h) {
+    if (h.action === 'draw') return 'draw from the stock pile';
+    const c = h.card || {};
+    if (c.isJoker) return 'Joker';
+    const faces = { 1: 'Ace', 11: 'Jack', 12: 'Queen', 13: 'King' };
+    const rank = faces[c.value] || String(c.value || '');
+    return (rank + ' of ' + (c.suit || '')).trim() + (h.to ? ' → ' + h.to : '');
+  }
   
   function cardArtPath(card) {
     // Use artId if available (maps to solitaire-phase1-staging/card-art/)
@@ -770,14 +808,32 @@ const RendererBinding = (() => {
       document.dispatchEvent(new CustomEvent('card:view:close'));
     });
     
-    // Hint: show visual feedback
+    // Hint: show visible feedback (P1 fix 2026-10-17 — was console.log only)
     document.addEventListener('game:hint', (e) => {
-      const hints = e.detail.hints;
-      if (hints && hints.length > 0) {
-        // Highlight the hinted card briefly
-        // (Clara can enhance this visual)
-        console.log('Hint:', hints[0]);
+      const hints = e.detail && e.detail.hints;
+      if (!hints || hints.length === 0) {
+        showHintToast('No moves — tap the stock pile');
+        return;
       }
+      const h = hints[0];
+      if (h.action === 'draw') {
+        pulseEl(document.getElementById('stock-pile'));
+        return;
+      }
+      // Highlight the suggested card via its data-card-id node
+      let node = null;
+      try {
+        if (h.card) node = document.querySelector('[data-card-id="' + cardId(h.card) + '"]');
+      } catch (err) { node = null; }
+      if (node) {
+        pulseEl(node);
+      } else {
+        showHintToast('Hint: ' + describeHint(h));
+      }
+      // Also pulse the destination pile when known
+      const destId = h.to === 'foundation' && h.toFoundation != null ? 'foundation-' + h.toFoundation
+        : h.to === 'tableau' && h.toCol != null ? 'tableau-' + h.toCol : null;
+      if (destId) pulseEl(document.getElementById(destId));
     });
   }
   
