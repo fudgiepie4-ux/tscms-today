@@ -49,9 +49,18 @@ const SwiperTestModeIntegration = (() => {
    * Apply test override to a freshly initialized mischief state.
    * Call AFTER MischiefEngine.initMischiefState(), BEFORE game starts.
    */
-  function applyToNewGame(mischiefState, testConfig) {
+  function applyToNewGame(mischiefState, testConfig, gameState) {
     if (!testConfig) return mischiefState;
-    return SwiperTestMode.applyOverride(mischiefState, testConfig);
+    const out = SwiperTestMode.applyOverride(mischiefState, testConfig);
+    // Deterministic scare deal (Fudgie 2026-10-18 via Clara): preload one
+    // real Joker face-up on a tableau top so the move-3 scare always has
+    // an eligible target. Staging/test-only; gameState omitted on reload
+    // (the rigged layout persists in the saved card positions).
+    if (testConfig.mode === 'scare' && gameState &&
+        typeof SwiperTestMode.rigDeterministicScareDeal === 'function') {
+      SwiperTestMode.rigDeterministicScareDeal(gameState);
+    }
+    return out;
   }
 
   /**
