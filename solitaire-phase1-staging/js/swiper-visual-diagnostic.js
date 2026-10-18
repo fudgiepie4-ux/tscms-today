@@ -27,7 +27,7 @@
      mischief:leave   — Swiper leaves
 
    BEHAVIOR:
-   - Panel appears bottom-center on first event, updates per event.
+   - Panel appears top-center on first event, updates per event (kept clear of the ghost).
    - Auto-hides after 8s of no events.
    - Cleared on: pause, new game, reload, victory, navigation.
    - Never touches card DOM. Never interrupts jukebox.
@@ -41,7 +41,7 @@
   var eventLog = [];
 
   var CSS = [
-    '#' + PANEL_ID + '{position:fixed;z-index:99995;bottom:70px;left:50%;transform:translateX(-50%);',
+    '#' + PANEL_ID + '{position:fixed;z-index:99995;top:10px;left:50%;transform:translateX(-50%);',
     'max-width:92vw;width:380px;background:#1a0f08;color:#ffe2a6;',
     'border:2px solid #b68b4d;border-radius:10px;padding:12px 14px;',
     'font:400 13px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;',
