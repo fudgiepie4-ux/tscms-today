@@ -225,6 +225,9 @@
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
           overlay.appendChild(approvedCabinet);
+          // V8.1: align live Play/Pause cap with the original photographed button.
+          // Do not change side controls, EQ, player events, or approved cabinet photo.
+          styles.textContent += '\n.transport button.primary{transform:translate(-7%,-4%)}';
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
           ui = Object.fromEntries(required.map(id => [id,shadow.getElementById(id)]));
