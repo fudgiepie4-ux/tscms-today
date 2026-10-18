@@ -104,6 +104,13 @@
   display: none;
 }
 
+/* Bug 2 fix (Fudgie S24 report 2026-10-18): Joker text uses .joker-label,
+   not .card-text — hide it too when art loads, so the emoji doesn't sit
+   on top of the Joker PNG. */
+.live-card.has-art .joker-label {
+  display: none;
+}
+
 /* Empty pile: keep scaffold's dashed border, add click target */
 .engine-slot-placeholder.empty-pile {
   pointer-events: auto !important;
