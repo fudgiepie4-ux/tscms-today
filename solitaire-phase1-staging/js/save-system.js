@@ -173,6 +173,11 @@ const SaveSystem = (() => {
           strikeMoves: data.mischief.strikeMoves || [],
           undoLocked: false,  // Reset — player must make a move to unlock
           historyBarrier: data.history.some(h => h.__mischiefBarrier),
+          // Test-mode markers (staging only): preserve across save/restore
+          // so ?swiper_test=scare survives reload. Undefined in normal games.
+          _testForceScare: data.mischief._testForceScare,
+          _testMode: data.mischief._testMode,
+          _testModeWasActive: data.mischief._testModeWasActive,
         } : null,
         
         // Restore pause state
