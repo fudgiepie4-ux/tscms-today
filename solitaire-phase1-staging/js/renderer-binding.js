@@ -120,6 +120,11 @@ const RendererBinding = (() => {
     return null;
   }
   
+  // Art-readiness cache (full-render flash fix, 2026-10-18): artPaths whose
+  // PNG has completed loading at least once. Browser-cached, so re-applying
+  // is synchronous — rebuilt cards never flash their text fallback.
+  const artReady = new Set();
+
   /* ----- Create a card DOM element ----- */
   function createCardEl(card, opts = {}) {
     const el = document.createElement('div');
@@ -136,28 +141,42 @@ const RendererBinding = (() => {
       el.classList.add('face-up');
       // ALWAYS put text in DOM (Clara's review: no empty rectangles)
       el.innerHTML = renderCardText(card);
-      // Try to load art async; hide text only on successful load
+      // Card art: once a PNG has loaded, it is in the browser cache, so
+      // re-applying it here is synchronous — no text-flash on rebuilds.
+      // (Full-render flash fix, 2026-10-18: previously every render()
+      // recreated all 54 card elements and each reloaded its PNG async,
+      // flashing white text cards for a frame on the S24.)
       const artPath = cardArtPath(card);
       if (artPath) {
-        const img = new Image();
-        img.onload = () => {
+        if (artReady.has(artPath)) {
           el.style.backgroundImage = `url('${artPath}')`;
           el.classList.add('has-art');
-        };
-        img.onerror = () => {
-          // Keep text visible; art failed to load
-        };
-        img.src = artPath;
+        } else {
+          const img = new Image();
+          img.onload = () => {
+            artReady.add(artPath);
+            el.style.backgroundImage = `url('${artPath}')`;
+            el.classList.add('has-art');
+          };
+          img.onerror = () => {
+            // Keep text visible; art failed to load
+          };
+          img.src = artPath;
+        }
       }
     } else {
       el.classList.add('face-down');
       // Card back design (Clara styles this)
     }
     
-    // Selection highlight
-    if (selected && selected.from === opts.from && 
-        selected.col === opts.col && selected.idx === opts.idx) {
-      el.classList.add('selected');
+    // Selection highlight — full stack: when a tableau card is selected,
+    // every card from idx to the pile top highlights, so the player can see
+    // the whole stack they're about to move. (Stack-highlight UX, 2026-10-18.)
+    if (selected && selected.from === opts.from && selected.col === opts.col) {
+      const inStack = selected.from === 'tableau'
+        ? opts.idx >= selected.idx
+        : opts.idx === selected.idx;
+      if (inStack) el.classList.add('selected');
     }
     
     // Position for tableau fanning
@@ -328,6 +347,49 @@ const RendererBinding = (() => {
     });
   }
   
+  // P1 FLICKER FIX (isolated dev, 2026-10-18): selection highlight must NOT
+  // tear down and rebuild the whole board. render()/renderPile() removes every
+  // .live-card and re-appends it, which (a) flashes text fallbacks while PNG
+  // art reloads async, and (b) leaves tableau cards un-fanned for one frame
+  // until the visual adapter's rAF boundFans() runs. Toggling the class on
+  // the existing DOM avoids both flashes. Game-state changes still use
+  // render(). Mirrors createCardEl's own selected-match logic exactly.
+  //
+  // STACK-HIGHLIGHT UX (2026-10-18): a tableau selection marks the FULL
+  // stack (idx to pile top), not just the grabbed card, so the player sees
+  // everything that's about to move.
+  function paintSelection() {
+    document.querySelectorAll('.live-card.selected').forEach(el => el.classList.remove('selected'));
+    if (!selected) return;
+    const s = selected;
+    const all = document.querySelectorAll('.live-card');
+    for (const el of all) {
+      if (el._from !== s.from || el._col !== s.col) continue;
+      const inStack = s.from === 'tableau' ? el._idx >= s.idx : el._idx === s.idx;
+      if (inStack) el.classList.add('selected');
+    }
+  }
+
+  // STACK-HIGHLIGHT UX (2026-10-18): resolve a tap's Y position to the
+  // intended tableau card. Buried cards show only a small sliver (one fan
+  // step, 18-36px) — too small for a reliable finger tap. This maps any Y
+  // in the pile to the deepest card whose sliver region contains it, with
+  // a half-step upward bias so slightly-low taps still grab the intended
+  // card instead of the one below it. Cards are in DOM/visual top order.
+  function cardAtPileY(pileEl, clientY) {
+    const cards = [...pileEl.querySelectorAll('.live-card')];
+    if (!cards.length) return null;
+    const tops = cards.map(el => el.getBoundingClientRect().top);
+    const step = cards.length > 1 ? tops[1] - tops[0] : 0;
+    const bias = step / 2;
+    let best = null;
+    for (let k = 0; k < cards.length; k++) {
+      if (tops[k] - bias <= clientY) best = cards[k];
+      else break;
+    }
+    return best || cards[0];
+  }
+
   function handleTap(el) {
     const card = el._card;
     if (!card || !card.faceUp) return;
@@ -354,20 +416,20 @@ const RendererBinding = (() => {
       // Nothing selected — select this card (if movable)
       if (isMovable(card, from, col, idx)) {
         selected = { from, col, idx };
-        render();  // Re-render to show selection
+        paintSelection();  // class-only: no board rebuild, no flicker
       }
     } else {
       // Something selected — try to move it here
       const result = tryMove(selected, { from, col, idx });
       selected = null;
       if (result) {
-        render();
+        render();  // game state changed — full redraw is correct here
       } else {
         // Invalid move — select the new card instead (if movable)
         if (isMovable(card, from, col, idx)) {
           selected = { from, col, idx };
         }
-        render();
+        paintSelection();  // class-only: no board rebuild, no flicker
       }
     }
   }
@@ -376,7 +438,7 @@ const RendererBinding = (() => {
     // Joker: player chooses destination (don't auto-play)
     if (card.isJoker) {
       selected = { from, col, idx };
-      render();
+      paintSelection();  // class-only: no board rebuild, no flicker
       return;
     }
     
@@ -584,6 +646,32 @@ const RendererBinding = (() => {
           render();
         }
       });
+      // Forgiving tap target (stack-highlight UX, 2026-10-18): when NOTHING
+      // is selected, taps on the pile background (not on a card element)
+      // resolve to the nearest card by Y, so buried cards don't require
+      // hitting their exact visible sliver. Move-destination taps (something
+      // selected) stay with the click handler above — this branch returns
+      // early when selected is set, so there is no double-handling.
+      if (tab) {
+        let pileDownX = 0, pileDownY = 0;
+        tab.addEventListener('pointerdown', (e) => {
+          pileDownX = e.clientX; pileDownY = e.clientY;
+        });
+        tab.addEventListener('pointerup', (e) => {
+          if (PauseSystem.paused()) return;
+          if (selected) return;
+          if (e.target !== tab && e.target.closest('.live-card')) return;
+          const dx = e.clientX - pileDownX, dy = e.clientY - pileDownY;
+          if (Math.sqrt(dx * dx + dy * dy) > 12) return;  // drag, not a tap
+          const el = cardAtPileY(tab, e.clientY);
+          if (el && el._card && el._card.faceUp &&
+              isMovable(el._card, 'tableau', i, el._idx)) {
+            PauseSystem.recordActivity();
+            selected = { from: 'tableau', col: i, idx: el._idx };
+            paintSelection();  // class-only: full stack highlights, no rebuild
+          }
+        });
+      }
     }
   }
   
