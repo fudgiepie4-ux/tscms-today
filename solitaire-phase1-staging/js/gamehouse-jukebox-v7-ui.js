@@ -135,7 +135,7 @@
     function syncShuffle() {
       if(!ui || typeof J.getShuffle!=='function') return;
       const active=!!J.getShuffle();
-      ui.shuffle.textContent=active?'🔀 SHUFFLE ON':'🔀 SHUFFLE OFF';
+      ui.shuffle.innerHTML=active?'<span aria-hidden="true">🔀</span><small>SHUF ON</small>':'<span aria-hidden="true">🔀</span><small>SHUF OFF</small>';
       ui.shuffle.title=active?'Random order enabled':'Original playlist order';
       ui.shuffle.setAttribute('aria-pressed',String(active));
       ui.shuffle.setAttribute('aria-label',active?'Shuffle on; tap for playlist order':'Shuffle off; tap for random songs');
@@ -245,41 +245,39 @@
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
           overlay.appendChild(approvedCabinet);
-          // Add a working Shuffle key to the existing lower brass control row.
-          // Do not move the approved photographic cabinet, EQ, or transport.
-          const miniControls=approvedCabinet.querySelector('.mini-controls');
-          const viewSong=miniControls&&miniControls.querySelector('#original');
-          if(!miniControls || !viewSong)throw new Error('V7 mini-controls unavailable for shuffle');
+          // Add a large wooden Shuffle key to the LEFT of the existing
+          // transport buttons, without squeezing the full jukebox volume row.
+          if(!approvedCabinet.querySelector('.transport'))
+            throw new Error('V7 transport unavailable for shuffle');
           const shuffleKey=document.createElement('button');
           shuffleKey.id='shuffle';
           shuffleKey.type='button';
           shuffleKey.className='shuffle-mode-btn';
-          shuffleKey.textContent='🔀 SHUFFLE ON';
+          shuffleKey.innerHTML='<span aria-hidden="true">🔀</span><small>SHUF ON</small>';
           shuffleKey.setAttribute('aria-pressed','true');
           shuffleKey.setAttribute('aria-label','Shuffle on; tap for playlist order');
-          miniControls.insertBefore(shuffleKey,viewSong);
+          approvedCabinet.appendChild(shuffleKey);
           // V8.1: align live Play/Pause cap with the original photographed button.
           // Do not change side controls, EQ, player events, or approved cabinet photo.
           styles.textContent += `
 .transport button.primary{transform:translate(-7%,-4%)}
-.mini-controls{gap:1.5%;padding:0 3px;}
-.mini-controls .volume-wrap{width:44%;min-width:0;padding:2px;gap:3px}
-.mini-controls .original{width:23%;flex:1;max-width:25%;overflow:hidden;text-overflow:ellipsis;text-align:center}
-.mini-controls .shuffle-mode-btn{
-  width:30%;height:92%;min-width:0;padding:1px 2px;flex:none;
-  border:1px solid #ddae6c;border-radius:4px;
-  color:#ecd2aa;background:linear-gradient(170deg,#624028,#27160d 62%,#392015);
-  box-shadow:inset 0 1px 3px #fce0a53b,0 1px 2px #050302;
-  font:800 clamp(7px,1.75vw,10px)/1.08 Arial,sans-serif;white-space:nowrap;
-  letter-spacing:0;cursor:pointer;
+.cabinet .shuffle-mode-btn{
+  position:absolute;z-index:5;left:8.7%;top:74.2%;width:14%;height:9.0%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2%;
+  padding:1px 0;border:3px ridge #b78b54;border-radius:12%;
+  color:#ecd2aa;background:radial-gradient(ellipse at 30% 24%,#55402b,#1b130d 63%,#080708);
+  box-shadow:inset 0 2px 3px #f6d8a03a,inset 0 -4px 7px #000b,0 3px 7px #000a;
+  text-shadow:0 1px 3px #000;cursor:pointer;
 }
-.mini-controls .shuffle-mode-btn.selected{
-  color:#ffe9b1;border-color:#ffe3a2;
-  background:linear-gradient(165deg,#8f6029,#543017 60%,#2c150a);
-  box-shadow:inset 0 1px 2px #fff1c66a,0 0 8px #dba25685;
+.cabinet .shuffle-mode-btn>span{font:900 clamp(17px,5vw,26px)/1 Arial,sans-serif}
+.cabinet .shuffle-mode-btn small{font:800 clamp(7px,1.7vw,10px)/1.1 Arial,sans-serif;white-space:nowrap}
+.cabinet .shuffle-mode-btn.selected{
+  color:#ffe9b1;border-color:#e9c888;
+  background:radial-gradient(ellipse at 30% 24%,#926230,#4a2613 65%,#211108);
+  box-shadow:inset 0 2px 4px #ffebb650,0 0 12px #ffd18e91,0 2px 4px #000a;
 }
-.mini-controls .shuffle-mode-btn.selected:after{content:' ';display:inline-block;width:4px;height:4px;margin-left:2px;background:#6ef0bd;border-radius:50%;box-shadow:0 0 5px #70ffc8}
-.mini-controls .shuffle-mode-btn:focus-visible{outline:2px solid #fff1c2;outline-offset:1px}
+.cabinet .shuffle-mode-btn.selected small{color:#89f6c6;text-shadow:0 0 5px #3bf4b8}
+.cabinet .shuffle-mode-btn:focus-visible{outline:3px solid #fff1bd;outline-offset:2px}
 `;
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
