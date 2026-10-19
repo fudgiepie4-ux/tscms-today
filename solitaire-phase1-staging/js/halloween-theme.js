@@ -11,6 +11,7 @@
   var boltGroup = null;
   var stormTimer = null;
   var currentTheme = 'classic';
+  var lightningOn = true; // accessibility: user can disable flashes
   var WINDOWS = [
     { x: 497, y: 148, w: 49, h: 105, count: 32 },
     { x: 560, y: 149, w: 55, h: 104, count: 36 },
@@ -26,6 +27,13 @@
     catch (e) { /* Private browsing: theme still works for this session. */ }
   }
   function getTheme() { return prefs().theme || 'classic'; }
+  function getLightning() { return prefs().lightning !== false; }
+  function setLightning(on) {
+    var p = prefs(); p.lightning = !!on; savePrefs(p);
+    lightningOn = !!on;
+    if (!lightningOn) { clearTimeout(stormTimer); }
+    else if (currentTheme === 'halloween' && !document.hidden) scheduleStorm();
+  }
   function svgNode(tag, attrs) {
     var el = document.createElementNS(SVG_NS, tag);
     Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
@@ -134,7 +142,7 @@
     stormTimer = setTimeout(strikeLightning, 7000 + Math.random() * 9000);
   }
   function strikeLightning() {
-    if (currentTheme !== 'halloween' || document.hidden) return;
+    if (currentTheme !== 'halloween' || document.hidden || !lightningOn) { scheduleStorm(); return; }
     if (!createExteriorWeather()) return;
     var violet = Math.random() < .38;
     makeExteriorBolt(violet);
@@ -170,12 +178,13 @@
     document.dispatchEvent(new CustomEvent('tscms:theme-changed', {detail: {theme: theme}}));
   }
   function init() {
+    lightningOn = getLightning();
     applyTheme(getTheme());
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) clearTimeout(stormTimer);
       else if (currentTheme === 'halloween') scheduleStorm();
     });
-    window.TSCMSHalloween = {getTheme: getTheme, setTheme: setTheme, applyTheme: applyTheme};
+    window.TSCMSHalloween = {getTheme: getTheme, setTheme: setTheme, applyTheme: applyTheme, getLightning: getLightning, setLightning: setLightning};
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
