@@ -2,7 +2,7 @@
    Independent layer only. No modifications to Cherish's 5 v5 JS modules. */
 (function () {
   'use strict';
-  const HOME = 'https://fudgiepie4-ux.github.io/tscms-today/';
+  const HOME = new URL('./', window.location.href).href; // same folder on GitHub Pages and TSCMSRadio.com
   function notify(message) {
     const toast = document.getElementById('toast');
     if (toast) { toast.textContent = message; toast.removeAttribute('hidden'); }
