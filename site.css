@@ -11,3 +11,67 @@
 .song-page-btn:hover:not(:disabled),.song-page-btn:focus-visible{border-color:var(--gold);outline-offset:2px}
 .song-page-btn:disabled{opacity:.4;cursor:default}
 @media(max-width:420px){.song-page-controls{gap:4px}.song-page-btn{min-width:38px;padding:8px 7px;font-size:12px}}
+
+
+/* APPROVED COMPACT HOMEPAGE SONG ROWS 2026-10-19 */
+/* Scoped exclusively to Songs by Day. Keep PLAY, SUNO, and VIEW POST available. */
+.daypanel .song{
+  padding:9px 10px;
+  gap:10px;
+  border-color:rgba(240,168,50,.11);
+  background:rgba(24,16,10,.6);
+}
+.daypanel .song+.song{margin-top:5px}
+.daypanel .song .avatar{flex:0 0 38px;width:38px;height:38px;font-size:12px}
+.daypanel .song .s-title{font-size:14px;line-height:1.25}
+.daypanel .song .s-by{font-size:11.5px;line-height:1.28;margin-top:3px}
+.daypanel .song .s-follow{margin-top:3px;font-size:11px;line-height:1.25}
+.daypanel .song .s-links{gap:6px}
+.daypanel .song .btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:40px;
+  padding:9px 10px;
+  font-size:11px;
+  letter-spacing:.6px;
+  font-family:inherit;
+  cursor:pointer;
+}
+@media(max-width:640px){
+  .daypanel .song{
+    display:grid;
+    grid-template-columns:36px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:9px;
+    row-gap:6px;
+    align-items:center;
+    padding:9px;
+  }
+  .daypanel .song .avatar{
+    grid-column:1;grid-row:1;
+    flex:none;width:36px;height:36px;font-size:11px;
+  }
+  .daypanel .song .s-main{grid-column:2;grid-row:1;min-width:0}
+  .daypanel .song .s-title{font-size:13.5px}
+  .daypanel .song .s-by{font-size:11px;margin-top:2px;line-height:1.2}
+  .daypanel .song .s-follow{font-size:10.5px;margin-top:2px}
+  .daypanel .song .s-links{
+    display:grid;
+    grid-column:1/-1;grid-row:2;
+    grid-template-columns:minmax(0,.95fr) minmax(0,.95fr) minmax(0,1.2fr);
+    gap:5px;
+    flex:none;
+    width:100%;min-width:0;
+  }
+  .daypanel .song .btn{
+    min-width:0;width:100%;min-height:40px;
+    padding:8px 3px;
+    font-size:10px;
+    letter-spacing:.45px;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+}
+@media(max-width:360px){
+  .daypanel .song .s-links{gap:4px}
+  .daypanel .song .btn{font-size:9.5px;letter-spacing:.1px}
+}
