@@ -8,6 +8,7 @@
   'use strict';
   const PREVIEW = 'solitaire-gamehouse-jukebox-DESIGN-B-v7-APPROVED-PREVIEW.html';
   const PLAYLIST = 'radio-data.json';
+  const SHUFFLE_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M3 6h3.3c2.4 0 3.5 1.5 5.2 3.7l3.2 4.4c1.1 1.5 2.1 2 4 2H21" /><path d="M3 18h3.3c2.4 0 3.5-1.5 5.2-3.7l3.2-4.4c1.1-1.5 2.1-2 4-2H21" /><path d="m17 3 4 4-4 4M17 12l4 4-4 4" /></svg>';
   const required = ['close','title','artist','trackNum','original','play','previous','next','shuffle',
     'volume','seek','elapsed','duration','equalizer','eqTitle','eqAccess','analysisState','liveLed','status'];
   function init() {
@@ -135,7 +136,7 @@
     function syncShuffle() {
       if(!ui || typeof J.getShuffle!=='function') return;
       const active=!!J.getShuffle();
-      ui.shuffle.innerHTML=active?'<span aria-hidden="true">🔀</span><small>SHUF ON</small>':'<span aria-hidden="true">🔀</span><small>SHUF OFF</small>';
+      ui.shuffle.innerHTML='<span class="shuffle-glyph" aria-hidden="true">'+SHUFFLE_ICON+'</span><small>'+(active?'SHUF ON':'SHUF OFF')+'</small>';
       ui.shuffle.title=active?'Random order enabled':'Original playlist order';
       ui.shuffle.setAttribute('aria-pressed',String(active));
       ui.shuffle.setAttribute('aria-label',active?'Shuffle on; tap for playlist order':'Shuffle off; tap for random songs');
@@ -253,7 +254,7 @@
           shuffleKey.id='shuffle';
           shuffleKey.type='button';
           shuffleKey.className='shuffle-mode-btn';
-          shuffleKey.innerHTML='<span aria-hidden="true">🔀</span><small>SHUF ON</small>';
+          shuffleKey.innerHTML='<span class="shuffle-glyph" aria-hidden="true">'+SHUFFLE_ICON+'</span><small>SHUF ON</small>';
           shuffleKey.setAttribute('aria-pressed','true');
           shuffleKey.setAttribute('aria-label','Shuffle on; tap for playlist order');
           approvedCabinet.appendChild(shuffleKey);
@@ -269,7 +270,8 @@
   box-shadow:inset 0 2px 3px #f6d8a03a,inset 0 -4px 7px #000b,0 3px 7px #000a;
   text-shadow:0 1px 3px #000;cursor:pointer;
 }
-.cabinet .shuffle-mode-btn>span{font:900 clamp(17px,5vw,26px)/1 Arial,sans-serif}
+.cabinet .shuffle-mode-btn .shuffle-glyph{display:grid;place-items:center;width:100%;height:auto;line-height:1}
+.cabinet .shuffle-mode-btn svg{display:block;width:clamp(17px,5vw,26px);height:clamp(17px,5vw,26px);max-width:95%;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .cabinet .shuffle-mode-btn small{font:800 clamp(7px,1.7vw,10px)/1.1 Arial,sans-serif;white-space:nowrap}
 .cabinet .shuffle-mode-btn.selected{
   color:#ffe9b1;border-color:#e9c888;
