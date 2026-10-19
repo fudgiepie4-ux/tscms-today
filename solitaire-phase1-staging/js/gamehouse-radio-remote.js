@@ -20,7 +20,7 @@
         '<button class="remote-key remote-toggle" id="radio-remote-play" type="button" aria-label="Play radio" title="Play radio" disabled>▶</button>'+
         '<button class="remote-key" id="radio-remote-next" type="button" aria-label="Next song" title="Next song" disabled>⏭</button>'+
         '<button class="remote-key remote-shuffle" id="radio-remote-shuffle" type="button" aria-label="Shuffle on" aria-pressed="true" title="Shuffle on">'+
-          '<span aria-hidden="true" class="shuffle-icon">🔀</span><small aria-hidden="true">SHUF</small></button>'+
+          '<span aria-hidden="true" class="shuffle-icon"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M3 6h3.3c2.4 0 3.5 1.5 5.2 3.7l3.2 4.4c1.1 1.5 2.1 2 4 2H21" /><path d="M3 18h3.3c2.4 0 3.5-1.5 5.2-3.7l3.2-4.4c1.1-1.5 2.1-2 4-2H21" /><path d="m17 3 4 4-4 4M17 12l4 4-4 4" /></svg></span><small aria-hidden="true">SHUF</small></button>'+
       '</div>'+
       '<label class="remote-volume"><span class="remote-volume-icon" aria-hidden="true">♪</span>'+
         '<input id="radio-remote-volume" type="range" min="0" max="100" step="1" aria-label="Radio volume">'+
