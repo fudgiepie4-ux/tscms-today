@@ -14,7 +14,7 @@
     remote.className='tscms-radio-remote';
     remote.setAttribute('aria-label','TSCMS Radio jukebox remote');
     remote.dataset.playing='false';
-    remote.innerHTML='<div class="remote-brand"><span>♫ JUKEBOX REMOTE</span><span class="remote-indicator" aria-hidden="true"></span></div>'+
+    remote.innerHTML='<div class="remote-brand"><span>TSCMS RADIO · JUKEBOX REMOTE</span><span class="remote-indicator" aria-hidden="true"></span></div>'+
       '<div class="remote-transport" role="group" aria-label="Radio playback">'+
         '<button class="remote-key" id="radio-remote-prev" type="button" aria-label="Previous song" title="Previous song" disabled>⏮</button>'+
         '<button class="remote-key remote-toggle" id="radio-remote-play" type="button" aria-label="Play radio" title="Play radio" disabled>▶</button>'+
