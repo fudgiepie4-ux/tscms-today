@@ -78,6 +78,10 @@
 <p style="margin-top:20px">Saloon theme</p>
 <div class="menulist"><button aria-pressed="true" class="p-btn selected" id="theme-classic" type="button" onclick="window.TSCMSHalloween&&window.TSCMSHalloween.setTheme('classic',true);this.classList.add('selected');document.getElementById('theme-halloween').classList.remove('selected');">🤠 Classic Saloon</button><button aria-pressed="false" class="p-btn" id="theme-halloween" type="button" onclick="window.TSCMSHalloween&&window.TSCMSHalloween.setTheme('halloween',true);this.classList.add('selected');document.getElementById('theme-classic').classList.remove('selected');">🎃 Halloween</button></div>
 <p class="small" style="margin-top:10px">Theme takes effect on your next new game.</p>
+<div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+  <button id="lightning-toggle" type="button" class="p-btn" aria-pressed="true" style="font-size:14px;padding:8px 12px;" onclick="var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',on);this.textContent=on?'⚡ Lightning: ON':'⚡ Lightning: OFF';if(window.TSCMSHalloween)window.TSCMSHalloween.setLightning(on);">⚡ Lightning: ON</button>
+</div>
+<p class="small" style="margin-top:6px;font-size:11px;opacity:0.8;">Turn off for accessibility (no flashing lights).</p>
 <p class="small" style="margin-top:15px">Draw mode must persist and agree with the saved game. Private staging only.</p></div>
 </div>
 <div hidden="" id="toast" role="status"></div>
@@ -122,7 +126,16 @@
     });
     document.addEventListener('tscms:theme-changed', updateThemeButtons);
     // Initial state
-    setTimeout(updateThemeButtons, 500);
+    setTimeout(function() {
+      updateThemeButtons();
+      // Sync lightning toggle
+      var lt = document.getElementById('lightning-toggle');
+      if (lt && window.TSCMSHalloween) {
+        var on = window.TSCMSHalloween.getLightning();
+        lt.setAttribute('aria-pressed', on);
+        lt.textContent = on ? '⚡ Lightning: ON' : '⚡ Lightning: OFF';
+      }
+    }, 500);
   });
 })();
 </script>
