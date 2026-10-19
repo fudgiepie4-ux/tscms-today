@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSCMS Admin — Account Upgrade Preview</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0b0e;--panel:#151618;--line:#635237;--gold:#f2bb55;--cyan:#5be2d6;--ink:#f9edd9;--muted:#ccbfae}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 48% -5%,#463019 0,transparent 55%),var(--bg);font:16px system-ui,Arial,sans-serif;color:var(--ink)}button,input{font:inherit}a{color:var(--cyan)}
+.studio{max-width:760px;margin:auto;padding:25px 16px 70px}.brand{text-align:center;padding:22px 12px 15px}.onair{font:900 12px system-ui;letter-spacing:4px;color:#ff6e65;border:1px solid #ff6e65;border-radius:6px;padding:7px 15px;display:inline-block;box-shadow:0 0 14px #ff6e6540}.brand h1{font:700 clamp(27px,5.4vw,43px) Georgia,serif;margin:15px 0 7px;color:var(--gold)}.brand p{margin:0;color:var(--muted)}
+.info{margin:20px 0;padding:14px 15px;border:1px solid #85662e;border-radius:11px;background:#30220f;text-align:center;line-height:1.5}.info strong{color:#ffe5ab}
+.card{border:1px solid var(--line);border-radius:19px;background:linear-gradient(160deg,#1e1915,#141518 65%);box-shadow:0 14px 40px #0007;overflow:hidden}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:11px 11px 0}.tabs button{border:1px solid #57482e;border-radius:10px;color:var(--muted);padding:13px 6px;background:#252017;min-height:47px;cursor:pointer;font-weight:700}.tabs button[aria-selected=true]{background:#62421c;color:#fff6e5;border-color:var(--gold)}
+.section{display:none;padding:24px}.section.open{display:block}h2{margin:0 0 9px;color:#f8c872;font:700 26px Georgia,serif}p{line-height:1.52;color:var(--muted)}.note{font-size:13px;color:#dbc59b}
+label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{width:100%;border-radius:9px;border:1px solid #796343;background:#0b0e11;color:white;padding:14px 13px;min-height:48px}.field:focus{outline:2px solid var(--cyan);outline-offset:2px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.primary{width:100%;margin:20px 0 7px;border:1px solid #edc67b;background:linear-gradient(180deg,#f1c47d,#ac7c32);color:#1b1205;border-radius:10px;padding:14px;font-weight:900;cursor:pointer;min-height:48px}
+.secondary{border:1px solid #77b9af;color:var(--cyan);background:#112224;border-radius:10px;padding:11px 15px;cursor:pointer;font-weight:700}
+.actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:center;margin:13px 0}.status{min-height:22px;font-size:13px;color:#ffd890;margin-top:10px}
+.ribbon{margin:19px 0;padding:14px;text-align:center;border:1px dashed #867348;border-radius:10px;color:#e2d4b5;font-size:13px;line-height:1.5}
+.owner{margin-top:22px;border:1px solid #315654;border-radius:15px;padding:16px;background:#101b1c}.owner h3{margin:0 0 4px;color:var(--cyan)}.owner p{margin:7px 0 13px;font-size:14px}.sample{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.sample span{border:1px solid #3a6260;border-radius:20px;padding:8px 10px;color:#e1f6f1;font-size:12px}.foot{text-align:center;padding-top:21px;font-size:12px;color:#a99986}
+@media(max-width:450px){.tabs{grid-template-columns:1fr 1fr}.section{padding:20px 15px}.row{grid-template-columns:1fr}.studio{padding:12px 12px 50px}}
+</style>
+</head><body><main class="studio">
+<header class="brand"><span class="onair">STAFF ACCESS · STUDIO A</span><h1>TSCMS Broadcast Control Room</h1><p>Your personal backstage pass starts here.</p></header>
+<div class="info"><strong>Account upgrade deadline: November 1, 2026.</strong><div>Existing shared-PIN access will be retired. New accounts require owner approval.</div></div>
+<div class="card"><nav class="tabs" aria-label="Choose sign in method">
+<button type="button" data-tab="old" aria-selected="true">🔑 Existing PIN</button><button type="button" data-tab="signin" aria-selected="false">👤 Personal Login</button></nav>
+<section class="section open" id="old"><h2>Current administrators</h2><p>Use your existing PIN during the transition to begin a personal account request. A valid PIN never grants approval by itself.</p><label for="pin">Existing PIN</label><input class="field" type="password" id="pin" autocomplete="off" placeholder="Your current station PIN">
+<button class="primary" type="button" data-action="preview-migrate">Continue to Account Setup →</button><p class="note">Preview only: this screen does NOT validate a PIN or unlock Admin data.</p><div class="status" role="status"></div></section>
+<section class="section" id="signin"><h2>Welcome back</h2><p>Sign in with your approved personal account.</p><label for="identifier">Username or email</label><input class="field" type="text" id="identifier" autocomplete="username" autocapitalize="none" placeholder="Username or email"><label for="password">Password</label><input class="field" type="password" id="password" autocomplete="current-password" placeholder="Your personal password"><button class="primary" type="button" data-action="preview-signin">ON AIR · Sign In</button><div class="actions"><button class="secondary" data-tab="signup" type="button">Request Access</button><button class="secondary" type="button" data-action="preview-reset">Forgot Password?</button></div><div class="status" role="status"></div></section>
+<section class="section" id="signup"><h2>Create your Admin account</h2><p>All required fields help the owner verify who is requesting backstage access.</p>
+<label for="realname">Full legal name *</label><input class="field" id="realname" autocomplete="name" placeholder="First and last name" required>
+<label for="email">Email address *</label><input class="field" id="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+<label for="username">Choose username *</label><input class="field" id="username" autocomplete="username" autocapitalize="none" placeholder="Your private Admin username" required>
+<div class="row"><div><label for="newpass">New password *</label><input class="field" id="newpass" type="password" autocomplete="new-password" required></div><div><label for="confirmpass">Confirm password *</label><input class="field" id="confirmpass" type="password" autocomplete="new-password" required></div></div>
+<button class="primary" type="button" data-action="preview-signup">Submit for Owner Approval</button>
+<p class="note">Registration remains inactive until Firebase permissions, email verification, username lookup and migration security are tested.</p><div class="status" role="status"></div></section>
+</div>
+<div class="owner"><h3>👑 Owner Review Center — Preview</h3><p>Registration requests will appear here only after email verification. Access remains blocked until you approve the person.</p><div class="sample"><span>Pending Requests</span><span>Verified Emails</span><span>Approve / Reject</span><span>Disable Account</span><span>Audit History</span></div></div>
+<div class="ribbon"><strong>SAFE DESIGN PREVIEW</strong> · No PIN or password is submitted, stored, or checked here. This page cannot create accounts, approve users, or unlock Admin information.</div>
+<footer class="foot"><a href="https://tscmsradio.com" rel="noopener">Return to TSCMS Radio</a> · This preview is NOT the live Admin page.</footer></main>
+<script>
+const sections=[...document.querySelectorAll('.section')],tabButtons=[...document.querySelectorAll('[data-tab]')];
+function show(id){sections.forEach(el=>el.classList.toggle('open',el.id===id));tabButtons.forEach(el=>el.setAttribute('aria-selected',String(el.getAttribute('data-tab')===id)));const a=document.querySelector('#'+id+' input');if(a)a.focus();}
+tabButtons.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{
+if(b.dataset.action==='preview-migrate'){show('signup');return}
+const parent=b.closest('.section'); const status=parent?.querySelector('.status');
+if(status)status.textContent='Preview only — account actions are intentionally disabled until access rules are verified.';
+}));
+</script></body></html>
