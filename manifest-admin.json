@@ -1,10 +1,10 @@
 {
-  "id": "/tscms-today/admin.html",
+  "id": "/admin.html",
   "name": "TSCMS Admin",
   "short_name": "TSCMS Admin",
   "description": "TSCMS administrators website",
-  "start_url": "/tscms-today/admin.html",
-  "scope": "/tscms-today/admin.html",
+  "start_url": "/admin.html",
+  "scope": "/admin.html",
   "display": "standalone",
   "background_color": "#070708",
   "theme_color": "#070708",
