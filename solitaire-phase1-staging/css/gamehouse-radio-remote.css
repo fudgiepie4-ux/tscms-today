@@ -44,7 +44,7 @@
 .tscms-radio-remote input[type=range]::-moz-range-thumb{width:15px;height:15px;border:1px solid #48280c;
   background:#e8bc76;border-radius:50%}
 .stage .tscms-radio-face{position:absolute;z-index:9;pointer-events:none;
-  left:80.95%;top:23.9%;width:15.0%;height:7.22%;
+  left:80.95%;top:22.70%;width:15.0%;height:8.55%;
   display:grid;grid-template-rows:18% 49% 33%;overflow:hidden;
   padding:1px;border:1px solid #8b673d;border-radius:4px;
   background:linear-gradient(155deg,#080d12,#130a11 50%,#080d17);
@@ -71,3 +71,5 @@
 @media(prefers-reduced-motion:reduce){
   .stage .tscms-radio-remote *, .stage .tscms-radio-face *{animation:none!important;transition:none!important}
 }
+
+.tscms-radio-remote .radio-remote-srstatus{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
