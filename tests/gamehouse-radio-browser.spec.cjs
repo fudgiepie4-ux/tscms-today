@@ -17,12 +17,9 @@ const SONGS=Array.from({length:12},(_,i)=>({
   stream:'https://fixture.invalid/song-'+i+'.mp3',
   suno:'https://suno.com/song/test-'+i
 }));
-function notes(page){
-  const errors=[];
-  page.on('pageerror',e=>errors.push(e.message));
-  return errors;
-}
 test.beforeEach(async({page})=>{
+  page.__radioErrors=[];
+  page.on('pageerror',e=>page.__radioErrors.push(e.message));
   await page.route('**/radio-data.json',route=>route.fulfill({
     status:200,contentType:'application/json',body:JSON.stringify({playlist:SONGS})
   }));
@@ -123,7 +120,7 @@ test('skip, volume, pause, shuffle and startup preference persist',async({page})
   expect(i2).not.toBe(i1);
   await page.locator('#radio-remote-shuffle').click();
   expect((await J()).shuffle).toBe(false);
-  await page.locator('#radio-remote-volume').fill('24');
+  await page.locator('#radio-remote-volume').evaluate(slider=>{slider.value='24';slider.dispatchEvent(new Event('input',{bubbles:true}));});
   expect(await page.evaluate(()=>window.TSCMSJukebox.getVolume())).toBeCloseTo(.24);
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.TSCMSJukebox?._state().ready);
@@ -158,7 +155,7 @@ test('new visit starts away from previous last-played stream when Shuffle ON',as
     .not.toBe('https://fixture.invalid/song-0.mp3');
 });
 test('mocked streams cannot invent moving FFT and no JS errors',async({page})=>{
-  const errors=notes(page);
+  const errors=page.__radioErrors;
   await page.locator('#radio-remote-play').click();
   expect(await page.evaluate(()=>window.TSCMSJukebox.getSpectrumFrame())).toBeNull();
   await page.locator('#radio-remote-next').click();
