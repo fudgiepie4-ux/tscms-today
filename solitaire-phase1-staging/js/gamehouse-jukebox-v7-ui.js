@@ -94,6 +94,16 @@
       if (!ui) return;
       const t = J.currentTrack(), state = J._state();
       ui.title.textContent = t ? t.title : 'TSCMS Radio';
+      // Auto-shrink long titles so they fit the plaque without overlapping (Fudgie 2026-10-18)
+      (function() {
+        var title = ui.title;
+        var len = (t && t.title || '').length;
+        title.style.fontSize = '';
+        if (len > 40) title.style.fontSize = '15px';
+        else if (len > 28) title.style.fontSize = '18px';
+        else if (len > 20) title.style.fontSize = '21px';
+        // else: use CSS clamp default
+      })();
       ui.artist.textContent = (t && t.artist) || 'Suno Country Music Spot';
       ui.trackNum.textContent = t ? 'TRACK ' + (state.index + 1) + ' OF ' + state.count : 'PLAYLIST UNAVAILABLE';
       let song = null;
