@@ -294,13 +294,14 @@
           });
           ready = tracks.length > 0;
           if(!ready){announce('unavailable', 'No playable TSCMS Radio tracks are available.');return false;}
-          // Optional first-track probe is bounded; if it fails native radio plays as before.
-          var permit=eqRequested?verifyStreamCORS(tracks[0].stream):Promise.resolve(false);
+          // Probe the actual shuffled opening song, not the unrelated first
+          // playlist entry. A failed probe still uses the safe native player.
+          var startingIndex=shuffleEnabled?shuffledSessionStart():0;
+          var permit=eqRequested?verifyStreamCORS(tracks[startingIndex].stream):Promise.resolve(false);
           return Promise.resolve(permit).then(function(ok){
             eqLastReason=ok?'CORS STREAM VERIFIED — FFT READY':'STREAM CORS RESTRICTED — NATIVE RADIO';
-            var startingIndex=shuffleEnabled?shuffledSessionStart():0;
-             loadTrack(startingIndex);fireTrackChange();announce('ready');
-             fireShuffleChange();return true;
+            loadTrack(startingIndex);fireTrackChange();announce('ready');
+            fireShuffleChange();return true;
           });
         })
         .catch(function () {
