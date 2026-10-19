@@ -51,7 +51,8 @@
 /* Cherish owns visibility/behavior of pause choices; remove reference image's painted cards before integrating live cards. */
 </style><link href="solitaire-phase1-staging/css/live-cards.css" rel="stylesheet"/>
 <link href="solitaire-phase1-staging/css/locked-visual-overlay.css" rel="stylesheet"/>
-<link href="solitaire-phase1-staging/css/gamehouse-jukebox-visual.css" rel="stylesheet"/></head><body>
+<link href="solitaire-phase1-staging/css/gamehouse-jukebox-visual.css" rel="stylesheet"/>
+<link rel="stylesheet" href="solitaire-phase1-staging/css/halloween-theme.css"></head><body>
 <main aria-label="Classic Saloon Solitaire visual prototype" class="main">
 <div class="stage" id="stage">
 <button aria-label="Exit to TSCMS homepage; save game before leaving" id="btn-exit" title="Exit and Save" type="button"></button><img alt="Locked approved warm Old West Solitaire saloon with TSCMS Radio neon color equalizer jukebox, empty board, and four wooden control buttons" class="stage-art" draggable="false" src="assets/TSCMS_APPROVED_MASTER_DOWNLOAD.png"/>
@@ -74,6 +75,9 @@
 </div>
 <div aria-labelledby="menuTitle" aria-modal="true" class="layer" hidden="" id="menu" role="dialog">
 <div class="panel"><button aria-label="Close menu" class="close" id="closeMenu" type="button">×</button><h2 id="menuTitle">SALOON SETTINGS</h2><p>Draw preference</p><div class="menulist"><button aria-pressed="true" class="p-btn selected" id="draw1" type="button">Draw 1</button><button aria-pressed="false" class="p-btn" id="draw3" type="button">Draw 3</button></div>
+<p style="margin-top:20px">Saloon theme</p>
+<div class="menulist"><button aria-pressed="true" class="p-btn selected" id="theme-classic" type="button">🤠 Classic Saloon</button><button aria-pressed="false" class="p-btn" id="theme-halloween" type="button">🎃 Halloween</button></div>
+<p class="small" style="margin-top:10px">Theme takes effect on your next new game.</p>
 <p class="small" style="margin-top:15px">Draw mode must persist and agree with the saved game. Private staging only.</p></div>
 </div>
 <div hidden="" id="toast" role="status"></div>
@@ -88,6 +92,40 @@
 <script src="solitaire-phase1-staging/js/swiper-testmode-integration.js"></script>
 <script src="solitaire-phase1-staging/js/swiper-launch-bootstrap.js"></script>
 <script src="solitaire-phase1-staging/js/swiper-visual-bridge-v2.js"></script>
+<script src="solitaire-phase1-staging/js/halloween-theme.js"></script>
+<script>
+// Theme switcher wiring
+(function() {
+  function updateThemeButtons() {
+    var theme = (window.TSCMSHalloween && window.TSCMSHalloween.getTheme()) || 'classic';
+    var classicBtn = document.getElementById('theme-classic');
+    var halloweenBtn = document.getElementById('theme-halloween');
+    if (classicBtn) {
+      classicBtn.classList.toggle('selected', theme === 'classic');
+      classicBtn.setAttribute('aria-pressed', theme === 'classic');
+    }
+    if (halloweenBtn) {
+      halloweenBtn.classList.toggle('selected', theme === 'halloween');
+      halloweenBtn.setAttribute('aria-pressed', theme === 'halloween');
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    var classicBtn = document.getElementById('theme-classic');
+    var halloweenBtn = document.getElementById('theme-halloween');
+    if (classicBtn) classicBtn.addEventListener('click', function() {
+      if (window.TSCMSHalloween) window.TSCMSHalloween.setTheme('classic', false);
+      updateThemeButtons();
+    });
+    if (halloweenBtn) halloweenBtn.addEventListener('click', function() {
+      if (window.TSCMSHalloween) window.TSCMSHalloween.setTheme('halloween', false);
+      updateThemeButtons();
+    });
+    document.addEventListener('tscms:theme-changed', updateThemeButtons);
+    // Initial state
+    setTimeout(updateThemeButtons, 500);
+  });
+})();
+</script>
 <script src="solitaire-phase1-staging/js/renderer-binding.js"></script>
 <script src="solitaire-phase1-staging/js/locked-visual-adapter.js"></script><script>
 // Initialize on DOM ready — Swiper bootstrap wraps renderer init
