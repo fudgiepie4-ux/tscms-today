@@ -8,7 +8,7 @@
   'use strict';
   const PREVIEW = 'solitaire-gamehouse-jukebox-DESIGN-B-v7-APPROVED-PREVIEW.html';
   const PLAYLIST = 'radio-data.json';
-  const required = ['close','title','artist','trackNum','original','play','previous','next',
+  const required = ['close','title','artist','trackNum','original','play','previous','next','shuffle',
     'volume','seek','elapsed','duration','equalizer','eqTitle','eqAccess','analysisState','liveLed','status'];
   function init() {
     const trigger = document.getElementById('btn-jukebox');
@@ -132,8 +132,18 @@
       ui.seek.disabled = true;
       ui.seek.setAttribute('aria-label','Song progress (display only until phone verification)');
     }
+    function syncShuffle() {
+      if(!ui || typeof J.getShuffle!=='function') return;
+      const active=!!J.getShuffle();
+      ui.shuffle.textContent=active?'🔀 SHUFFLE ON':'🔀 SHUFFLE OFF';
+      ui.shuffle.title=active?'Random order enabled':'Original playlist order';
+      ui.shuffle.setAttribute('aria-pressed',String(active));
+      ui.shuffle.setAttribute('aria-label',active?'Shuffle on; tap for playlist order':'Shuffle off; tap for random songs');
+      ui.shuffle.classList.toggle('selected',active);
+    }
     function reflect() {
       if (!ui) return;
+      syncShuffle();
       const playing = J.isPlaying();
       ui.play.textContent = playing ? '❚❚' : '▶';
       ui.play.setAttribute('aria-label', playing ? 'Pause music' : 'Play music');
@@ -235,9 +245,42 @@
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
           overlay.appendChild(approvedCabinet);
+          // Add a working Shuffle key to the existing lower brass control row.
+          // Do not move the approved photographic cabinet, EQ, or transport.
+          const miniControls=approvedCabinet.querySelector('.mini-controls');
+          const viewSong=miniControls&&miniControls.querySelector('#original');
+          if(!miniControls || !viewSong)throw new Error('V7 mini-controls unavailable for shuffle');
+          const shuffleKey=document.createElement('button');
+          shuffleKey.id='shuffle';
+          shuffleKey.type='button';
+          shuffleKey.className='shuffle-mode-btn';
+          shuffleKey.textContent='🔀 SHUFFLE ON';
+          shuffleKey.setAttribute('aria-pressed','true');
+          shuffleKey.setAttribute('aria-label','Shuffle on; tap for playlist order');
+          miniControls.insertBefore(shuffleKey,viewSong);
           // V8.1: align live Play/Pause cap with the original photographed button.
           // Do not change side controls, EQ, player events, or approved cabinet photo.
-          styles.textContent += '\n.transport button.primary{transform:translate(-7%,-4%)}';
+          styles.textContent += `
+.transport button.primary{transform:translate(-7%,-4%)}
+.mini-controls{gap:1.5%;padding:0 3px;}
+.mini-controls .volume-wrap{width:44%;min-width:0;padding:2px;gap:3px}
+.mini-controls .original{width:23%;flex:1;max-width:25%;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.mini-controls .shuffle-mode-btn{
+  width:30%;height:92%;min-width:0;padding:1px 2px;flex:none;
+  border:1px solid #ddae6c;border-radius:4px;
+  color:#ecd2aa;background:linear-gradient(170deg,#624028,#27160d 62%,#392015);
+  box-shadow:inset 0 1px 3px #fce0a53b,0 1px 2px #050302;
+  font:800 clamp(7px,1.75vw,10px)/1.08 Arial,sans-serif;white-space:nowrap;
+  letter-spacing:0;cursor:pointer;
+}
+.mini-controls .shuffle-mode-btn.selected{
+  color:#ffe9b1;border-color:#ffe3a2;
+  background:linear-gradient(165deg,#8f6029,#543017 60%,#2c150a);
+  box-shadow:inset 0 1px 2px #fff1c66a,0 0 8px #dba25685;
+}
+.mini-controls .shuffle-mode-btn.selected:after{content:' ';display:inline-block;width:4px;height:4px;margin-left:2px;background:#6ef0bd;border-radius:50%;box-shadow:0 0 5px #70ffc8}
+.mini-controls .shuffle-mode-btn:focus-visible{outline:2px solid #fff1c2;outline-offset:1px}
+`;
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
           ui = Object.fromEntries(required.map(id => [id,shadow.getElementById(id)]));
@@ -247,6 +290,12 @@
           ui.play.addEventListener('click',() => { J.toggle(); reflect(); });
           ui.next.addEventListener('click',() => { J.next(); track(); reflect(); });
           ui.previous.addEventListener('click',() => { J.prev(); track(); reflect(); });
+          ui.shuffle.addEventListener('click',() => {
+            if(typeof J.toggleShuffle!=='function')return;
+            J.toggleShuffle(); // instant mode change; current song continues.
+            syncShuffle();
+            ui.status.textContent=J.getShuffle()?'SHUFFLE ON · RANDOM ORDER':'SHUFFLE OFF · PLAYLIST ORDER';
+          });
           ui.volume.value = String(Math.round(J.getVolume() * 100));
           ui.volume.style.setProperty('--fill',ui.volume.value + '%');
           ui.volume.addEventListener('input',() => {
@@ -257,6 +306,7 @@
             if (ui.original.getAttribute('aria-disabled') === 'true') e.preventDefault();
           });
           J.on('trackchange',() => { track(); reflect(); });
+          J.on('shufflechange',syncShuffle);
           J.on('timeupdate',progress);
           document.addEventListener('tscms:jukebox',e => {
             const d = e.detail || {};
