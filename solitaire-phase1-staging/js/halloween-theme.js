@@ -1,191 +1,289 @@
-/* TSCMS Halloween weather — outside the saloon ONLY.
- * Window masks use the approved 941 × 1672 art coordinates already established
- * by the earlier Halloween weather visual preview. No game logic or audio changes.
- */
+/* ============================================================
+   TSCMS Halloween Theme Module (window.TSCMSHalloween)
+   V5 visual treatment port.
+   Source: solitaire-halloween-weather-VISUAL-PREVIEW.html @ a531a6a7
+   (Halloween concept v5: original branching blue/violet storm)
+
+   Approved V5 direction: realistic storm atmosphere. NO cartoon
+   emoji/cobweb sticker overlays (bats, pumpkins, webs disabled
+   in V5 — not ported). NO AUDIO — storm ambience stays OFF.
+
+   Interface (as wired in the staging HTML):
+     TSCMSHalloween.setTheme('classic'|'halloween', savePref)
+     TSCMSHalloween.getTheme() -> 'classic' | 'halloween'
+     TSCMSHalloween.setLightning(bool)
+     TSCMSHalloween.getLightning() -> bool
+   Dispatches 'tscms:theme-changed' on document when theme changes.
+
+   Theme applies to the NEXT new deal (bootstrap reads the pref).
+   The visual atmosphere reflects the CURRENT game's theme, which
+   the bootstrap sets via setTheme(theme, false) on newGame.
+   ============================================================ */
 (function () {
   'use strict';
-  var THEME_KEY = 'tscms_solitaire_prefs_swiper_staging_v1';
-  var SVG_NS = 'http://www.w3.org/2000/svg';
-  var weatherLayer = null;
-  var flashGroup = null;
-  var boltGroup = null;
-  var stormTimer = null;
-  var currentTheme = 'classic';
-  var lightningOn = true; // accessibility: user can disable flashes
-  var WINDOWS = [
-    { x: 497, y: 148, w: 49, h: 105, count: 32 },
-    { x: 560, y: 149, w: 55, h: 104, count: 36 },
-    { x: 8, y: 207, w: 47, h: 76, count: 13 },
-    { x: 289, y: 130, w: 51, h: 61, count: 16 }
-  ];
-  function prefs() {
-    try { return JSON.parse(localStorage.getItem(THEME_KEY) || '{}'); }
-    catch (e) { return {}; }
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var PREFS_KEY = 'tscms_solitaire_prefs_swiper_staging_v1';
+  var stage = null;
+  var rainLayer = null;
+  var stormLight = null;
+  var bolt = null;
+  var boltGlow = null;
+  var boltCore = null;
+  var theme = 'classic';
+  var lightningOn = true;
+  var paused = false;
+  var timer = null;
+  var strikeOff = null;
+  var initialized = false;
+
+  var reducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  /* ----- Prefs (staging key) ----- */
+  function readPrefs() {
+    try {
+      var json = localStorage.getItem(PREFS_KEY);
+      return json ? JSON.parse(json) : {};
+    } catch (e) { return {}; }
   }
-  function savePrefs(p) {
-    try { localStorage.setItem(THEME_KEY, JSON.stringify(p)); }
-    catch (e) { /* Private browsing: theme still works for this session. */ }
+  function writePrefs(prefs) {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+      return true;
+    } catch (e) { return false; }
   }
-  function getTheme() { return prefs().theme || 'classic'; }
-  function getLightning() { return prefs().lightning !== false; }
-  function setLightning(on) {
-    var p = prefs(); p.lightning = !!on; savePrefs(p);
-    lightningOn = !!on;
-    if (!lightningOn) { clearTimeout(stormTimer); }
-    else if (currentTheme === 'halloween' && !document.hidden) scheduleStorm();
+
+  /* ----- Overlay DOM (V5 structure, IDs namespaced hw*) ----- */
+  function buildOverlays() {
+    var frag = document.createElement('div');
+    frag.innerHTML =
+      '<div class="haunt-tint" aria-hidden="true"></div>' +
+      '<div class="haunt-glow" aria-hidden="true"></div>' +
+      '<svg class="hw-window-weather" viewBox="0 0 941 1672" ' +
+      'preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+      '<defs><clipPath id="hwWindowCutouts">' +
+      '<path d="M497 160 Q510 147 533 151 L546 153 L546 253 L497 253 Z"/>' +
+      '<path d="M560 155 Q581 145 610 161 L615 252 L560 252 Z"/>' +
+      '<path d="M8 227 L55 206 L55 283 L8 283 Z"/>' +
+      '<path d="M289 129 L336 132 L341 189 L291 191 Z"/>' +
+      '</clipPath></defs>' +
+      '<g class="hw-rain" id="hwRainLayer"></g>' +
+      '</svg>' +
+      '<div class="rain-haze" aria-hidden="true"></div>' +
+      '<div class="storm-light" id="hwStormLight" aria-hidden="true"></div>' +
+      '<svg class="lightning-bolt" id="hwBolt" viewBox="0 0 941 1672" ' +
+      'preserveAspectRatio="none" aria-hidden="true" focusable="false">' +
+      '<defs><clipPath id="hwSkyCut">' +
+      '<path d="M497 160 Q510 147 533 151 L546 153 L546 253 L497 253 Z ' +
+      'M560 155 Q581 145 610 161 L615 252 L560 252 Z"/>' +
+      '</clipPath></defs>' +
+      '<g clip-path="url(#hwSkyCut)">' +
+      '<g id="hwBoltGlow"></g><g id="hwBoltCore"></g>' +
+      '</g></svg>';
+
+    while (frag.firstChild) stage.appendChild(frag.firstChild);
+
+    rainLayer = document.getElementById('hwRainLayer');
+    stormLight = document.getElementById('hwStormLight');
+    bolt = document.getElementById('hwBolt');
+    boltGlow = document.getElementById('hwBoltGlow');
+    boltCore = document.getElementById('hwBoltCore');
+
+    // V5 rain: 115 drops, randomized length/speed/phase/opacity.
+    for (var i = 0; i < 115; i++) {
+      var line = document.createElementNS(NS, 'line');
+      var x = rand(0, 941), y = rand(100, 310);
+      line.setAttribute('x1', x.toFixed(1));
+      line.setAttribute('x2', (x - 3).toFixed(1));
+      line.setAttribute('y1', y.toFixed(1));
+      line.setAttribute('y2', (y + rand(9, 22)).toFixed(1));
+      line.style.animationDuration = rand(.65, 1.22).toFixed(2) + 's';
+      line.style.animationDelay = (-rand(0, 2)).toFixed(2) + 's';
+      line.style.opacity = rand(.20, .64).toFixed(2);
+      rainLayer.appendChild(line);
+    }
   }
-  function svgNode(tag, attrs) {
-    var el = document.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
-    return el;
-  }
-  function removeOldViewportWeather() {
-    // Remove V5 viewport-sized weather when transitioning or hot-reloading.
-    document.querySelectorAll('.hw-rain-layer, .hw-lightning-flash, .hw-bolt, .hw-moon')
-      .forEach(function (el) { el.remove(); });
-  }
-  function createExteriorWeather() {
-    var stage = document.getElementById('stage');
-    if (!stage) return null;
-    if (weatherLayer && weatherLayer.isConnected) return weatherLayer;
-    weatherLayer = svgNode('svg', {
-      'class': 'hw-window-weather', viewBox: '0 0 941 1672',
-      preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false'
-    });
-    // Both raindrops and lightning are clipped by the EXACT same outside-only aperture.
-    var defs = svgNode('defs');
-    var clip = svgNode('clipPath', {id: 'hw-exterior-window-cutouts', clipPathUnits: 'userSpaceOnUse'});
-    clip.appendChild(svgNode('path', {d:
-      'M497 160 Q510 147 533 151 L546 153 L546 253 L497 253 Z ' +
-      'M560 155 Q581 145 610 161 L615 252 L560 252 Z ' +
-      'M8 227 L55 206 L55 283 L8 283 Z ' +
-      'M289 129 L336 132 L341 189 L291 191 Z'
-    }));
-    defs.appendChild(clip);
-    weatherLayer.appendChild(defs);
-    var outside = svgNode('g', {'clip-path': 'url(#hw-exterior-window-cutouts)'});
-    flashGroup = svgNode('g', {'class': 'hw-window-flash'});
-    flashGroup.appendChild(svgNode('rect', {x: 0, y: 0, width: 941, height: 310, 'class': 'hw-flash-fill'}));
-    outside.appendChild(flashGroup);
-    var rain = svgNode('g', {'class': 'hw-window-rain'});
-    WINDOWS.forEach(function (windowBox) {
-      for (var i = 0; i < windowBox.count; i++) {
-        var x = windowBox.x + Math.random() * windowBox.w;
-        var y = windowBox.y - 35 + Math.random() * (windowBox.h + 55);
-        var len = 7 + Math.random() * 15;
-        var drop = svgNode('line', {
-          x1: x.toFixed(1), y1: y.toFixed(1),
-          x2: (x - 3 - Math.random() * 5).toFixed(1), y2: (y + len).toFixed(1)
-        });
-        drop.style.setProperty('--hw-duration', (0.7 + Math.random() * 0.75).toFixed(2) + 's');
-        drop.style.setProperty('--hw-delay', (-Math.random() * 2).toFixed(2) + 's');
-        rain.appendChild(drop);
-      }
-    });
-    outside.appendChild(rain);
-    boltGroup = svgNode('g', {'class': 'hw-window-bolts'});
-    outside.appendChild(boltGroup);
-    weatherLayer.appendChild(outside);
-    stage.appendChild(weatherLayer);
-    return weatherLayer;
-  }
-  function createCobwebs() {
-    var stage = document.getElementById('stage');
-    if (!stage) return;
-    ['tl', 'tr'].forEach(function (pos) {
-      if (stage.querySelector('.hw-cobweb.' + pos)) return;
-      var web = document.createElement('div');
-      web.className = 'hw-cobweb ' + pos;
-      web.textContent = '🕸️';
-      web.setAttribute('aria-hidden', 'true');
-      stage.appendChild(web);
-    });
-  }
-  function makeExteriorBolt(violet) {
-    if (!boltGroup) return;
-    boltGroup.replaceChildren();
-    // A branching lightning bolt in the SKY BEYOND THE SALOON WINDOWS.
-    // The clipping group prevents any branch from crossing window trim or walls.
-    var x = 523 + Math.random() * 65, y = 153, points = [[x, y]];
-    for (var i = 0; i < 12; i++) {
-      x = Math.max(499, Math.min(610, x + (Math.random() - .5) * 23));
-      y += 7 + Math.random() * 6;
+
+  /* ----- Procedural branching bolt (V5 geometry) ----- */
+  function makeLightning(violet) {
+    var minX = 502, maxX = 608;
+    var baseX = 535 + Math.random() * 46, points = [[baseX, 149]];
+    var x = baseX, y = 149, i, k, t;
+    for (i = 0; i < 13; i++) {
+      y = Math.min(255, y + 8 + Math.random() * 4);
+      x = Math.max(minX, Math.min(maxX, x + (Math.random() - .5) * 21));
       points.push([x, y]);
     }
     var paths = [points];
-    for (var j = 0; j < 5; j++) {
-      var at = 1 + Math.floor(Math.random() * (points.length - 4));
-      var fork = [points[at]], bx = points[at][0], by = points[at][1];
-      var sign = Math.random() < .5 ? -1 : 1;
-      for (var k = 0; k < 3; k++) {
-        bx = Math.max(499, Math.min(610, bx + sign * (5 + Math.random() * 9)));
-        by += 5 + Math.random() * 5;
-        fork.push([bx, by]);
+    for (k = 0; k < 7; k++) {
+      var ix = 2 + Math.floor(Math.random() * (points.length - 5));
+      var p = points[ix], way = Math.random() < .5 ? -1 : 1;
+      var branch = [p], bx = p[0], by = p[1];
+      for (t = 0; t < 3; t++) {
+        bx = Math.max(minX, Math.min(maxX, bx + way * (6 + Math.random() * 12)));
+        by += 5 + Math.random() * 7;
+        branch.push([bx, by]);
       }
-      paths.push(fork);
+      paths.push(branch);
     }
-    paths.forEach(function (pts, index) {
-      var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
-      boltGroup.appendChild(svgNode('path', {
-        d: d, fill: 'none', stroke: violet ? '#b977ee' : '#68bcff',
-        'stroke-width': index ? 4 : 8, 'stroke-linecap': 'round', opacity: .5
-      }));
-      boltGroup.appendChild(svgNode('path', {
-        d: d, fill: 'none', stroke: violet ? '#f4dfff' : '#eefaff',
-        'stroke-width': index ? .8 : 1.8, 'stroke-linecap': 'round'
-      }));
+    boltGlow.textContent = '';
+    boltCore.textContent = '';
+    var coreColor = violet ? '#f2deff' : '#edfaff';
+    var aura = violet ? '#b46cff' : '#5fa8ff';
+    paths.forEach(function (arr, index) {
+      var d = arr.map(function (pt, j) {
+        return (j ? 'L' : 'M') + pt[0].toFixed(1) + ',' + pt[1].toFixed(1);
+      }).join(' ');
+      var glow = document.createElementNS(NS, 'path');
+      glow.setAttribute('d', d);
+      glow.setAttribute('fill', 'none');
+      glow.setAttribute('stroke', aura);
+      glow.setAttribute('stroke-width', index ? 4.5 : 8);
+      glow.setAttribute('stroke-linecap', 'round');
+      boltGlow.appendChild(glow);
+      var core = document.createElementNS(NS, 'path');
+      core.setAttribute('d', d);
+      core.setAttribute('fill', 'none');
+      core.setAttribute('stroke', index ? aura : coreColor);
+      core.setAttribute('stroke-width', index ? 0.8 : 1.9);
+      core.setAttribute('stroke-linecap', 'round');
+      boltCore.appendChild(core);
     });
   }
-  function scheduleStorm() {
-    clearTimeout(stormTimer);
-    if (currentTheme !== 'halloween' || document.hidden) return;
-    stormTimer = setTimeout(strikeLightning, 7000 + Math.random() * 9000);
+
+  /* ----- Storm loop (visual only — no audio) ----- */
+  function clearFlash() {
+    clearTimeout(strikeOff);
+    if (stormLight) stormLight.classList.remove('flash');
+    if (bolt) bolt.classList.remove('flash');
   }
-  function strikeLightning() {
-    if (currentTheme !== 'halloween' || document.hidden || !lightningOn) { scheduleStorm(); return; }
-    if (!createExteriorWeather()) return;
+
+  function stormAllowed() {
+    return theme === 'halloween' && lightningOn && !paused &&
+      document.visibilityState === 'visible' && !reducedMotion;
+  }
+
+  function strikeStorm() {
+    clearTimeout(timer);
+    clearFlash();
+    if (!stormAllowed()) return;
     var violet = Math.random() < .38;
-    makeExteriorBolt(violet);
-    flashGroup.classList.toggle('violet', violet);
-    flashGroup.classList.remove('flash');
-    boltGroup.classList.remove('flash');
-    void weatherLayer.getBoundingClientRect().width; // Restart the 310ms strike animation.
-    flashGroup.classList.add('flash');
-    boltGroup.classList.add('flash');
-    scheduleStorm();
+    makeLightning(violet);
+    stormLight.classList.add('flash');
+    bolt.classList.add('flash');
+    strikeOff = setTimeout(function () {
+      clearFlash();
+      stormTick();
+    }, 310);
   }
-  function applyTheme(theme) {
-    currentTheme = theme === 'halloween' ? 'halloween' : 'classic';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    removeOldViewportWeather();
-    if (currentTheme === 'halloween') {
-      createExteriorWeather();
-      createCobwebs();
-      scheduleStorm();
+
+  function stormTick() {
+    clearTimeout(timer);
+    if (!stormAllowed()) { clearFlash(); return; }
+    timer = setTimeout(strikeStorm, 7000 + Math.random() * 9000);
+  }
+
+  function applyThemeToStage() {
+    document.documentElement.setAttribute('data-theme', theme);
+    stormTick();
+  }
+
+  function setPaused(p) {
+    paused = !!p;
+    if (paused) {
+      clearTimeout(timer);
+      clearFlash();
     } else {
-      clearTimeout(stormTimer);
-      if (weatherLayer) weatherLayer.remove();
-      weatherLayer = flashGroup = boltGroup = null;
-      document.querySelectorAll('.hw-cobweb').forEach(function (el) { el.remove(); });
+      stormTick();
+    }
+    // Pause/resume rain CSS animation.
+    if (rainLayer) {
+      var state = paused ? 'paused' : 'running';
+      rainLayer.style.animationPlayState = state;
+      var lines = rainLayer.querySelectorAll('line');
+      for (var i = 0; i < lines.length; i++) {
+        lines[i].style.animationPlayState = state;
+      }
     }
   }
-  function setTheme(theme, applyNow) {
-    theme = theme === 'halloween' ? 'halloween' : 'classic';
-    var p = prefs();
-    p.theme = theme;
-    savePrefs(p);
-    if (applyNow) applyTheme(theme);
-    document.dispatchEvent(new CustomEvent('tscms:theme-changed', {detail: {theme: theme}}));
-  }
+
+  /* ----- Public API ----- */
   function init() {
-    lightningOn = getLightning();
-    applyTheme(getTheme());
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) clearTimeout(stormTimer);
-      else if (currentTheme === 'halloween') scheduleStorm();
+    if (initialized) return true;
+    stage = document.getElementById('stage');
+    if (!stage) return false;
+    buildOverlays();
+    // Restore saved theme pref (staging key).
+    var prefs = readPrefs();
+    if (prefs.theme === 'halloween' || prefs.theme === 'classic') {
+      theme = prefs.theme;
+    }
+    // Restore lightning pref.
+    if (prefs.lightning === false) lightningOn = false;
+    applyThemeToStage();
+    document.addEventListener('pause:paused', function () { setPaused(true); });
+    document.addEventListener('pause:resumed', function () { setPaused(false); });
+    document.addEventListener('visibilitychange', function () { stormTick(); });
+    window.addEventListener('pagehide', function () {
+      clearTimeout(timer);
+      clearFlash();
     });
-    window.TSCMSHalloween = {getTheme: getTheme, setTheme: setTheme, applyTheme: applyTheme, getLightning: getLightning, setLightning: setLightning};
+    initialized = true;
+    return true;
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+
+  function setTheme(value, savePref) {
+    var next = (value === 'halloween') ? 'halloween' : 'classic';
+    if (!initialized) init();
+    var changed = (next !== theme);
+    theme = next;
+    if (savePref) {
+      var prefs = readPrefs();
+      prefs.theme = theme;
+      writePrefs(prefs);
+    }
+    applyThemeToStage();
+    if (changed && typeof document !== 'undefined' && document.dispatchEvent) {
+      document.dispatchEvent(new CustomEvent('tscms:theme-changed', {
+        detail: { theme: theme }
+      }));
+    }
+    return theme;
+  }
+
+  function getTheme() {
+    if (!initialized) init();
+    return theme;
+  }
+
+  function setLightning(on) {
+    lightningOn = !!on;
+    var prefs = readPrefs();
+    prefs.lightning = lightningOn;
+    writePrefs(prefs);
+    if (!lightningOn) clearFlash();
+    stormTick();
+    return lightningOn;
+  }
+
+  function getLightning() { return lightningOn; }
+
+  window.TSCMSHalloween = {
+    init: init,
+    setTheme: setTheme,
+    getTheme: getTheme,
+    setLightning: setLightning,
+    getLightning: getLightning,
+    setPaused: setPaused
+  };
+
+  // Auto-init on DOM ready so the menu wiring finds it.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
