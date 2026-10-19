@@ -17,6 +17,12 @@
   'use strict';
   var audio = null, tracks = [], index = 0, ready = false, initPromise = null;
   var requestedPlaying = false, playGeneration = 0, streamFailures = 0;
+  // Fresh sessions default to shuffled playback. A listener may opt out.
+  // This is one shared mode for the tabletop remote and full V7 jukebox.
+  var shuffleEnabled = true, shuffleBag = [], shuffleHistory = [], shuffleCursor = -1;
+  var SHUFFLE_KEY = 'tscmsradio:shuffle-enabled', LAST_SONG_KEY = 'tscmsradio:last-played-stream';
+  try { if (window.localStorage.getItem(SHUFFLE_KEY) === '0') shuffleEnabled = false; }
+  catch(e) { /* browsers with disabled storage still shuffle per visit */ }
   // EQ PROTECTION: never put an ordinary no-CORS Suno player through WebAudio.
   var eqRequested = false, eqContext = null, eqAnalyser = null, eqData = null;
   var eqAttachedAudio = null, eqApproved = Object.create(null), eqProbes = Object.create(null);
@@ -63,7 +69,7 @@
   function wireMedia(player) {
     player.addEventListener('ended', function () {
       if(player!==audio || !requestedPlaying || !tracks.length)return;
-      loadTrack(index+1); fireTrackChange(); requestPlay();
+      stepTrack(1);
     });
     player.addEventListener('timeupdate', function () {
       if(player!==audio)return;
@@ -82,7 +88,7 @@
       }
       streamFailures++;
       if(streamFailures>=tracks.length){++playGeneration;requestedPlaying=false;announce('unavailable','Radio streams are temporarily unavailable.');return;}
-      loadTrack(index+1);fireTrackChange();requestPlay();
+      stepTrack(1);
     });
   }
   function ensureGraph() {
@@ -109,6 +115,56 @@
   }
 
 
+  var EVT_SHUFFLECHANGE = 'tscms:jukebox:shufflechange';
+  function fireShuffleChange() {
+    if(canDispatch()) document.dispatchEvent(new CustomEvent(EVT_SHUFFLECHANGE, {
+      detail:{enabled:shuffleEnabled}
+    }));
+  }
+  function shuffledOtherIndices(excluded) {
+    var result=[];
+    for(var i=0;i<tracks.length;i++)if(i!==excluded)result.push(i);
+    // Fisher-Yates: every remaining unplayed song has an equal chance.
+    for(var j=result.length-1;j>0;j--) {
+      var k=Math.floor(Math.random()*(j+1));
+      var tmp=result[j];result[j]=result[k];result[k]=tmp;
+    }
+    return result;
+  }
+  function resetShuffleFromCurrent() {
+    shuffleHistory=tracks.length?[index]:[];
+    shuffleCursor=shuffleHistory.length?0:-1;
+    shuffleBag=shuffledOtherIndices(index);
+  }
+  function shuffledSessionStart() {
+    if(!tracks.length)return 0;
+    var last='';
+    try {last=window.localStorage.getItem(LAST_SONG_KEY)||'';}catch(e){}
+    var choices=[];
+    for(var i=0;i<tracks.length;i++)if(tracks.length===1 || tracks[i].stream!==last)choices.push(i);
+    if(!choices.length)for(var j=0;j<tracks.length;j++)choices.push(j);
+    index=choices[Math.floor(Math.random()*choices.length)];
+    resetShuffleFromCurrent();
+    return index;
+  }
+  // Previous retraces what you really heard. Next never repeats a song
+  // within the current shuffle cycle, except a one-song playlist.
+  function shuffledStep(direction) {
+    if(tracks.length===1)return index;
+    if(direction<0) {
+      if(shuffleCursor<=0)return -1; // No earlier random track yet.
+      return shuffleHistory[--shuffleCursor];
+    }
+    if(shuffleCursor<shuffleHistory.length-1)return shuffleHistory[++shuffleCursor];
+    if(!shuffleBag.length)shuffleBag=shuffledOtherIndices(index); // new cycle
+    if(!shuffleBag.length)return -1;
+    var upcoming=shuffleBag.shift();
+    shuffleHistory=shuffleHistory.slice(0,shuffleCursor+1);
+    shuffleHistory.push(upcoming);
+    if(shuffleHistory.length>Math.max(20,tracks.length*3))shuffleHistory.shift();
+    shuffleCursor=shuffleHistory.length-1;
+    return upcoming;
+  }
   var EVT_TRACKCHANGE = 'tscms:jukebox:trackchange';
   var EVT_TIMEUPDATE = 'tscms:jukebox:timeupdate';
 
@@ -162,8 +218,13 @@
       // Reuse normal player unless switching protected stream modes.
     } else createPlayer(allowCors);
     audio.src=tracks[index].stream;
-    // Warm the next track permission in the background; never touch audible music.
-    if(eqRequested && tracks.length>1)verifyStreamCORS(tracks[(index+1)%tracks.length].stream);
+    try {window.localStorage.setItem(LAST_SONG_KEY,tracks[index].stream);}catch(e){}
+    // Probe the actual upcoming shuffled song when known; no audio changes.
+    var warmIndex=shuffleEnabled
+      ? (shuffleCursor<shuffleHistory.length-1?shuffleHistory[shuffleCursor+1]:shuffleBag[0])
+      : (index+1)%tracks.length;
+    if(eqRequested && tracks.length>1 && Number.isInteger(warmIndex) && warmIndex!==index)
+      verifyStreamCORS(tracks[warmIndex].stream);
   }
 
   function requestPlay() {
@@ -233,11 +294,14 @@
           });
           ready = tracks.length > 0;
           if(!ready){announce('unavailable', 'No playable TSCMS Radio tracks are available.');return false;}
-          // Optional first-track probe is bounded; if it fails native radio plays as before.
-          var permit=eqRequested?verifyStreamCORS(tracks[0].stream):Promise.resolve(false);
+          // Probe the actual shuffled opening song, not the unrelated first
+          // playlist entry. A failed probe still uses the safe native player.
+          var startingIndex=shuffleEnabled?shuffledSessionStart():0;
+          var permit=eqRequested?verifyStreamCORS(tracks[startingIndex].stream):Promise.resolve(false);
           return Promise.resolve(permit).then(function(ok){
             eqLastReason=ok?'CORS STREAM VERIFIED — FFT READY':'STREAM CORS RESTRICTED — NATIVE RADIO';
-            loadTrack(0);fireTrackChange();announce('ready');return true;
+            loadTrack(startingIndex);fireTrackChange();announce('ready');
+            fireShuffleChange();return true;
           });
         })
         .catch(function () {
@@ -276,6 +340,19 @@
     // Returns false when not ready.
     next: function () { return stepTrack(1); },
     prev: function () { return stepTrack(-1); },
+    getShuffle: function () { return shuffleEnabled; },
+    setShuffle: function (enabled) {
+      enabled=Boolean(enabled);
+      if(shuffleEnabled===enabled)return enabled;
+      shuffleEnabled=enabled;
+      if(shuffleEnabled && ready)resetShuffleFromCurrent();
+      if(!shuffleEnabled){shuffleBag=[];shuffleHistory=[];shuffleCursor=-1;}
+      try {window.localStorage.setItem(SHUFFLE_KEY,enabled?'1':'0');}catch(e){}
+      // Does NOT restart or interrupt the current song.
+      fireShuffleChange();
+      return shuffleEnabled;
+    },
+    toggleShuffle: function () { return this.setShuffle(!shuffleEnabled); },
 
     // v2: native volume only (no GainNode — see audio guidance). Clamped
     // 0..1. Returns the applied volume, or false when no audio element yet.
@@ -346,7 +423,8 @@
     on: function (name, cb) {
       var noop = function () {};
       var ev = name === 'trackchange' ? EVT_TRACKCHANGE
-        : name === 'timeupdate' ? EVT_TIMEUPDATE : null;
+        : name === 'timeupdate' ? EVT_TIMEUPDATE
+        : name === 'shufflechange' ? EVT_SHUFFLECHANGE : null;
       if (!ev || typeof cb !== 'function') return noop;
       if (typeof document === 'undefined' ||
           typeof document.addEventListener !== 'function') return noop;
@@ -360,14 +438,16 @@
     },
 
     _state: function () {
-      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying };
+      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying, shuffle:shuffleEnabled };
     }
   };
 
   // v2 helper: shared step logic for next()/prev().
   function stepTrack(d) {
     if (!ready || !audio || !tracks.length) return false;
-    loadTrack(index + d);
+    var target=shuffleEnabled?shuffledStep(d):(index+d+tracks.length)%tracks.length;
+    if(target<0)return false;
+    loadTrack(target);
     fireTrackChange();
     if (requestedPlaying) return requestPlay();
     return true;

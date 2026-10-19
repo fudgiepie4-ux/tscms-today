@@ -8,7 +8,8 @@
   'use strict';
   const PREVIEW = 'solitaire-gamehouse-jukebox-DESIGN-B-v7-APPROVED-PREVIEW.html';
   const PLAYLIST = 'radio-data.json';
-  const required = ['close','title','artist','trackNum','original','play','previous','next',
+  const SHUFFLE_ICON = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M3 6h3.3c2.4 0 3.5 1.5 5.2 3.7l3.2 4.4c1.1 1.5 2.1 2 4 2H21" /><path d="M3 18h3.3c2.4 0 3.5-1.5 5.2-3.7l3.2-4.4c1.1-1.5 2.1-2 4-2H21" /><path d="m17 3 4 4-4 4M17 12l4 4-4 4" /></svg>';
+  const required = ['close','title','artist','trackNum','original','play','previous','next','shuffle',
     'volume','seek','elapsed','duration','equalizer','eqTitle','eqAccess','analysisState','liveLed','status'];
   function init() {
     const trigger = document.getElementById('btn-jukebox');
@@ -132,8 +133,18 @@
       ui.seek.disabled = true;
       ui.seek.setAttribute('aria-label','Song progress (display only until phone verification)');
     }
+    function syncShuffle() {
+      if(!ui || typeof J.getShuffle!=='function') return;
+      const active=!!J.getShuffle();
+      ui.shuffle.innerHTML='<span class="shuffle-glyph" aria-hidden="true">'+SHUFFLE_ICON+'</span><small>'+(active?'SHUF ON':'SHUF OFF')+'</small>';
+      ui.shuffle.title=active?'Random order enabled':'Original playlist order';
+      ui.shuffle.setAttribute('aria-pressed',String(active));
+      ui.shuffle.setAttribute('aria-label',active?'Shuffle on; tap for playlist order':'Shuffle off; tap for random songs');
+      ui.shuffle.classList.toggle('selected',active);
+    }
     function reflect() {
       if (!ui) return;
+      syncShuffle();
       const playing = J.isPlaying();
       ui.play.textContent = playing ? '❚❚' : '▶';
       ui.play.setAttribute('aria-label', playing ? 'Pause music' : 'Play music');
@@ -235,9 +246,41 @@
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
           overlay.appendChild(approvedCabinet);
+          // Add a large wooden Shuffle key to the LEFT of the existing
+          // transport buttons, without squeezing the full jukebox volume row.
+          if(!approvedCabinet.querySelector('.transport'))
+            throw new Error('V7 transport unavailable for shuffle');
+          const shuffleKey=document.createElement('button');
+          shuffleKey.id='shuffle';
+          shuffleKey.type='button';
+          shuffleKey.className='shuffle-mode-btn';
+          shuffleKey.innerHTML='<span class="shuffle-glyph" aria-hidden="true">'+SHUFFLE_ICON+'</span><small>SHUF ON</small>';
+          shuffleKey.setAttribute('aria-pressed','true');
+          shuffleKey.setAttribute('aria-label','Shuffle on; tap for playlist order');
+          approvedCabinet.appendChild(shuffleKey);
           // V8.1: align live Play/Pause cap with the original photographed button.
           // Do not change side controls, EQ, player events, or approved cabinet photo.
-          styles.textContent += '\n.transport button.primary{transform:translate(-7%,-4%)}';
+          styles.textContent += `
+.transport button.primary{transform:translate(-7%,-4%)}
+.cabinet .shuffle-mode-btn{
+  position:absolute;z-index:5;left:8.7%;top:74.2%;width:14%;height:9.0%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2%;
+  padding:1px 0;border:3px ridge #b78b54;border-radius:12%;
+  color:#ecd2aa;background:radial-gradient(ellipse at 30% 24%,#55402b,#1b130d 63%,#080708);
+  box-shadow:inset 0 2px 3px #f6d8a03a,inset 0 -4px 7px #000b,0 3px 7px #000a;
+  text-shadow:0 1px 3px #000;cursor:pointer;
+}
+.cabinet .shuffle-mode-btn .shuffle-glyph{display:grid;place-items:center;width:100%;height:auto;line-height:1}
+.cabinet .shuffle-mode-btn svg{display:block;width:clamp(17px,5vw,26px);height:clamp(17px,5vw,26px);max-width:95%;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.cabinet .shuffle-mode-btn small{font:800 clamp(7px,1.7vw,10px)/1.1 Arial,sans-serif;white-space:nowrap}
+.cabinet .shuffle-mode-btn.selected{
+  color:#ffe9b1;border-color:#e9c888;
+  background:radial-gradient(ellipse at 30% 24%,#926230,#4a2613 65%,#211108);
+  box-shadow:inset 0 2px 4px #ffebb650,0 0 12px #ffd18e91,0 2px 4px #000a;
+}
+.cabinet .shuffle-mode-btn.selected small{color:#89f6c6;text-shadow:0 0 5px #3bf4b8}
+.cabinet .shuffle-mode-btn:focus-visible{outline:3px solid #fff1bd;outline-offset:2px}
+`;
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
           ui = Object.fromEntries(required.map(id => [id,shadow.getElementById(id)]));
@@ -247,6 +290,12 @@
           ui.play.addEventListener('click',() => { J.toggle(); reflect(); });
           ui.next.addEventListener('click',() => { J.next(); track(); reflect(); });
           ui.previous.addEventListener('click',() => { J.prev(); track(); reflect(); });
+          ui.shuffle.addEventListener('click',() => {
+            if(typeof J.toggleShuffle!=='function')return;
+            J.toggleShuffle(); // instant mode change; current song continues.
+            syncShuffle();
+            ui.status.textContent=J.getShuffle()?'SHUFFLE ON · RANDOM ORDER':'SHUFFLE OFF · PLAYLIST ORDER';
+          });
           ui.volume.value = String(Math.round(J.getVolume() * 100));
           ui.volume.style.setProperty('--fill',ui.volume.value + '%');
           ui.volume.addEventListener('input',() => {
@@ -257,6 +306,7 @@
             if (ui.original.getAttribute('aria-disabled') === 'true') e.preventDefault();
           });
           J.on('trackchange',() => { track(); reflect(); });
+          J.on('shufflechange',syncShuffle);
           J.on('timeupdate',progress);
           document.addEventListener('tscms:jukebox',e => {
             const d = e.detail || {};
