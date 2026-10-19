@@ -128,6 +128,51 @@ const RendererBinding = (() => {
   // previously-seen cards. (Bug 1, Fudgie S24 report 2026-10-18.)
   const artCache = new Map();
 
+  /* ----- Preload all card art at boot (GH-CARD-003 fix, 2026-10-18) -----
+   * The S24 was still flashing white-text cards on tap even with the pinned
+   * artCache. Root cause: artCache only populated on first sighting, and
+   * backgroundImage:url() still needs a decode pass on S24's GPU.
+   * Fix: decode ALL 55 PNGs upfront at boot. Zero flash, ever.
+   * Fudgie directive 2026-10-18: fix the card glitch.
+   */
+  function preloadAllCardArt() {
+    var suits = ['s', 'h', 'd', 'c'];
+    var paths = [];
+    // 52 standard cards
+    for (var s = 0; s < suits.length; s++) {
+      for (var v = 1; v <= 13; v++) {
+        paths.push('solitaire-phase1-staging/card-art/' + suits[s] + v + '.png');
+      }
+    }
+    // 2 jokers + card back
+    paths.push('solitaire-phase1-staging/card-art/joker-radio.png');
+    paths.push('solitaire-phase1-staging/card-art/joker-pug.png');
+    paths.push('solitaire-phase1-staging/card-art/back.png');
+
+    paths.forEach(function(path) {
+      if (artCache.has(path)) return;
+      var img = new Image();
+      img.onload = function() {
+        // Ensure fully decoded before caching
+        if (img.decode) {
+          img.decode().then(function() {
+            artCache.set(path, img);
+          }).catch(function() {
+            artCache.set(path, img); // decode failed, cache anyway
+          });
+        } else {
+          artCache.set(path, img);
+        }
+      };
+      img.src = path;
+    });
+  }
+
+  // Expose for boot sequence
+  if (typeof window !== 'undefined') {
+    window.__preloadCardArt = preloadAllCardArt;
+  }
+
   /* ----- Create a card DOM element ----- */
   function createCardEl(card, opts = {}) {
     const el = document.createElement('div');
@@ -934,6 +979,8 @@ const RendererBinding = (() => {
   
   /* ----- Initialize ----- */
   function init() {
+    // GH-CARD-003: preload all card art before first render (Fudgie 2026-10-18)
+    preloadAllCardArt();
     wireButtons();
     wirePauseScreen();
     wireMenuViewerHint();
