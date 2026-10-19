@@ -27,19 +27,25 @@
         '<span class="remote-volume-level" aria-hidden="true">100%</span></label>'+
       '<span class="radio-remote-srstatus" role="status" aria-live="polite"></span>';
 
+    // Brand belongs in the black horseshoe arch; the lower glass belongs to
+    // the title, artist, and verified real-frequency equalizer.
+    const arch=document.createElement('div');
+    arch.id='tscms-radio-arch';
+    arch.className='tscms-radio-arch';
+    arch.textContent='TSCMS RADIO';
+    arch.setAttribute('aria-hidden','true');
     const face=document.createElement('section');
     face.id='tscms-radio-face';
     face.className='tscms-radio-face';
     face.setAttribute('aria-label','TSCMS Radio song and equalizer');
-    face.innerHTML='<div class="radio-face-brand">TSCMS RADIO</div>'+
-      '<div class="radio-face-track">'+
+    face.innerHTML='<div class="radio-face-track">'+
         '<span class="radio-face-title" id="radio-face-title">Radio Ready</span>'+
         '<span class="radio-face-artist" id="radio-face-artist">Tap ▶ to listen</span></div>'+
       '<canvas id="radio-face-eq" aria-label="Static equalizer until verified music frequencies are available" role="img"></canvas>';
 
     // Draw these AFTER the artwork and BEFORE the game controls in the stack.
     // Neither the approved photographic master nor the painted jukebox is edited.
-    stage.append(remote,face);
+    stage.append(remote,arch,face);
     const prev=remote.querySelector('#radio-remote-prev');
     const play=remote.querySelector('#radio-remote-play');
     const next=remote.querySelector('#radio-remote-next');
