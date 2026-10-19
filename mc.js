@@ -92,6 +92,8 @@ document.getElementById('tabbtn-admin').classList.toggle('on',w==='admin');
 document.body.classList.toggle('public-view',w==='public');}
 async function unlockAdmin(){
 if(document.getElementById('signon-stage'))return;
+const usernameInput=document.getElementById('auser');
+const username=usernameInput?usernameInput.value.trim().toLowerCase():'';
 const v=document.getElementById('apw').value;
 const err=document.getElementById('pwerr');
 // Encrypted Admin data requires Web Crypto, which browsers disable on HTTP.
@@ -100,7 +102,8 @@ if(!window.isSecureContext || typeof crypto==='undefined' || !crypto.subtle){
   err.textContent='SECURE CONNECTION REQUIRED — Admin sign-in needs HTTPS. Your password has NOT been checked. Please wait for https://tscmsradio.com/admin.html to be secure.';
   return;
 }
-if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
+if(!username||!v){err.textContent='ENTER USERNAME AND PASSWORD';return;}
+if(username!=='admin'){err.textContent='USERNAME OR PASSWORD NOT ACCEPTED';return;}
 err.textContent='LOADING…';
 const sstage=SIGNON_ENABLED?signonBuild():null;
 // Start video playback NOW, synchronously in the tap gesture — after the
@@ -145,6 +148,7 @@ document.getElementById('adminbody').style.display='block';
 if(typeof zi==='function')zi(d.danger||[],d.generated);
 if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
 if(SIGNON_ENABLED){signonPlay(sstage,showAdmin);}else{showAdmin();}}
+document.getElementById('auser').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('apw').focus();}});
 document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
 /* Sign-on video: plays after password unlock, before the admin layout */
 var SIGNON_ENABLED=false; /* TEMPORARILY OFF — set true to bring the intro video back */
