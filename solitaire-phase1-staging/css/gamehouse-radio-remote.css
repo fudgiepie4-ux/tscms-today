@@ -2,7 +2,7 @@
    Coordinates relate to the locked 941x1672 art. The remote sits on the
    lower-left wooden tabletop, above the painted four game controls. */
 .stage .tscms-radio-remote {
-  position:absolute;z-index:9;left:3.5%;top:72.5%;width:45.8%;height:9.1%;
+  position:absolute;z-index:9;left:3.5%;top:72.5%;width:54.5%;height:9.1%;
   box-sizing:border-box;display:grid;grid-template-rows:17% 54% 29%;
   padding:1.1% 1.7% 1.25%;border-radius:9px;
   border:2px solid #bd8849;isolation:isolate;color:#f8e2a9;
@@ -19,7 +19,7 @@
 .tscms-radio-remote .remote-indicator{width:7px;height:7px;flex:none;border-radius:50%;
   background:#7b5635;box-shadow:inset 0 1px 2px #080400,0 0 0 1px #e8ba6e}
 .tscms-radio-remote[data-playing="true"] .remote-indicator{background:#72f1b0;box-shadow:0 0 7px #36efa1,0 0 0 1px #d6bd80}
-.tscms-radio-remote .remote-transport{display:grid;grid-template-columns:1fr 1.27fr 1fr;gap:4%;align-items:stretch;padding:1px 4px}
+.tscms-radio-remote .remote-transport{display:grid;grid-template-columns:1fr 1.25fr 1fr 1fr;gap:4%;align-items:stretch;padding:1px 4px}
 .tscms-radio-remote .remote-key{appearance:none;min-width:0;min-height:0;display:grid;place-items:center;
   border:1px solid #d4a15c;border-radius:6px;color:#ffe1a3;
   background:linear-gradient(160deg,#78502e,#321a0f 49%,#1c0d08 50%,#5d3219);
@@ -73,3 +73,19 @@
 }
 
 .tscms-radio-remote .radio-remote-srstatus{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* An engraved fourth key shares the existing remote — no extra floating widget. */
+.tscms-radio-remote .remote-key.remote-shuffle{
+  display:flex;flex-direction:column;gap:0;align-items:center;justify-content:center;
+  color:#d0b280;border-color:#986839;text-shadow:0 1px 2px #060301;
+  background:linear-gradient(155deg,#55412d,#24140d 58%,#382112);
+  padding:1px;
+}
+.tscms-radio-remote .remote-shuffle .shuffle-icon{font-size:clamp(12px,2.5vw,22px);line-height:1.08}
+.tscms-radio-remote .remote-shuffle small{font:800 clamp(6px,1.1vw,9px)/1.1 Arial,sans-serif;letter-spacing:0}
+.tscms-radio-remote .remote-shuffle[data-active="true"]{
+  color:#ffe6a7;border-color:#e9ba6b;
+  background:radial-gradient(ellipse at 45% 25%,#8a5829,#392113 62%,#251006);
+  box-shadow:inset 0 1px 3px #ffe8a552,0 0 7px #f4b35e7d,0 2px 3px #080303;
+}
+.tscms-radio-remote .remote-shuffle[data-active="true"] small{color:#88f2c8;text-shadow:0 0 4px #4effc5}
