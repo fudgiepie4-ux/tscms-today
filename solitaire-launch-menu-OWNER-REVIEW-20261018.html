@@ -119,7 +119,7 @@
 </div>
 <div class="layer" id="launch-help" role="dialog" aria-modal="true" aria-label="How to Play Solitaire" hidden>
   <div class="launch-help-shell"><div class="launch-help-bar"><span>HOW TO PLAY</span><button type="button" class="p-btn" id="launch-help-back">← Settings</button></div>
-  <div class="launch-help-scroll" tabindex="0" aria-label="Scroll game instructions"><img alt="Illustrated TSCMS Gamehouse Solitaire and Joker rules" loading="lazy" src="solitaire-phase1-staging/help/Gamehouse_Help_Preview.png"/></div></div>
+  <div class="launch-help-scroll" tabindex="0" aria-label="Scroll game instructions"><img alt="Illustrated TSCMS Gamehouse Solitaire and Joker rules" loading="lazy" src="solitaire-phase1-staging/help/Gamehouse_Help_Preview.png" onerror="this.hidden=true;document.getElementById('launch-help-image-pending').hidden=false"/> <p id="launch-help-image-pending" hidden style="padding:20px;color:#ffe6af;font-size:16px;line-height:1.5;text-align:center">The approved How to Play illustration has not been attached to this isolated test page yet. The Help button and return controls can still be tested; the image itself is pending.</p></div></div>
 </div>
 <div hidden="" id="toast" role="status"></div>
 <!-- Phase 1: Cherish's game systems -->
