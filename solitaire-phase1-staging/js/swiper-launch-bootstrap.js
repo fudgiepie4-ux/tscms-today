@@ -134,6 +134,11 @@ const SwiperLaunchBootstrap = (() => {
         // deterministic Joker-exposed deal (staging/test-only).
         if(config) T.applyToNewGame(live.mischief,config,live);
       }
+      // Sync the Halloween atmosphere with the new game's theme.
+      // (Fudgie 2026-10-18: theme applies on next new deal.)
+      if (typeof window !== 'undefined' && window.TSCMSHalloween) {
+        window.TSCMSHalloween.setTheme(seasonalTheme, false);
+      }
       return result;
     };
 
