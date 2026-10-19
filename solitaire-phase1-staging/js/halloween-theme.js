@@ -224,6 +224,24 @@
     // Restore lightning pref.
     if (prefs.lightning === false) lightningOn = false;
     applyThemeToStage();
+    // Sync from a restored game (its theme overrides the pref).
+    // The engine may not be ready yet; retry a few times.
+    var attempts = 0;
+    var syncTimer = setInterval(function () {
+      attempts++;
+      try {
+        if (typeof SaloonEngine !== 'undefined' && SaloonEngine._getState) {
+          var st = SaloonEngine._getState();
+          if (st && st.mischief && (st.mischief.theme === 'halloween' || st.mischief.theme === 'classic')) {
+            if (st.mischief.theme !== theme) {
+              setTheme(st.mischief.theme, false);
+            }
+            clearInterval(syncTimer);
+          }
+        }
+      } catch (e) { /* engine not ready */ }
+      if (attempts >= 20) clearInterval(syncTimer);
+    }, 500);
     document.addEventListener('pause:paused', function () { setPaused(true); });
     document.addEventListener('pause:resumed', function () { setPaused(false); });
     document.addEventListener('visibilitychange', function () { stormTick(); });
