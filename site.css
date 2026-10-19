@@ -6,7 +6,7 @@
 .song-pager--bottom{margin:16px 0 0;padding:14px 4px 4px;border-bottom:0;border-top:1px solid var(--line)}
 .song-page-summary{text-align:center;color:var(--dim);font-size:12.5px;line-height:1.5}
 .song-page-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px}
-.song-page-btn{font:700 13px/1.2 inherit;font-family:inherit;color:var(--txt);background:#251b10;border:1px solid #6c4e24;border-radius:9px;min-width:43px;min-height:44px;padding:9px 10px;cursor:pointer;touch-action:manipulation}
+.song-page-btn{font-weight:700;font-size:13px;line-height:1.2;font-family:inherit;color:var(--txt);background:#251b10;border:1px solid #6c4e24;border-radius:9px;min-width:43px;min-height:44px;padding:9px 10px;cursor:pointer;touch-action:manipulation}
 .song-page-btn.is-current{background:#78511d;border-color:var(--gold);color:#fff2d6}
 .song-page-btn:hover:not(:disabled),.song-page-btn:focus-visible{border-color:var(--gold);outline-offset:2px}
 .song-page-btn:disabled{opacity:.4;cursor:default}
