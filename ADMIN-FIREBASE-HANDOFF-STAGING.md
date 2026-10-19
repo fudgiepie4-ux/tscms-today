@@ -43,3 +43,10 @@ Source: https://fudgiepieaigang.slack.com/archives/C0C924D7589/p1792452587502709
 9. **No tests have been run.** Execute Cherish's 10 rule tests PLUS: signup create only pending (allowed), privilege injection rejected, email mismatch rejected, self-update to approved/owner denied, owner list/approve allowed, non-owner list/approve denied, unverified approved user denied, old PIN after cutoff yields no protected data, and Firefox/Brave phone end-to-end sign-in and logout. The Emulator Suite can run automated tests (https://firebase.google.com/docs/rules/unit-tests), but production deployment requires careful scoped verification too.
 
 Priority: (A) bootstrap Owner privately and test safe read/deny, (B) design safe signup writes and Owner-only approval, (C) migrate protected Admin data out of publicly fetchable bundle, (D) complete email verification and username-login strategy, (E) regression/security testing and explicit owner approval, (F) switch over before Nov 1. No production merges based solely on a visual preview.
+
+## OWNER CONFIRMED DECISION — 2026-10-19
+Fudgie clarified that **email + password has always been acceptable for login.** Their request for a personal username concerns **display names / future public-facing member and multiplayer Gamehouse names**, not username/password sign-in. Therefore:
+- **Admin login: email address + password (native Firebase Auth).** No username→email lookup, Cloud Functions, or Blaze billing needed for username authentication.
+- **Signup:** full legal name, verified private email, display username, password and confirmation; Owner approval required for Admin privileges.
+- **Privacy:** show the chosen display username where appropriate, not the email address. Do not publish admin real names or emails on game profiles. For multiplayer, support a separate public game nickname if desired.
+- Update UI labels accordingly. All existing migration, data-security, PIN cutoff, and testing blockers remain in force. **This clarification is not permission to deploy.**
