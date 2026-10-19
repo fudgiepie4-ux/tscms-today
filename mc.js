@@ -94,6 +94,12 @@ async function unlockAdmin(){
 if(document.getElementById('signon-stage'))return;
 const v=document.getElementById('apw').value;
 const err=document.getElementById('pwerr');
+// Encrypted Admin data requires Web Crypto, which browsers disable on HTTP.
+// Never treat a missing secure context as an incorrect password.
+if(!window.isSecureContext || typeof crypto==='undefined' || !crypto.subtle){
+  err.textContent='SECURE CONNECTION REQUIRED — Admin sign-in needs HTTPS. Your password has NOT been checked. Please wait for https://tscmsradio.com/admin.html to be secure.';
+  return;
+}
 if(!v){err.textContent='ENTER THE PASSWORD FIRST';return;}
 err.textContent='LOADING…';
 const sstage=SIGNON_ENABLED?signonBuild():null;
@@ -125,7 +131,12 @@ const baseKey=await crypto.subtle.importKey('raw',enc.encode(v),'PBKDF2',false,[
 const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(b.salt),iterations:b.iter,hash:'SHA-256'},baseKey,{name:'AES-GCM',length:256},false,['decrypt']);
 const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(b.iv)},key,b64ToBytes(b.ct));
 d=JSON.parse(new TextDecoder().decode(pt));
-}catch(e){gateBack('WRONG PASSWORD');return;}
+}catch(e){
+  // OperationError includes a wrong password, but can also mean incompatible
+  // or corrupt ciphertext; report that without claiming to know which.
+  gateBack('UNABLE TO UNLOCK — password not accepted by current encrypted data. Confirm HTTPS, then verify the password or ask an admin to check the encrypted data version.');
+  return;
+}
 if(!d||!d.stats){gateBack('DATA LOOKS CORRUPT — TRY AGAIN LATER');return;}
 err.textContent='';
 function showAdmin(){
