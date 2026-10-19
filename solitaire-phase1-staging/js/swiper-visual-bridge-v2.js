@@ -123,11 +123,12 @@ const SwiperVisualBridgeV2 = (() => {
         pose('swiper_fly');move(x,y,650);
         if(!await wait(650,id))return;
         if(scared){
-          // Joker scare: frightened, then flees. Zero theft, no card, no hat-tip.
+          // Joker scare: hold terrified face, then flee IN SCARED POSE (no smiling).
+          // Fudgie 2026-10-18: 0.8-1s hold, flee off-screen in scared pose, ~1.5-2s total.
           pose('swiper_scared');notify('Swiper touched a Joker and got scared!');
-          if(!await wait(400,id))return;
-          pose('swiper_flee');move('110%','6%',520);
-          if(!await wait(560,id))return;
+          if(!await wait(900,id))return;
+          move('110%','6%',700);
+          if(!await wait(750,id))return;
         } else if(flyby){
           // Flyby: enters and leaves only.
           notify('Swiper flew past!');
