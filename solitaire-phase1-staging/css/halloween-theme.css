@@ -1,0 +1,117 @@
+/* TSCMS Halloween Theme — V5 approved weather effects
+ * Scoped to [data-theme="halloween"] on the staging game.
+ * Rain, lightning, cobwebs. No audio. No game logic changes.
+ */
+
+/* Rain layer — fixed overlay, pointer-events none */
+[data-theme="halloween"] .hw-rain-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  overflow: hidden;
+}
+
+[data-theme="halloween"] .hw-rain-drop {
+  position: absolute;
+  top: -10%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(174, 194, 224, 0.6));
+  animation: hw-rainfall linear infinite;
+}
+
+@keyframes hw-rainfall {
+  0% { transform: translateY(-10vh); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(110vh); opacity: 0; }
+}
+
+/* Lightning flash — full-screen overlay */
+[data-theme="halloween"] .hw-lightning-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 41;
+  background: #cfe8ff;
+  opacity: 0;
+}
+
+[data-theme="halloween"] .hw-lightning-flash.violet {
+  background: #d9b8ff;
+}
+
+[data-theme="halloween"] .hw-lightning-flash.flash {
+  animation: hw-flash 0.31s ease-out;
+}
+
+@keyframes hw-flash {
+  0% { opacity: 0; }
+  15% { opacity: 0.55; }
+  30% { opacity: 0.1; }
+  45% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+/* Lightning bolt SVG */
+[data-theme="halloween"] .hw-bolt {
+  position: fixed;
+  pointer-events: none;
+  z-index: 42;
+  opacity: 0;
+}
+
+[data-theme="halloween"] .hw-bolt.flash {
+  animation: hw-bolt-flash 0.31s ease-out;
+}
+
+@keyframes hw-bolt-flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Cobwebs — corner decorations */
+[data-theme="halloween"] .hw-cobweb {
+  position: fixed;
+  pointer-events: none;
+  z-index: 43;
+  opacity: 0.7;
+  font-size: 48px;
+}
+
+[data-theme="halloween"] .hw-cobweb.tl { top: 0; left: 0; transform: rotate(0deg); }
+[data-theme="halloween"] .hw-cobweb.tr { top: 0; right: 0; transform: scaleX(-1); }
+
+/* Halloween ambient tint — subtle, preserves readability */
+[data-theme="halloween"] body {
+  /* Slightly darker, cooler atmosphere */
+}
+
+[data-theme="halloween"] .hw-moon {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8dc, #e8d44d);
+  box-shadow: 0 0 30px rgba(232, 212, 77, 0.5);
+  pointer-events: none;
+  z-index: 39;
+  opacity: 0.9;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="halloween"] .hw-rain-drop,
+  [data-theme="halloween"] .hw-lightning-flash.flash,
+  [data-theme="halloween"] .hw-bolt.flash {
+    animation: none;
+  }
+  [data-theme="halloween"] .hw-rain-layer,
+  [data-theme="halloween"] .hw-lightning-flash,
+  [data-theme="halloween"] .hw-bolt {
+    display: none;
+  }
+}
