@@ -72,7 +72,17 @@ fetch('banner.jpg').then(r=>r.text()).then(t=>{ const b=document.getElementById(
     panels.forEach(function (panel) {
       var number = Number(panel.id.replace('day-', ''));
       if (!Number.isInteger(number)) return;
-      var songs = Array.prototype.slice.call(panel.querySelectorAll('.song'));
+      // Enforce the song-only rule even if a future HTML generator includes a post-only row.
+      var songs = Array.prototype.slice.call(panel.querySelectorAll('.song')).filter(function (song) {
+        var play = song.querySelector('.btn.play[data-stream]');
+        var suno = song.querySelector('a.btn.suno[href]');
+        var streamURL = play ? play.getAttribute('data-stream') : '';
+        var songURL = suno ? suno.getAttribute('href') : '';
+        var playable = /^https:\/\/[^/\s]+\//i.test(streamURL || '') ||
+          /^https:\/\/suno\.com\/(?:s\/|song\/)/i.test(songURL || '');
+        if (!playable) song.remove();
+        return playable;
+      });
       var top = document.createElement('nav');
       top.className = 'song-pager song-pager--top';
       top.setAttribute('aria-label', 'Song list pages for day ' + (number + 1));
@@ -86,6 +96,25 @@ fetch('banner.jpg').then(r=>r.text()).then(t=>{ const b=document.getElementById(
       if (panel.classList.contains('active')) selectedDay = number;
     });
     var dayButtons = Array.prototype.slice.call(document.querySelectorAll('.tabs .tab[data-day]'));
+    // Derive public numbers from song entries that actually offer a playable route.
+    var weeklyCount = 0;
+    Object.keys(dayStates).forEach(function (key) {
+      var count = dayStates[key].songs.length;
+      weeklyCount += count;
+      var button = dayButtons.find(function (b) { return b.getAttribute('data-day') === key; });
+      var badge = button ? button.querySelector('.t-n') : null;
+      if (badge) badge.textContent = String(count);
+    });
+    Array.prototype.slice.call(document.querySelectorAll('.stats .stat')).forEach(function (stat) {
+      var label = stat.querySelector('.l');
+      var value = stat.querySelector('.v');
+      if (!label || !value) return;
+      var kind = label.textContent.trim().toUpperCase();
+      if (kind === 'SONGS THIS WEEK') value.textContent = String(weeklyCount);
+      if (kind === 'SONGS TODAY' && selectedDay !== null) {
+        value.textContent = String(dayStates[selectedDay].songs.length);
+      }
+    });
     window.showDay = function (number) {
       number = Number(number);
       if (!Object.prototype.hasOwnProperty.call(dayStates, number)) return;
