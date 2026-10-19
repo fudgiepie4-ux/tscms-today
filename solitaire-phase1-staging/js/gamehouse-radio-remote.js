@@ -19,6 +19,8 @@
         '<button class="remote-key" id="radio-remote-prev" type="button" aria-label="Previous song" title="Previous song" disabled>⏮</button>'+
         '<button class="remote-key remote-toggle" id="radio-remote-play" type="button" aria-label="Play radio" title="Play radio" disabled>▶</button>'+
         '<button class="remote-key" id="radio-remote-next" type="button" aria-label="Next song" title="Next song" disabled>⏭</button>'+
+        '<button class="remote-key remote-shuffle" id="radio-remote-shuffle" type="button" aria-label="Shuffle on" aria-pressed="true" title="Shuffle on">'+
+          '<span aria-hidden="true" class="shuffle-icon">🔀</span><small aria-hidden="true">SHUF</small></button>'+
       '</div>'+
       '<label class="remote-volume"><span class="remote-volume-icon" aria-hidden="true">♪</span>'+
         '<input id="radio-remote-volume" type="range" min="0" max="100" step="1" aria-label="Radio volume">'+
@@ -41,6 +43,7 @@
     const prev=remote.querySelector('#radio-remote-prev');
     const play=remote.querySelector('#radio-remote-play');
     const next=remote.querySelector('#radio-remote-next');
+    const shuffle=remote.querySelector('#radio-remote-shuffle');
     const volume=remote.querySelector('#radio-remote-volume');
     const volumeLevel=remote.querySelector('.remote-volume-level');
     const srstatus=remote.querySelector('.radio-remote-srstatus');
@@ -83,6 +86,14 @@
       remote.setAttribute('aria-label','Jukebox remote. '+song+' by '+singer);
       srstatus.textContent=state.ready ? 'Selected '+song+' by '+singer : 'Loading TSCMS Radio';
     }
+    function syncShuffle(){
+      const active=typeof J.getShuffle==='function' && J.getShuffle();
+      shuffle.dataset.active=String(!!active);
+      shuffle.setAttribute('aria-pressed',String(!!active));
+      shuffle.setAttribute('aria-label',active?'Shuffle on; tap for original order':'Shuffle off; tap to randomize songs');
+      shuffle.title=active?'Shuffle ON — random song order':'Shuffle OFF — playlist order';
+      remote.dataset.shuffle=String(!!active);
+    }
     function updateControls(){
       const state=currentState(),playing=!!J.isPlaying();
       prev.disabled=play.disabled=next.disabled=!state.ready;
@@ -91,6 +102,7 @@
       play.setAttribute('aria-label',playing?'Pause radio':'Play radio');
       play.setAttribute('aria-pressed',String(playing));
       remote.dataset.playing=String(playing);
+      syncShuffle();
       volumeDisplay(true);
       if(!playing) {stopFrames();drawBars(null);}
       else startFrames();
@@ -164,6 +176,12 @@
       if(!currentState().ready)return;
       J.next();updateTrack();updateControls();
     });
+    shuffle.addEventListener('click',()=>{
+      if(typeof J.toggleShuffle!=='function')return;
+      J.toggleShuffle(); // keep music playing, change the NEXT track order.
+      syncShuffle();
+      srstatus.textContent=J.getShuffle()?'Shuffle enabled':'Sequential song order';
+    });
     play.addEventListener('click',()=>{
       if(!currentState().ready){
         srstatus.textContent='Radio is loading. Try again shortly.';
@@ -184,6 +202,7 @@
       if(detail.message)srstatus.textContent=detail.message;
     });
     J.on('trackchange',()=>{updateTrack();updateControls();});
+    J.on('shufflechange',syncShuffle);
     document.addEventListener('visibilitychange',()=>{
       if(document.hidden)stopFrames();
       else {updateControls();drawBars(null);}
