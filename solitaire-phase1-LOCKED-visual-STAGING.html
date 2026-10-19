@@ -52,7 +52,19 @@
 </style><link href="solitaire-phase1-staging/css/live-cards.css" rel="stylesheet"/>
 <link href="solitaire-phase1-staging/css/locked-visual-overlay.css" rel="stylesheet"/>
 <link href="solitaire-phase1-staging/css/gamehouse-jukebox-visual.css" rel="stylesheet"/>
-<link rel="stylesheet" href="solitaire-phase1-staging/css/halloween-theme.css?v=20261018-window-storm-1"></head><body>
+<link rel="stylesheet" href="solitaire-phase1-staging/css/halloween-theme.css?v=20261018-window-storm-1">
+<style id="tscms-menu-restoration-style">
+/* Restored owner-approved menu controls. No board/gameplay changes. */
+#menu .panel{max-height:calc(100dvh - 34px);overflow-y:auto;overscroll-behavior:contain;}
+#menu .menu-extra-settings{border-top:1px solid #91613b;margin-top:15px;padding-top:13px;text-align:left;}
+#menu .menu-extra-settings h3{color:#ffe2a6;font-size:17px;margin:0 0 9px;}
+#menu .menu-extra-settings .menulist{margin-top:0;gap:8px;}
+#menu .menu-extra-settings .p-btn{min-height:45px;padding:9px 5px;font:700 clamp(12px,3.3vw,15px)/1.3 system-ui,sans-serif;}
+#menu .menu-extra-settings .p-btn.selected{outline:2px solid #ffe0a0;background:linear-gradient(#846133,#492713);}
+#menu .menu-extra-settings .menu-extra-note{font:12px/1.5 system-ui,sans-serif;color:#e6d0a8;margin:9px 0 13px;}
+#menu #launch-back-to-saloon{width:100%;display:block;margin-top:15px;}
+#menu #launch-settings-status{min-height:1.3em;color:#ffe8ac;}
+</style></head><body>
 <main aria-label="Classic Saloon Solitaire visual prototype" class="main">
 <div class="stage" id="stage">
 <button aria-label="Exit to TSCMS homepage; save game before leaving" id="btn-exit" title="Exit and Save" type="button"></button><img alt="Locked approved warm Old West Solitaire saloon with TSCMS Radio neon color equalizer jukebox, empty board, and four wooden control buttons" class="stage-art" draggable="false" src="assets/TSCMS_APPROVED_MASTER_DOWNLOAD.png"/>
@@ -82,6 +94,16 @@
   <button id="lightning-toggle" type="button" class="p-btn" aria-pressed="true" style="font-size:14px;padding:8px 12px;" onclick="var on=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',on);this.textContent=on?'⚡ Lightning: ON':'⚡ Lightning: OFF';if(window.TSCMSHalloween)window.TSCMSHalloween.setLightning(on);">⚡ Lightning: ON</button>
 </div>
 <p class="small" style="margin-top:6px;font-size:11px;opacity:0.8;">Turn off for accessibility (no flashing lights).</p>
+<section class="menu-extra-settings" aria-label="Timer and return controls">
+<h3 id="launch-timer-heading">GAME TIMER</h3>
+<div class="menulist" role="group" aria-labelledby="launch-timer-heading">
+<button type="button" class="p-btn" id="launch-timer-stopwatch" aria-pressed="true">⏱ Stopwatch</button>
+<button type="button" class="p-btn" id="launch-timer-relaxed" aria-pressed="false">Relaxed</button>
+</div>
+<p class="menu-extra-note">Relaxed plays without a running clock. A timer change starts with your next new game; your current game is preserved.</p>
+<button type="button" class="p-btn ghost" id="launch-back-to-saloon">BACK TO SALOON</button>
+<p class="menu-extra-note" id="launch-settings-status" role="status" aria-live="polite"></p>
+</section>
 <p class="small" style="margin-top:15px">Draw mode must persist and agree with the saved game. Private staging only.</p></div>
 </div>
 <div hidden="" id="toast" role="status"></div>
@@ -137,6 +159,59 @@
       }
     }, 500);
   });
+})();
+</script>
+<script id="tscms-menu-restoration-script">
+/* Scoped menu restoration — no engine, Swiper, or save-data mutations. */
+(function(){
+  'use strict';
+  var watch = document.getElementById('launch-timer-stopwatch');
+  var relaxed = document.getElementById('launch-timer-relaxed');
+  var back = document.getElementById('launch-back-to-saloon');
+  if(!watch || !relaxed || !back)return;
+  var message = document.getElementById('launch-settings-status');
+  function prefs(){
+    if(typeof SessionManager==='undefined')return null;
+    return SessionManager.getPrefs() || SessionManager.defaultPrefs();
+  }
+  function update(){
+    var p=prefs();
+    var mode=p && p.timerMode==='relaxed'?'relaxed':'stopwatch';
+    [[watch,'stopwatch'],[relaxed,'relaxed']].forEach(function(entry){
+      var selected=entry[1]===mode;
+      entry[0].classList.toggle('selected',selected);
+      entry[0].setAttribute('aria-pressed',selected?'true':'false');
+    });
+  }
+  function choose(mode){
+    var p=prefs();
+    if(!p || typeof SessionManager==='undefined' || !SessionManager.savePrefs){
+      if(message)message.textContent='Timer preference could not be saved.';
+      return;
+    }
+    p.timerMode=mode;
+    var ok=SessionManager.savePrefs(p);
+    if(message)message.textContent=ok
+      ?(mode==='relaxed'?'Relaxed':'Stopwatch')+' saved for your next new game.'
+      :'Timer preference could not be saved.';
+    update();
+  }
+  function init(){
+    watch.addEventListener('click',function(){choose('stopwatch');});
+    relaxed.addEventListener('click',function(){choose('relaxed');});
+    back.addEventListener('click',function(){
+      var close=document.getElementById('closeMenu');
+      if(close)close.click(); // Use the existing menu close handler.
+      var opener=document.getElementById('btn-menu');
+      if(opener)opener.focus();
+    });
+    var open=document.getElementById('btn-menu');
+    if(open)open.addEventListener('click',function(){setTimeout(update,0);});
+    document.addEventListener('game:new',update);
+    update();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
 })();
 </script>
 <script src="solitaire-phase1-staging/js/renderer-binding.js"></script>
