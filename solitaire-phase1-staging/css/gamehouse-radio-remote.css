@@ -2,7 +2,7 @@
    Coordinates relate to the locked 941x1672 art. The remote sits on the
    lower-left wooden tabletop, above the painted four game controls. */
 .stage .tscms-radio-remote {
-  position:absolute;z-index:9;left:3.5%;top:72.5%;width:40.0%;height:9.1%;
+  position:absolute;z-index:3;left:3.5%;top:72.5%;width:40.0%;height:9.1%;
   box-sizing:border-box;display:grid;grid-template-rows:17% 54% 29%;
   padding:1.1% 1.7% 1.25%;border-radius:9px;
   border:2px solid #bd8849;isolation:isolate;color:#f8e2a9;
@@ -44,7 +44,7 @@
 .tscms-radio-remote input[type=range]::-moz-range-thumb{width:15px;height:15px;border:1px solid #48280c;
   background:#e8bc76;border-radius:50%}
 .stage .tscms-radio-face{position:absolute;z-index:9;pointer-events:none;
-  left:80.95%;top:22.70%;width:15.0%;height:8.55%;
+  left:80.95%;top:21.3%;width:15.0%;height:9.25%;
   display:grid;grid-template-rows:62% 38%;overflow:hidden;
   padding:1px;border:1px solid #8b673d;border-radius:4px;
   background:linear-gradient(155deg,#080d12,#130a11 50%,#080d17);
@@ -81,7 +81,8 @@
   background:linear-gradient(155deg,#55412d,#24140d 58%,#382112);
   padding:1px;
 }
-.tscms-radio-remote .remote-shuffle .shuffle-icon{font-size:clamp(12px,2.5vw,22px);line-height:1.08}
+.tscms-radio-remote .remote-shuffle .shuffle-icon{display:grid;place-items:center;width:100%;min-height:0;line-height:1}
+.tscms-radio-remote .remote-shuffle .shuffle-icon svg{display:block;width:clamp(13px,3vw,25px);height:clamp(13px,3vw,25px);stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;max-width:90%}
 .tscms-radio-remote .remote-shuffle small{font:800 clamp(6px,1.1vw,9px)/1.1 Arial,sans-serif;letter-spacing:0}
 .tscms-radio-remote .remote-shuffle[data-active="true"]{
   color:#ffe6a7;border-color:#e9ba6b;
@@ -94,10 +95,16 @@
    NOT on the lower rectangular song/equalizer screen. */
 .stage .tscms-radio-arch {
   position:absolute;z-index:9;pointer-events:none;
-  left:80.7%;top:19.55%;width:16.8%;height:1.45%;
+  left:80.9%;top:19.05%;width:13.7%;height:1.15%;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;text-align:center;white-space:nowrap;
   color:#f8d995;
-  font:900 clamp(7px,1.15vw,11px)/1.05 Georgia,serif;
+  font:900 clamp(6.5px,1.6vw,12px)/1.05 Georgia,serif;
   letter-spacing:.018em;text-shadow:0 0 5px #e7b55b91,0 1px 2px #000;
 }
+
+/* Long tableau fans can reach the lower table; game cards (z4) must always
+   beat the decorative remote (z3) for taps and visual stacking. */
+.stage .tscms-radio-remote{touch-action:manipulation}
+.stage .tscms-radio-remote .remote-key{min-height:0;touch-action:manipulation}
+.stage .tscms-radio-face .radio-face-title{letter-spacing:-.035em}
