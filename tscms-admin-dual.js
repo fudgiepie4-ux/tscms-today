@@ -64,6 +64,8 @@ function readableError(err){
   if(err?.code==="auth/retry-original-email")return "Finish the earlier registration using the same email, or contact Fudgie for assistance.";
   if(err?.code==="auth/email-already-in-use")return "This email already has an account. Use Personal Admin Login; if your profile is incomplete, ask Fudgie for help.";
   if(err?.code==="auth/too-many-requests")return "Too many attempts. Please wait and try again.";
+  if(err?.name==="OperationError"||err?.name==="DataError")
+    return "The protected Admin data could not be unlocked. Please contact Fudgie. The shared PIN is unaffected.";
   if(err?.code?.includes("permission-denied"))return "The registration was blocked by Firebase rules. Your email login might already exist; ask Fudgie to check before trying another account.";
   return "Unable to complete the request. Please try again or ask Fudgie for help. ("+(err?.code||"connection error")+")";
 }
@@ -145,19 +147,26 @@ function base64Bytes(value){
 async function loadNewAdminData(){
   // Cherish/Clara staging interface contract; pipeline output NOT YET TESTED:
   // Firestore /vault/keys {keys:{v2:<base64 of raw 32 bytes>}, current:"v2"}
-  // admin-data.v2.enc.json {kid:"v2",iv:<base64 12-byte GCM nonce>,ct:<base64 ciphertext+tag>}
+  // PROPOSED pending Cherish's confirmation; STAGING ONLY.
+  // admin-data.v2.enc.json {formatVersion:2,kid:"v2",iv:<base64 12-byte GCM nonce>,ct:<base64 ciphertext+tag>}
+  // AAD UTF8: tscms-admin-data|formatVersion=2|kid=v2 (no newline).
+  // Python AESGCM.encrypt and WebCrypto AES-GCM append the 16-byte tag to ct.
   const vaultSnapshot=await getDocFromServer(doc(db,"vault","keys"));
   if(!vaultSnapshot.exists())throw new Error("Personal-login data key is not prepared yet");
   const vault=vaultSnapshot.data();
   const response=await fetch("./admin-data.v2.enc.json",{cache:"no-store"});
   if(!response.ok)throw new Error("Personal-login dataset is not prepared yet");
   const envelope=await response.json();
-  if(envelope.kid!==vault.current||!envelope.iv||!envelope.ct)
-    throw new Error("Personal-login data key version does not match bundle");
+  if(envelope.formatVersion!==2||envelope.kid!==vault.current||!envelope.iv||!envelope.ct)
+    throw new Error("Personal-login data format or key version does not match bundle");
   const raw=base64Bytes(vault.keys?.[envelope.kid]);
+  const iv=base64Bytes(envelope.iv),ct=base64Bytes(envelope.ct);
   if(raw.byteLength!==32)throw new Error("Expected a 256-bit encryption key");
+  if(iv.byteLength!==12||ct.byteLength<16)throw new Error("Invalid encrypted Admin envelope");
   const key=await crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["decrypt"]);
-  const clear=await crypto.subtle.decrypt({name:"AES-GCM",iv:base64Bytes(envelope.iv)},key,base64Bytes(envelope.ct));
+  const aad=new TextEncoder().encode("tscms-admin-data|formatVersion=2|kid="+envelope.kid);
+  const clear=await crypto.subtle.decrypt(
+    {name:"AES-GCM",iv,additionalData:aad,tagLength:128},key,ct);
   const data=JSON.parse(new TextDecoder().decode(clear));
   if(!data||!data.stats||!Array.isArray(data.danger))throw new Error("New Admin dataset is incomplete");
   return data;
