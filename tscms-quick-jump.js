@@ -52,9 +52,11 @@
     drawer.setAttribute('aria-labelledby','tscms-qj-title');
     drawer.hidden=true;
     drawer.innerHTML='<button class="tscms-qj-close" type="button" aria-label="Close quick jump menu">×</button>'+
-      '<div class="tscms-qj-brand">★ THE SUNO COUNTRY MUSIC SPOT ★</div>'+
-      '<h2 id="tscms-qj-title">☰ Quick Jump</h2>'+
-      '<p class="tscms-qj-tagline">Songs · Friends · Community</p>'+
+      '<div class="tscms-qj-hero">'+
+        '<div class="tscms-qj-brand">★ THE SUNO COUNTRY MUSIC SPOT ★</div>'+
+        '<h2 id="tscms-qj-title">☰ Quick Jump</h2>'+
+        '<p class="tscms-qj-tagline">Songs · Friends · Community</p>'+
+      '</div>'+
       '<nav class="tscms-qj-drawer-links" aria-label="Quick jump destinations"></nav>'+
       '<div class="tscms-qj-footer" aria-hidden="true">🍁 COUNTRY MUSIC BRINGS US TOGETHER 🍂</div>';
     document.body.appendChild(drawer);
