@@ -69,13 +69,12 @@ async function checkLatePINPopup(){
  function instantiate(alreadyUnlocked){
   const body={style:{display:alreadyUnlocked?'block':'none'}};
   const dialog={calls:0,showModal(){this.calls++}};
-  let onChange;
-  const env={adminBody:body,dialog,MutationObserver:class{
-   constructor(cb){onChange=cb}
+  const env={adminBody:body,dialog,callback:null,MutationObserver:class{
+   constructor(cb){env.callback=cb}
    observe(){/* no state mutation */}
   }};
   const result=new Function('env','with(env){let pinPrompted=false,firebaseApproved=false;'+promptCode+
-   'return {trigger:()=>onChange(),shown:()=>dialog.calls};}')(env);
+   'return {trigger:()=>env.callback(),shown:()=>dialog.calls};}')(env);
   return {body,result};
  }
  const early=instantiate(false);
