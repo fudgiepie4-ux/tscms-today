@@ -9,13 +9,13 @@ still targets production and must **NOT** be used for real test registration.
 
 ## New: one-command interactive browser runner for Cherish (2026-10-20)
 
-New script: \`tests/admin-isolated-e2e.cjs\`. It serves the isolated branch on \`localhost:8765\`, drives the applicant login/registration UI with Playwright, checks **unverified → verified/pending denied → approved allowed → revoked denied**, then tests signout. It pauses for the controlled inbox email-link click and for Cherish's test-project-only Owner approval/revocation console actions.
+New script: `tests/admin-isolated-e2e.cjs`. It serves the isolated branch on `localhost:8765`, drives the applicant login/registration UI with Playwright, checks **unverified → verified/pending denied → approved allowed → revoked denied**, then tests signout. It pauses for the controlled inbox email-link click and for Cherish's test-project-only Owner approval/revocation console actions.
 
-**Prerequisites:** Cherish has a networked browser and Node 18+; a cloned checkout of the exact \`test/admin-phase1-isolated-firebase-20261020\` branch; a deliverable test applicant mailbox SHE controls and a fresh 12+-character password; permission to create throwaway users exclusively in \`tscms-admin-login-test\`. Never use a real group member's data. Never share test credentials in Slack or GitHub.
+**Prerequisites:** Cherish has a networked browser and Node 18+; a cloned checkout of the exact `test/admin-phase1-isolated-firebase-20261020` branch; a deliverable test applicant mailbox SHE controls and a fresh 12+-character password; permission to create throwaway users exclusively in `tscms-admin-login-test`. Never use a real group member's data. Never share test credentials in Slack or GitHub.
 
 Example in her terminal:
 
-\`\`\`bash
+```bash
 git switch test/admin-phase1-isolated-firebase-20261020
 npm install --no-save playwright
 # If Playwright needs its browser executable, run: npx playwright install chromium
@@ -25,9 +25,9 @@ echo
 export TSCMS_TEST_APPLICANT_EMAIL TSCMS_TEST_APPLICANT_PASSWORD
 node tests/admin-isolated-e2e.cjs
 unset TSCMS_TEST_APPLICANT_EMAIL TSCMS_TEST_APPLICANT_PASSWORD
-\`\`\`
+```
 
-The runner refuses wrong branches/project configuration, omits credentials from logs, and needs **human** input for the verification email and Owner-console flips. Verify the project name in Firebase console before any changes. It does not automatically delete the test user; Cherish cleans up **only** the throwaway Auth UID, \`/users\`, and \`/usernames\` after recording sanitized PASS/FAIL results. If a step fails, send exact sanitized error and stop—don't fake the remainder.
+The runner refuses wrong branches/project configuration, omits credentials from logs, and needs **human** input for the verification email and Owner-console flips. Verify the project name in Firebase console before any changes. It does not automatically delete the test user; Cherish cleans up **only** the throwaway Auth UID, `/users`, and `/usernames` after recording sanitized PASS/FAIL results. If a step fails, send exact sanitized error and stop—don't fake the remainder.
 
 **This is still a test harness, not a completed live E2E.** Browser inbox access and actual Firebase responses remain unverified in this chat. The runner deliberately simulates PIN success; legacy PIN regression, synthetic vault decrypt, and production launch need separate gates.
 
