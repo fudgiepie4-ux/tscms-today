@@ -81,6 +81,8 @@ function main(){
  html=html.replace(/<link href="https:\/\/fonts\.googleapis\.com[^"]+" rel="stylesheet">/g,'');
  html=html.replace(/<script>fetch\('admin-banner\.jpg'\)[\s\S]*?<\/script>/,'');
  html=html.replace(/src="public-assets\/TSCMS%20Studio%20Intro%20v3%20Final\.mp4"/g,'');
+ html=html.replace('Check that public-assets/TSCMS%20Studio%20Intro%20v3%20Final.mp4 has been uploaded.',
+   'Studio video is disabled in this synthetic-only test page.');
  html=one(html,'<body>','<body><div role="alert" style="position:relative;z-index:99999;background:#4a1b08;color:#fff4de;padding:15px;text-align:center;font:700 16px system-ui">TEST ONLY — fictional Admin records; not the live TSCMS Admin site; PIN simulation uses a throwaway test-only value.</div>', 'test warning');
  html=one(html,'<!DOCTYPE html><html lang="en"><head>',
   '<!DOCTYPE html><html lang="en"><head><meta name="robots" content="noindex,nofollow">','test noindex');
