@@ -200,3 +200,77 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);
   else start();
 })();
+
+/* Public-only September Monthly Spotlight — approved October 20, 2026.
+   Uses verified post links, no audio buttons, no admin changes. */
+(function () {
+  'use strict';
+  function addSpotlight() {
+    if (document.getElementById('tscms-september-spotlight-2026')) return;
+    var css = document.createElement('style');
+    css.textContent = [
+      '#tscms-september-spotlight-2026{margin:38px auto 26px;max-width:900px;scroll-margin-top:80px}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-frame{position:relative;overflow:hidden;border-radius:13px;border:1px solid #e3ae54;box-shadow:0 14px 38px #000b,0 0 0 2px #48280b}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-frame img{width:100%;height:auto;display:block}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-hotspot{position:absolute;top:67.15%;height:4.8%;border-radius:8px;display:block;cursor:pointer;z-index:2}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-hotspot.chris{left:5.8%;width:38.4%}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-hotspot.matt{left:54.2%;width:37.8%}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-hotspot:hover{background:rgba(255,227,146,.17);box-shadow:inset 0 0 0 2px #fff2b6}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-hotspot:focus-visible{outline:4px solid #fff6c4;outline-offset:2px;background:rgba(255,227,146,.25)}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links{display:none}',
+      '#tscms-september-spotlight-2026 .tscms-spotlight-sr{position:absolute!important;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden;white-space:nowrap}',
+      '@media(max-width:680px){#tscms-september-spotlight-2026{margin-top:24px}#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links a{display:block;min-height:46px;padding:14px 12px;text-align:center;text-decoration:none;border:1px solid #e8b756;border-radius:12px;background:linear-gradient(#3c2614,#20150d);color:#ffdc95;font:700 15px/1.4 system-ui,sans-serif}#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links a:focus-visible{outline:3px solid #fff3bc}#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links strong{display:block;font-size:16px;color:#fff1c9}#tscms-september-spotlight-2026 .tscms-spotlight-mobile-links small{display:block;font-size:13px;margin:4px 0;color:#dac29b}}'
+    ].join('\n');
+    document.head.appendChild(css);
+
+    var section = document.createElement('section');
+    section.id = 'tscms-september-spotlight-2026';
+    section.setAttribute('aria-labelledby','tscms-sep-spotlight-label');
+    var heading = document.createElement('h2');
+    heading.id='tscms-sep-spotlight-label';
+    heading.className='tscms-spotlight-sr';
+    heading.textContent='TSCMS Monthly Spotlight — September 2026: Breakout Star Chris Bloy and Top Hand Matt Spencer';
+    section.appendChild(heading);
+
+    var frame = document.createElement('div');
+    frame.className='tscms-spotlight-frame';
+    var picture = document.createElement('img');
+    picture.src='assets/spotlight-september-2026.webp';
+    picture.width=1122;picture.height=1402;picture.loading='lazy';
+    picture.alt='Autumn-themed TSCMS Monthly Spotlight celebrating Chris Bloy, Breakout Star with 24 comments on one eligible post, and Matt Spencer, Top Hand with 421 comments across 56 posts. Decorative illustrated portraits are not actual winner photos.';
+    frame.appendChild(picture);
+    var links=[
+      {who:'Chris Bloy',kind:'chris',href:'https://www.facebook.com/groups/1410002804113962/posts/1621782419602665/'},
+      {who:'Matt Spencer',kind:'matt',href:'https://www.facebook.com/groups/1410002804113962/posts/1629423668838540/'}
+    ];
+    links.forEach(function(w){
+      var a=document.createElement('a');
+      a.className='tscms-spotlight-hotspot '+w.kind;
+      a.href=w.href;a.target='_blank';a.rel='noopener noreferrer';
+      a.setAttribute('aria-label','View '+w.who+"'s September spotlight Facebook post (opens in new tab)");
+      frame.appendChild(a);
+    });
+    section.appendChild(frame);
+    var mobiles=document.createElement('div');
+    mobiles.className='tscms-spotlight-mobile-links';
+    [
+      ['Chris Bloy','Breakout Star · 24 comments',links[0].href],
+      ['Matt Spencer','Top Hand · 421 comments across 56 posts',links[1].href]
+    ].forEach(function(w){
+      var a=document.createElement('a');a.href=w[2];a.target='_blank';a.rel='noopener noreferrer';
+      var strong=document.createElement('strong');strong.textContent=w[0];
+      var small=document.createElement('small');small.textContent=w[1];
+      a.appendChild(strong);a.appendChild(small);
+      a.appendChild(document.createTextNode('VIEW FACEBOOK POST ↗'));
+      mobiles.appendChild(a);
+    });
+    section.appendChild(mobiles);
+    var mostLoved=document.querySelector('.most-loved-autumn');
+    var footer=document.querySelector('.wrap > footer')||document.querySelector('footer');
+    if(mostLoved && mostLoved.parentNode)mostLoved.insertAdjacentElement('afterend',section);
+    else if(footer && footer.parentNode)footer.parentNode.insertBefore(section,footer);
+    else document.querySelector('.wrap').appendChild(section);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSpotlight);
+  else addSpotlight();
+})();
