@@ -68,6 +68,12 @@
 - Cherish may later automate Drive delivery after Fudgie explicitly approves; upload-only pipeline does not authorize pushing pages. Clara remains sole page publisher; separate publish approval remains necessary.
 - Prefer one source-of-truth handoff with version/hash and short QA evidence. No serial rewriting of locked design.
 
+## Automated public refresh handoff — confirmed Oct 20 (NOT Admin bundle automation)
+- Cherish reports the *public* six-hour pipeline now automatically delivers build-stamped `index.html`, `tscms-today.html` and `danger-zone-public.json` to the shared Drive folder, checks content hashes to skip duplicates, and verifies upload size/listing; a failed handoff is flagged in the run report. This was approved by Fudgie per Cherish's Slack handoff.
+- Verified current upload artifacts in Drive: 05:54 CT homepage 223,297 bytes, today's page 285,817 bytes, 104-post Danger Zone JSON 22,580 bytes. The existing skip/no-duplicate path was exercised successfully. **First fully scripted upload remains UNVERIFIED** until the next scheduled 11:48 CT pipeline report. Do not overstate it as tested.
+- This public Drive handoff does **not** publish a website page. Clara remains sole publisher for all site files, including public pages and Admin encrypted bundles. It does not authorize automatic GitHub deployment or new Firebase key creation.
+- **Separate unsolved decision:** whether the encrypted *Admin v2* bundle is rebuilt on a manual schedule or six-hour cadence. Do not assume the now-automatic public Drive handoff also handles encrypted Admin data. No secret keys in Drive or GitHub.
+
 ## Current snapshot / blockers
 - Cherish lane handoff read: `TSCMS_Phase1_Cherish_Lane_Handoff_20261020.md` **ACCEPT, no blockers**, with outstanding AAD contract and rebuild cadence choices.
 - Firebase v4 deployed/migration switch live per Cherish's verified console evidence. Original PIN still present. Phase-1 staging code exists but browser/E2E tests and v2 pipeline integration not yet complete; DO NOT CALL READY.
