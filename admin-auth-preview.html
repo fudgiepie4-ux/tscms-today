@@ -43,7 +43,7 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
 </style>
 </head><body><main class="studio">
 <header class="brand"><span class="onair">STAFF ACCESS · STUDIO A</span><h1>TSCMS Broadcast Control Room</h1><p>Your personal backstage pass starts here.</p></header>
-<div class="info"><strong>Account upgrade deadline: November 1, 2026.</strong><div>PIN → registration popup → email verification → Owner approval → personal email/password sign-in.</div></div>
+<div class="info"><strong>Personal account upgrade — Owner-controlled transition.</strong><div>PIN → registration popup → email verification → Owner approval → personal email/password sign-in.</div></div>
 <div class="card"><nav class="tabs" aria-label="Choose sign in method">
 <button type="button" data-tab="old" aria-selected="true">🔑 Existing PIN</button><button type="button" data-tab="signin" aria-selected="false">👤 Personal Login</button></nav>
 <section class="section open" id="old"><h2>Step 1 · Existing station PIN</h2><p>In the future live flow, enter your existing PIN to open the personal account setup popup. The PIN never grants approval by itself.</p><label for="pin">Existing PIN</label><input class="field" type="password" id="pin" autocomplete="off" placeholder="Real PIN entry disabled in preview" disabled>
@@ -72,13 +72,13 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
         <div class="demo-step"><strong>👑 Owner review</strong><p>Only the Owner can approve or reject an administrator after email verification.</p><span class="demo-label pending">Demo — awaiting Owner decision</span></div>
         <div class="demo-step"><strong>🔐 Personal login</strong><p>After approval, the administrator signs in with email and their personal password. Their username is their display name.</p><span class="demo-label">Demo — access unavailable</span></div>
       </div>
-      <p class="note">The old PIN must not grant access through this new flow. Actual access and the November 1 cutoff will be enforced on the backend after security verification.</p>
+      <p class="note">The old PIN must not grant access through this new flow. Actual access and any eventual PIN-retirement policy must be enforced on the backend after security verification.</p>
       <button class="secondary demo-back" id="preview-back-stage" type="button">← Back to Account Setup</button>
     </section>
   </div>
 </div>
 <div class="owner"><h3>👑 Owner Review Center — Preview</h3><p>Registration requests will appear here only after email verification. Access remains blocked until you approve the person.</p><div class="sample"><span>Pending Requests</span><span>Verified Emails</span><span>Approve / Reject</span><span>Disable Account</span><span>Audit History</span></div></div>
-<div class="ribbon"><strong>SAFE DESIGN PREVIEW</strong> · PIN does not authorize Admin access. This page demonstrates the approved popup flow only. Actual PIN validation, account creation, email verification, Owner approval, and November 1 cutoff still require separately verified Firebase integration.</div>
+<div class="ribbon"><strong>SAFE DESIGN PREVIEW</strong> · PIN does not authorize Admin access. This page demonstrates the approved popup flow only. Actual PIN validation, account creation, email verification, and Owner approval still require separately verified Firebase integration. PIN retirement timing is a separate Owner decision.</div>
 <footer class="foot"><a href="https://tscmsradio.com" rel="noopener">Return to TSCMS Radio</a> · This preview is NOT the live Admin page.</footer></main>
 <script>
 (function () {
