@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TSCMS Admin — Account Upgrade Preview</title>
+<title>TSCMS Admin — PIN to Personal Account Preview</title>
 <style>
 :root{color-scheme:dark;--bg:#0a0b0e;--panel:#151618;--line:#635237;--gold:#f2bb55;--cyan:#5be2d6;--ink:#f9edd9;--muted:#ccbfae}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 48% -5%,#463019 0,transparent 55%),var(--bg);font:16px system-ui,Arial,sans-serif;color:var(--ink)}button,input{font:inherit}a{color:var(--cyan)}
@@ -16,33 +16,83 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
 .ribbon{margin:19px 0;padding:14px;text-align:center;border:1px dashed #867348;border-radius:10px;color:#e2d4b5;font-size:13px;line-height:1.5}
 .owner{margin-top:22px;border:1px solid #315654;border-radius:15px;padding:16px;background:#101b1c}.owner h3{margin:0 0 4px;color:var(--cyan)}.owner p{margin:7px 0 13px;font-size:14px}.sample{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.sample span{border:1px solid #3a6260;border-radius:20px;padding:8px 10px;color:#e1f6f1;font-size:12px}.foot{text-align:center;padding-top:21px;font-size:12px;color:#a99986}
 @media(max-width:450px){.tabs{grid-template-columns:1fr 1fr}.section{padding:20px 15px}.row{grid-template-columns:1fr}.studio{padding:12px 12px 50px}}
+
+/* Owner-approved two-step transition mockup, STAGING ONLY. */
+.modal-layer[hidden]{display:none!important}
+.modal-layer{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,5,7,.91);overflow:auto}
+.modal-card{width:min(100%,640px);max-height:92vh;overflow:auto;border:2px solid #d9ad60;border-radius:17px;background:linear-gradient(145deg,#261d14,#101416);box-shadow:0 16px 70px #000e}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 22px 7px}
+.modal-head h2{margin:3px 0 0}.modal-head p{margin:6px 0 0;font-size:13px}
+.modal-close{cursor:pointer;flex:0 0 auto;min-height:43px;padding:8px 14px;border:1px solid #b9955c;border-radius:9px;background:#352719;color:#fce3b8}
+.warning-staging{background:#321f11;border:1px solid #ad783c;border-radius:9px;padding:11px;margin:0 22px 5px;color:#ffe4b3;font-size:13px;line-height:1.5}
+.field:disabled{opacity:.6;cursor:not-allowed}
+.preview-disabled{opacity:.7;cursor:not-allowed}
+@media(max-width:450px){.modal-head{padding:16px 14px 5px}.warning-staging{margin:0 14px}}
 </style>
 </head><body><main class="studio">
 <header class="brand"><span class="onair">STAFF ACCESS · STUDIO A</span><h1>TSCMS Broadcast Control Room</h1><p>Your personal backstage pass starts here.</p></header>
-<div class="info"><strong>Account upgrade deadline: November 1, 2026.</strong><div>Existing shared-PIN access will be retired. New accounts require owner approval.</div></div>
+<div class="info"><strong>Account upgrade deadline: November 1, 2026.</strong><div>PIN → registration popup → email verification → Owner approval → personal email/password sign-in.</div></div>
 <div class="card"><nav class="tabs" aria-label="Choose sign in method">
 <button type="button" data-tab="old" aria-selected="true">🔑 Existing PIN</button><button type="button" data-tab="signin" aria-selected="false">👤 Personal Login</button></nav>
-<section class="section open" id="old"><h2>Current administrators</h2><p>Use your existing PIN during the transition to begin a personal account request. A valid PIN never grants approval by itself.</p><label for="pin">Existing PIN</label><input class="field" type="password" id="pin" autocomplete="off" placeholder="Your current station PIN">
-<button class="primary" type="button" data-action="preview-migrate">Continue to Account Setup →</button><p class="note">Preview only: this screen does NOT validate a PIN or unlock Admin data.</p><div class="status" role="status"></div></section>
-<section class="section" id="signin"><h2>Welcome back</h2><p>Sign in with your approved personal account.</p><label for="identifier">Email address</label><input class="field" type="email" id="identifier" autocomplete="email" autocapitalize="none" placeholder="Enter your email address"><label for="password">Password</label><input class="field" type="password" id="password" autocomplete="current-password" placeholder="Your personal password"><button class="primary" type="button" data-action="preview-signin">ON AIR · Sign In</button><div class="actions"><button class="secondary" data-tab="signup" type="button">Request Access</button><button class="secondary" type="button" data-action="preview-reset">Forgot Password?</button></div><div class="status" role="status"></div></section>
-<section class="section" id="signup"><h2>Create your Admin account</h2><p>All required fields help the owner verify who is requesting backstage access.</p>
-<label for="realname">Full legal name *</label><input class="field" id="realname" autocomplete="name" placeholder="First and last name" required>
-<label for="email">Email address *</label><input class="field" id="email" type="email" autocomplete="email" placeholder="name@example.com" required>
-<label for="username">Choose display username *</label><input class="field" id="username" autocomplete="nickname" autocapitalize="none" placeholder="Name displayed in TSCMS (not your email)" required>
-<div class="row"><div><label for="newpass">New password *</label><input class="field" id="newpass" type="password" autocomplete="new-password" required></div><div><label for="confirmpass">Confirm password *</label><input class="field" id="confirmpass" type="password" autocomplete="new-password" required></div></div>
-<button class="primary" type="button" data-action="preview-signup">Submit for Owner Approval</button>
-<p class="note">Registration remains inactive until Firebase permissions, email verification, username lookup and migration security are tested.</p><div class="status" role="status"></div></section>
+<section class="section open" id="old"><h2>Step 1 · Existing station PIN</h2><p>In the future live flow, enter your existing PIN to open the personal account setup popup. The PIN never grants approval by itself.</p><label for="pin">Existing PIN</label><input class="field" type="password" id="pin" autocomplete="off" placeholder="Real PIN entry disabled in preview" disabled>
+<button class="primary" type="button" data-action="preview-migrate">Preview Account Setup Popup →</button><p class="note">VISUAL PREVIEW ONLY: PIN verification is not connected. Do not enter real credentials on this preview page.</p><div class="status" role="status"></div></section>
+<section class="section" id="signin"><h2>Welcome back</h2><p>Sign in with your approved personal account.</p><label for="identifier">Email address</label><input class="field" type="email" id="identifier" autocomplete="email" autocapitalize="none" placeholder="Disabled in staging preview" disabled><label for="password">Password</label><input class="field" type="password" id="password" autocomplete="current-password" placeholder="Disabled in staging preview" disabled><button class="primary" type="button" data-action="preview-signin">ON AIR · Sign In</button><div class="actions"><button class="secondary" data-action="preview-access" type="button">Request Access</button><button class="secondary" type="button" data-action="preview-reset">Forgot Password?</button></div><div class="status" role="status"></div></section>
+
+</div>
+<div class="modal-layer" id="registration-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="signup-heading" aria-describedby="signup-instructions">
+    <div class="modal-head"><div><span class="onair">ACCOUNT TRANSITION</span><h2 id="signup-heading">Your Personal Backstage Pass</h2><p id="signup-instructions">Step 2 · Create your individual Admin account after a valid PIN.</p></div><button type="button" class="modal-close" id="close-signup" aria-label="Close registration popup">✕ Close</button></div>
+    <p class="warning-staging"><strong>DESIGN PREVIEW — NO PIN WAS VERIFIED.</strong> These fields are intentionally disabled. Nobody can register or unlock Admin from this page.</p>
+    <section class="section open" id="signup"><h2>Create your Admin account</h2><p>All required fields help the owner verify who is requesting backstage access.</p>
+<label for="realname">Full legal name *</label><input class="field" id="realname" autocomplete="name" placeholder="First and last name" required disabled>
+<label for="email">Email address *</label><input class="field" id="email" type="email" autocomplete="email" placeholder="name@example.com" required disabled>
+<label for="username">Choose display username * (not your login)</label><input class="field" id="username" autocomplete="nickname" autocapitalize="none" placeholder="Public display name, not your email" required disabled>
+<div class="row"><div><label for="newpass">New password *</label><input class="field" id="newpass" type="password" autocomplete="new-password" required disabled></div><div><label for="confirmpass">Confirm password *</label><input class="field" id="confirmpass" type="password" autocomplete="new-password" required disabled></div></div>
+<button class="primary preview-disabled" type="button" disabled>Submit for Owner Approval — unavailable in preview</button>
+<p class="note">Personal login will use email + password. Your username is a display name. Registration requires email verification and Owner approval. This demo does not collect, save, or submit any details.</p><div class="status" role="status"></div></section>
+  </div>
 </div>
 <div class="owner"><h3>👑 Owner Review Center — Preview</h3><p>Registration requests will appear here only after email verification. Access remains blocked until you approve the person.</p><div class="sample"><span>Pending Requests</span><span>Verified Emails</span><span>Approve / Reject</span><span>Disable Account</span><span>Audit History</span></div></div>
-<div class="ribbon"><strong>SAFE DESIGN PREVIEW</strong> · No PIN or password is submitted, stored, or checked here. This page cannot create accounts, approve users, or unlock Admin information.</div>
+<div class="ribbon"><strong>SAFE DESIGN PREVIEW</strong> · PIN does not authorize Admin access. This page demonstrates the approved popup flow only. Actual PIN validation, account creation, email verification, Owner approval, and November 1 cutoff still require separately verified Firebase integration.</div>
 <footer class="foot"><a href="https://tscmsradio.com" rel="noopener">Return to TSCMS Radio</a> · This preview is NOT the live Admin page.</footer></main>
 <script>
-const sections=[...document.querySelectorAll('.section')],tabButtons=[...document.querySelectorAll('[data-tab]')];
-function show(id){sections.forEach(el=>el.classList.toggle('open',el.id===id));tabButtons.forEach(el=>el.setAttribute('aria-selected',String(el.getAttribute('data-tab')===id)));const a=document.querySelector('#'+id+' input');if(a)a.focus();}
-tabButtons.forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
-document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{
-if(b.dataset.action==='preview-migrate'){show('signup');return}
-const parent=b.closest('.section'); const status=parent?.querySelector('.status');
-if(status)status.textContent='Preview only — account actions are intentionally disabled until access rules are verified.';
-}));
-</script></body></html>
+(function () {
+  'use strict';
+  const sections = [...document.querySelectorAll('.section:not(#signup)')];
+  const tabs = [...document.querySelectorAll('.tabs [data-tab]')];
+  const modal = document.getElementById('registration-modal');
+  const openBtn = document.querySelector('[data-action="preview-migrate"]');
+  const closeBtn = document.getElementById('close-signup');
+  let lastFocus = null;
+  function selectTab(id) {
+    sections.forEach(el => el.classList.toggle('open', el.id === id));
+    tabs.forEach(el => el.setAttribute('aria-selected', String(el.dataset.tab === id)));
+  }
+  function openModal() {
+    lastFocus = document.activeElement;
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+  tabs.forEach(tab => tab.addEventListener('click', () => selectTab(tab.dataset.tab)));
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Tab') { e.preventDefault(); closeBtn.focus(); }
+  });
+  document.querySelectorAll('[data-action="preview-signin"], [data-action="preview-reset"], [data-action="preview-access"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = btn.closest('.section');
+      const status = section && section.querySelector('.status');
+      if (status) status.textContent = 'Preview only. Actual Firebase registration and login are not connected; no credentials were submitted.';
+    });
+  });
+})();</script></body></html>
