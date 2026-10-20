@@ -50,14 +50,16 @@ document.body.appendChild(dialog);
 const loginMsg=document.getElementById("tc-login-status"),signupMsg=document.getElementById("tc-upgrade-status");
 const updateStatus=(node,message)=>node.textContent=message;
 let pinPrompted=false,firebaseApproved=false,orphanSignupUid=null,registeredUser=null;
-const pinObserver=new MutationObserver(()=>{
-  // Watches the EXISTING PIN decrypt success. Nothing about unlockAdmin() is changed.
-  if(adminBody.style.display==="block"&&!pinPrompted&&!firebaseApproved){
-    pinPrompted=true;
-    if(dialog.showModal)dialog.showModal();else dialog.setAttribute("open","");
-  }
-});
+function offerPersonalSetupAfterPin(){
+  // Observe normal PIN success AND detect a PIN unlock that happened while
+  // the Firebase module was still loading. Do not change mc.js or PIN logic.
+  if(adminBody.style.display!=="block"||pinPrompted||firebaseApproved)return;
+  pinPrompted=true;
+  if(dialog.showModal)dialog.showModal();else dialog.setAttribute("open","");
+}
+const pinObserver=new MutationObserver(offerPersonalSetupAfterPin);
 pinObserver.observe(adminBody,{attributes:true,attributeFilter:["style"]});
+offerPersonalSetupAfterPin();
 document.getElementById("tc-notnow").addEventListener("click",()=>dialog.close());
 function readableError(err){
   if(err?.code==="auth/weak-password")return "Please choose a stronger password.";
