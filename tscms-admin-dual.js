@@ -1,13 +1,16 @@
 /* STAGING-ONLY: TSCMS dual-mode Admin. Keep old PIN in mc.js unchanged.
    NO production deployment without Owner approval, verified rules and v2 bundle QA. */
-import {initializeApp} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
-  sendEmailVerification,sendPasswordResetEmail,reload,signOut} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+  sendEmailVerification,sendPasswordResetEmail,reload,signOut,getIdToken,setPersistence,inMemoryPersistence,deleteUser} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import {getFirestore,doc,collection,writeBatch,serverTimestamp,
-  getDocFromServer,getDocs,updateDoc} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+  getDocFromServer,getDocs,updateDoc} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 import {tscmsFirebaseConfig} from "./firebase-admin-config.js";
 
+// Separate in-memory Auth context: registering staff must NEVER sign out the Owner.
 const app=initializeApp(tscmsFirebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const registrationApp=initializeApp(tscmsFirebaseConfig,"tcms-staff-registration");
+const signupAuth=getAuth(registrationApp),signupDb=getFirestore(registrationApp);
 const gate=document.getElementById("admingate"),adminBody=document.getElementById("adminbody");
 if(!gate||!adminBody||!gate.querySelector(".staff-panel"))throw new Error("Admin page structure changed");
 const styles=document.createElement("style");
@@ -40,12 +43,13 @@ dialog.innerHTML='<h2>👑 Create Your Personal Admin Account</h2>'
 +'<label>Personal password<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>'
 +'<label>Confirm personal password<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>'
 +'<button type="submit">Create Account & Request Approval</button>'
++'<button type="button" class="tc-later" id="tc-resend-verify" hidden>Resend Verification Email</button>'
 +'<button type="button" class="tc-later" id="tc-notnow">Not now — continue with PIN</button>'
 +'<div id="tc-upgrade-status" class="tc-auth-status" role="status"></div></form>';
 document.body.appendChild(dialog);
 const loginMsg=document.getElementById("tc-login-status"),signupMsg=document.getElementById("tc-upgrade-status");
 const updateStatus=(node,message)=>node.textContent=message;
-let pinPrompted=false,firebaseApproved=false,orphanSignupUid=null;
+let pinPrompted=false,firebaseApproved=false,orphanSignupUid=null,registeredUser=null;
 const pinObserver=new MutationObserver(()=>{
   // Watches the EXISTING PIN decrypt success. Nothing about unlockAdmin() is changed.
   if(adminBody.style.display==="block"&&!pinPrompted&&!firebaseApproved){
@@ -56,8 +60,10 @@ const pinObserver=new MutationObserver(()=>{
 pinObserver.observe(adminBody,{attributes:true,attributeFilter:["style"]});
 document.getElementById("tc-notnow").addEventListener("click",()=>dialog.close());
 function readableError(err){
-  if(err?.code==="auth/email-already-in-use")return "This email already has an account; use Personal Admin Login.";
   if(err?.code==="auth/weak-password")return "Please choose a stronger password.";
+  if(err?.code==="auth/retry-original-email")return "Finish the earlier registration using the same email, or contact Fudgie for assistance.";
+  if(err?.code==="auth/email-already-in-use")return "This email already has an account. Use Personal Admin Login; if your profile is incomplete, ask Fudgie for help.";
+  if(err?.code==="auth/too-many-requests")return "Too many attempts. Please wait and try again.";
   if(err?.code?.includes("permission-denied"))return "The registration was blocked by Firebase rules. Your email login might already exist; ask Fudgie to check before trying another account.";
   return "Unable to complete the request. Please try again or ask Fudgie for help. ("+(err?.code||"connection error")+")";
 }
@@ -73,33 +79,56 @@ document.getElementById("tc-upgrade-form").addEventListener("submit",async(event
     updateStatus(signupMsg,"Check the full name and display username (3–30 letters, numbers, underscores).");return;
   }
   submit.disabled=true;updateStatus(signupMsg,"Creating account and pending request…");
+  let newlyCreated=false,user=null,profileSaved=false;
   try{
-    // If Auth succeeded but Firestore failed, retry PROFILE without creating another account.
-    let user;
-    if(orphanSignupUid&&auth.currentUser?.uid===orphanSignupUid){user=auth.currentUser;}
-    else {
-      const credential=await createUserWithEmailAndPassword(auth,email,password);
-      user=credential.user;orphanSignupUid=user.uid;
+    // In-memory registration context avoids replacing Fudgie's signed-in account.
+    await setPersistence(signupAuth,inMemoryPersistence);
+    if(orphanSignupUid && signupAuth.currentUser?.uid===orphanSignupUid){
+      user=signupAuth.currentUser;
+      if(user.email?.toLowerCase()!==email)throw {code:"auth/retry-original-email"};
+    }else{
+      const credential=await createUserWithEmailAndPassword(signupAuth,email,password);
+      user=credential.user;newlyCreated=true;orphanSignupUid=user.uid;
     }
-    const batch=writeBatch(db);
-    const createdAt=serverTimestamp();
-    batch.set(doc(db,"usernames",username),{uid:user.uid,createdAt});
-    batch.set(doc(db,"users",user.uid),{
+    // v4 rules require the two documents to be written atomically.
+    const batch=writeBatch(signupDb),createdAt=serverTimestamp();
+    batch.set(doc(signupDb,"usernames",username),{uid:user.uid,createdAt});
+    batch.set(doc(signupDb,"users",user.uid),{
       email:user.email,username,fullName:name,admin:false,owner:false,
       status:"pending",createdAt,registrationPath:"pin"
     });
     await batch.commit();
-    orphanSignupUid=null;
-    try{await sendEmailVerification(user);}
-    catch(err){
-      updateStatus(signupMsg,"Your registration is saved and pending approval, but the verification email could not be sent. Ask Fudgie for a new verification email.");return;
+    profileSaved=true;orphanSignupUid=null;registeredUser=user;
+    document.getElementById("tc-resend-verify").hidden=false;
+    submit.hidden=true;
+    try{
+      await sendEmailVerification(user);
+      updateStatus(signupMsg,"Registration saved! Verify the email in your inbox, then wait for Fudgie to verify your identity and approve. You can continue with the PIN through Oct 31.");
+    }catch(err){
+      updateStatus(signupMsg,"Account saved and awaiting approval, but the verification email could not be sent. Use Resend Verification Email below, or ask Fudgie for assistance.");
     }
-    updateStatus(signupMsg,"Registration saved! Verify the message in your inbox, then wait for Fudgie to approve. You may continue using the PIN through Oct 31.");
-  }catch(err){updateStatus(signupMsg,readableError(err));}
-  finally{
+  }catch(err){
+    if(newlyCreated && user && !profileSaved){
+      try{
+        // Remove an unusable Auth-only record, allowing a clean username retry.
+        await deleteUser(user);orphanSignupUid=null;
+        await signOut(signupAuth);
+      }catch(_){
+        updateStatus(signupMsg,"Registration was not completed, and your email sign-in may exist. Ask Fudgie for help before creating another account.");return;
+      }
+    }
+    updateStatus(signupMsg,readableError(err));
+  }finally{
     form.elements.password.value="";form.elements.confirm.value="";
     submit.disabled=false;
   }
+});
+document.getElementById("tc-resend-verify").addEventListener("click",async()=>{
+  if(!registeredUser)return;
+  try{
+    await sendEmailVerification(registeredUser);
+    updateStatus(signupMsg,"New verification email requested. Check your inbox.");
+  }catch(_){updateStatus(signupMsg,"Could not resend now. Please try again later or contact Fudgie.");}
 });
 document.getElementById("tc-reset").addEventListener("click",async()=>{
   const email=document.getElementById("tc-login-form").elements.email.value.trim();
@@ -135,6 +164,7 @@ async function loadNewAdminData(){
 }
 async function personalLogin(user){
   await reload(user);
+  await getIdToken(user,true); // Refresh the email_verified security-rules claim.
   if(!user.emailVerified){updateStatus(loginMsg,"Check your email verification link first. Then sign in again.");return;}
   const ref=await getDocFromServer(doc(db,"users",user.uid));
   if(!ref.exists()){updateStatus(loginMsg,"Account registration incomplete. Contact Fudgie.");return;}
@@ -195,7 +225,13 @@ async function showOwnerApprovals(ownerUid){
           ["Reject",{status:"rejected",admin:false}]
         ]){
           const button=document.createElement("button");button.textContent=text;
-          button.addEventListener("click",()=>update(changes));row.appendChild(button);
+          button.addEventListener("click",()=>{
+            const identityConfirmed=text!=="Approve" || window.confirm(
+              "Have you personally contacted and verified "+(data.fullName||data.username||"this person")+
+              " and confirmed their email? Approve only after your own identity check."
+            );
+            if(identityConfirmed)update(changes);
+          });row.appendChild(button);
         }
       }else if(data.status==="approved"){
         const revoke=document.createElement("button");revoke.textContent="Revoke";
