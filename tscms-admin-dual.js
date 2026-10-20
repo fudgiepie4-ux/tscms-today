@@ -174,6 +174,48 @@ async function loadNewAdminData(){
   if(!data||typeof data.stats!=="object"||data.stats===null||!Array.isArray(data.danger)||!Array.isArray(data.flags)||typeof data.generated!=="string")throw new Error("New Admin dataset is incomplete");
   return data;
 }
+/* Approved sessions are rechecked when the Admin returns to the tab and
+   once per minute while open. If revoked, expired, or disconnected, fail closed.
+   This protects the CURRENT browser view; downloaded old ciphertext/key copies
+   still require a separate v2 key rotation for effective historical revocation. */
+function isAllowedPersonalAdmin(user,profile){
+  return !!(user && user.emailVerified===true && profile &&
+    profile.status==="approved" && (profile.admin===true || profile.owner===true));
+}
+let personalSessionEnding=false,personalSessionChecking=false;
+async function endPersonalSession(){
+  if(personalSessionEnding)return;
+  personalSessionEnding=true;firebaseApproved=false;
+  // Hide then actually remove decrypted text and controls, not only the overlay.
+  adminBody.style.display="none";
+  adminBody.replaceChildren();
+  gate.style.display="block";
+  try{await signOut(auth);}catch(_){}
+  // Clearing the JS heap by reloading is essential after using a raw v2 key.
+  window.location.reload();
+}
+async function validateOpenPersonalSession(){
+  if(!firebaseApproved||personalSessionEnding||personalSessionChecking)return;
+  personalSessionChecking=true;
+  try{
+    const user=auth.currentUser;
+    if(!user){await endPersonalSession();return;}
+    await reload(user);await getIdToken(user,true);
+    const fresh=await getDocFromServer(doc(db,"users",user.uid));
+    if(!fresh.exists()||!isAllowedPersonalAdmin(user,fresh.data())){
+      await endPersonalSession();
+    }
+  }catch(_){
+    // A stale/offline verification isn't permission to keep decrypted data open.
+    await endPersonalSession();
+  }finally{personalSessionChecking=false;}
+}
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden)void validateOpenPersonalSession();
+});
+window.addEventListener("focus",()=>{void validateOpenPersonalSession();});
+setInterval(()=>{void validateOpenPersonalSession();},60000);
+
 async function personalLogin(user){
   await reload(user);
   await getIdToken(user,true); // Refresh the email_verified security-rules claim.
@@ -181,12 +223,19 @@ async function personalLogin(user){
   const ref=await getDocFromServer(doc(db,"users",user.uid));
   if(!ref.exists()){updateStatus(loginMsg,"Account registration incomplete. Contact Fudgie.");return;}
   const profile=ref.data();
-  if(profile.status!=="approved"||!(profile.admin===true||profile.owner===true)){
+  if(!isAllowedPersonalAdmin(user,profile)){
     updateStatus(loginMsg,"Your account is not approved or is no longer active. Only Fudgie can grant access.");return;
   }
   if(!window.isSecureContext||!crypto?.subtle)throw new Error("HTTPS required");
   updateStatus(loginMsg,"Account approved. Loading the Control Room…");
   const data=await loadNewAdminData();
+  // Do not display even briefly if approval was withdrawn during decryption.
+  await reload(user);await getIdToken(user,true);
+  const finalCheck=await getDocFromServer(doc(db,"users",user.uid));
+  if(auth.currentUser?.uid!==user.uid ||
+     !finalCheck.exists() || !isAllowedPersonalAdmin(user,finalCheck.data())){
+    throw {code:"permission-denied"};
+  }
   firebaseApproved=true;
   gate.style.display="none";adminBody.style.display="block";
   if(typeof window.zi==="function")window.zi(data.danger,data.generated);
@@ -194,10 +243,7 @@ async function personalLogin(user){
   const logout=document.createElement("button");
   logout.textContent="Sign Out of Personal Admin";
   logout.style.cssText="min-height:44px;display:block;margin:8px auto;";
-  logout.addEventListener("click",async()=>{
-    await signOut(auth);
-    window.location.reload();
-  });
+  logout.addEventListener("click",()=>{void endPersonalSession();});
   adminBody.prepend(logout);
   if(profile.owner===true)await showOwnerApprovals(user.uid);
 }
