@@ -28,6 +28,18 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
 .field:disabled{opacity:.6;cursor:not-allowed}
 .preview-disabled{opacity:.7;cursor:not-allowed}
 @media(max-width:450px){.modal-head{padding:16px 14px 5px}.warning-staging{margin:0 14px}}
+
+/* Visual-only stage-three transition panel: never creates an account. */
+.phase{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0 18px}
+.phase span{padding:8px 10px;background:#2b2317;border:1px solid #665334;border-radius:20px;font-size:12px;font-weight:700;color:#ecd3a5}
+.phase .current{background:#60401e;border-color:#e6b567;color:#fff1d6}
+.demo-row{display:grid;gap:10px;margin:16px 0}
+.demo-step{border:1px solid #65543a;border-radius:12px;padding:13px 14px;background:#141618}
+.demo-step strong{display:block;color:#f3d59e;margin-bottom:5px;font-size:16px}
+.demo-step p{margin:0;font-size:14px}
+.demo-label{display:inline-block;margin-top:9px;border:1px solid #b59050;border-radius:18px;padding:4px 10px;color:#f8dfb6;font-size:12px}
+.demo-label.pending{color:#a5ebe3;border-color:#3e7e78}
+.demo-back{margin:10px 0 20px}
 </style>
 </head><body><main class="studio">
 <header class="brand"><span class="onair">STAFF ACCESS · STUDIO A</span><h1>TSCMS Broadcast Control Room</h1><p>Your personal backstage pass starts here.</p></header>
@@ -49,7 +61,20 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
 <label for="username">Choose display username * (not your login)</label><input class="field" id="username" autocomplete="nickname" autocapitalize="none" placeholder="Public display name, not your email" required disabled>
 <div class="row"><div><label for="newpass">New password *</label><input class="field" id="newpass" type="password" autocomplete="new-password" required disabled></div><div><label for="confirmpass">Confirm password *</label><input class="field" id="confirmpass" type="password" autocomplete="new-password" required disabled></div></div>
 <button class="primary preview-disabled" type="button" disabled>Submit for Owner Approval — unavailable in preview</button>
-<p class="note">Personal login will use email + password. Your username is a display name. Registration requires email verification and Owner approval. This demo does not collect, save, or submit any details.</p><div class="status" role="status"></div></section>
+<p class="note">Personal login will use email + password. Your username is a display name. Registration requires email verification and Owner approval. This demo does not collect, save, or submit any details.</p>
+<button class="secondary demo-back" id="preview-next-stage" type="button">Preview What Happens After Registration →</button><div class="status" role="status"></div></section>
+    <section class="section" id="approval-preview" aria-labelledby="approval-heading">
+      <h2 id="approval-heading">Step 3 · Verify & Await Approval</h2>
+      <p><strong>Demonstration only.</strong> Here's what an administrator would see after a real registration. No account has been created and no verification email has been sent.</p>
+      <div class="phase" aria-label="Account setup stages"><span>1. PIN eligibility</span><span>2. Account details</span><span class="current">3. Verification & approval</span></div>
+      <div class="demo-row">
+        <div class="demo-step"><strong>✉️ Email verification</strong><p>A real confirmation link would be sent to the applicant's private email address.</p><span class="demo-label">Demo — not sent</span></div>
+        <div class="demo-step"><strong>👑 Owner review</strong><p>Only the Owner can approve or reject an administrator after email verification.</p><span class="demo-label pending">Demo — awaiting Owner decision</span></div>
+        <div class="demo-step"><strong>🔐 Personal login</strong><p>After approval, the administrator signs in with email and their personal password. Their username is their display name.</p><span class="demo-label">Demo — access unavailable</span></div>
+      </div>
+      <p class="note">The old PIN must not grant access through this new flow. Actual access and the November 1 cutoff will be enforced on the backend after security verification.</p>
+      <button class="secondary demo-back" id="preview-back-stage" type="button">← Back to Account Setup</button>
+    </section>
   </div>
 </div>
 <div class="owner"><h3>👑 Owner Review Center — Preview</h3><p>Registration requests will appear here only after email verification. Access remains blocked until you approve the person.</p><div class="sample"><span>Pending Requests</span><span>Verified Emails</span><span>Approve / Reject</span><span>Disable Account</span><span>Audit History</span></div></div>
@@ -63,6 +88,10 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
   const modal = document.getElementById('registration-modal');
   const openBtn = document.querySelector('[data-action="preview-migrate"]');
   const closeBtn = document.getElementById('close-signup');
+  const signup = document.getElementById('signup');
+  const approval = document.getElementById('approval-preview');
+  const nextStep = document.getElementById('preview-next-stage');
+  const backStep = document.getElementById('preview-back-stage');
   let lastFocus = null;
   function selectTab(id) {
     sections.forEach(el => el.classList.toggle('open', el.id === id));
@@ -70,6 +99,8 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
   }
   function openModal() {
     lastFocus = document.activeElement;
+    signup.classList.add('open');
+    approval.classList.remove('open');
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
     closeBtn.focus();
@@ -82,11 +113,21 @@ label{display:block;font-weight:700;font-size:13px;margin:14px 0 7px}.field{widt
   tabs.forEach(tab => tab.addEventListener('click', () => selectTab(tab.dataset.tab)));
   openBtn.addEventListener('click', openModal);
   closeBtn.addEventListener('click', closeModal);
+  nextStep.addEventListener('click', () => { signup.classList.remove('open'); approval.classList.add('open'); backStep.focus(); });
+  backStep.addEventListener('click', () => { approval.classList.remove('open'); signup.classList.add('open'); nextStep.focus(); });
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', e => {
     if (modal.hidden) return;
     if (e.key === 'Escape') closeModal();
-    if (e.key === 'Tab') { e.preventDefault(); closeBtn.focus(); }
+    if (e.key === 'Tab') {
+      const focusable = [...modal.querySelectorAll('button:not([disabled]):not([hidden])')].filter(el => {
+        const sect = el.closest('.section');
+        return !sect || sect.classList.contains('open');
+      });
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
   document.querySelectorAll('[data-action="preview-signin"], [data-action="preview-reset"], [data-action="preview-access"]').forEach(btn => {
     btn.addEventListener('click', () => {
