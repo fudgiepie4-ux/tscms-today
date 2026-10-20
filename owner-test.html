@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSCMS Owner Sign-in Test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 420px; margin: 2em auto; padding: 0 1em; }
+  input { display: block; width: 100%; margin: .5em 0; padding: .6em; font-size: 1em; box-sizing: border-box; }
+  button { display: block; width: 100%; margin: .5em 0; padding: .7em; font-size: 1em; cursor: pointer; }
+  #status { white-space: pre-wrap; background: #f4f4f4; padding: 1em; margin-top: 1em; border-radius: 8px; font-size: .9em; }
+  .ok { color: green; font-weight: bold; } .bad { color: crimson; font-weight: bold; }
+</style>
+</head>
+<body>
+<h2>TSCMS Owner Sign-in Test</h2>
+<p>Sign in with your email + password. This page is for testing only — it touches nothing else.</p>
+<input id="email" type="email" value="fudgiepie4@gmail.com" autocomplete="username">
+<input id="password" type="password" placeholder="Password" autocomplete="current-password">
+<button id="signin">Sign in</button>
+<button id="sendverify" disabled>Send verification email</button>
+<button id="refresh" disabled>Refresh my status</button>
+<div id="status">Not signed in.</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyB6m_Oj_b3c2cZtwfd4xfpsyg9Qjcks2hY",
+  authDomain: "tscms-admin.firebaseapp.com",
+  projectId: "tscms-admin",
+  storageBucket: "tscms-admin.firebasestorage.app",
+  messagingSenderId: "1026184954656",
+  appId: "1:1026184954656:web:76d907d77a96cffdf2cd45"
+});
+var auth = firebase.auth();
+var out = document.getElementById('status');
+var sv = document.getElementById('sendverify');
+var rf = document.getElementById('refresh');
+
+function show() {
+  var u = auth.currentUser;
+  if (!u) { out.textContent = "Not signed in."; return; }
+  var verified = u.emailVerified;
+  out.innerHTML =
+    "Signed in: " + u.email + "\n" +
+    "UID: " + u.uid + "\n" +
+    "Email verified: " + (verified ? "<span class='ok'>YES</span>" : "<span class='bad'>NO</span>") + "\n\n" +
+    (verified
+      ? "Your email is verified. Tell Cherish — owner powers are ready to test."
+      : "Your email is NOT verified yet. Tap 'Send verification email', check Gmail, click the link, then tap 'Refresh my status'.");
+}
+document.getElementById('signin').onclick = function() {
+  out.textContent = "Signing in…";
+  auth.signInWithEmailAndPassword(
+    document.getElementById('email').value.trim(),
+    document.getElementById('password').value
+  ).then(function() {
+    sv.disabled = false; rf.disabled = false;
+    show();
+  }).catch(function(e) {
+    out.textContent = "Sign-in failed: " + e.code + "\n" + e.message;
+  });
+};
+sv.onclick = function() {
+  var u = auth.currentUser; if (!u) return;
+  u.sendEmailVerification().then(function() {
+    out.textContent = "Verification email sent to " + u.email + ".\nCheck Gmail and click the link, then tap 'Refresh my status'.";
+  }).catch(function(e) { out.textContent = "Could not send: " + e.message; });
+};
+rf.onclick = function() {
+  var u = auth.currentUser; if (!u) return;
+  u.reload().then(show).catch(function(e) { out.textContent = "Refresh failed: " + e.message; });
+};
+auth.onAuthStateChanged(show);
+</script>
+</body>
+</html>
