@@ -1,0 +1,12 @@
+{
+  "name": "tscms-firebase-rules-ci",
+  "version": "1.0.0",
+  "description": "CI test for TSCMS v4 Firestore security rules (review only, no deploy)",
+  "scripts": {
+    "test": "node test-v4.js"
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^3.0.0",
+    "firebase": "^11.0.0"
+  }
+}
