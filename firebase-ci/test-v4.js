@@ -1,25 +1,28 @@
-// TSCMS v4 Firestore Rules — Security Test Suite
-// 44 scenarios against the Firebase Emulator
-// Run: node test-v4.js (emulator must be running on 127.0.0.1:8085)
+// TSCMS v4 Firestore Rules — Security Test Suite v2
+// CORRECTED per Clara's review: port 8080, serverTimestamp, honest NOT_TESTED labels
+// Run: node test-v4.js (emulator must be running on 127.0.0.1:8080)
 
 const {
   initializeTestEnvironment,
   assertFails,
   assertSucceeds,
 } = require("@firebase/rules-unit-testing");
-const { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, writeBatch } = require("firebase/firestore");
+const { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, serverTimestamp } = require("firebase/firestore");
 const fs = require("fs");
 
-const PROJECT_ID = "demo-test";
-const PORT = 8085;
-let passed = 0, failed = 0;
+const PROJECT_ID = "demo-tscms-security";
+const PORT = 8080; // MUST match firebase.json
+let passed = 0, failed = 0, notTested = 0;
 const results = [];
 
-function record(num, desc, ok, err) {
-  if (ok) { passed++; } else { failed++; }
-  results.push({ num, desc, status: ok ? "PASS" : "FAIL", error: err ? String(err).slice(0, 200) : null });
-  console.log(`${ok ? "PASS" : "FAIL"} #${num}: ${desc}`);
+function record(num, desc, status, err) {
+  if (status === "PASS") passed++;
+  else if (status === "FAIL") failed++;
+  else notTested++;
+  results.push({ num, desc, status, error: err ? String(err).slice(0, 300) : null });
+  console.log(`${status} #${num}: ${desc}`);
 }
+const not_tested = (num, desc, reason) => record(num, desc, "NOT_TESTED", new Error(reason));
 
 async function main() {
   const rules = fs.readFileSync("./firestore.rules", "utf8");
@@ -28,33 +31,21 @@ async function main() {
     firestore: { rules, host: "127.0.0.1", port: PORT },
   });
 
-  // Helper: authenticated context
   const authCtx = (uid, email, verified) =>
     testEnv.authenticatedContext(uid, { email, email_verified: verified });
 
-  // Seed: owner user
-  const admin = testEnv.authenticatedContext("owner1", { email: "owner@test.com", email_verified: true });
-  // We need to seed via admin context — but rules deny. Use unauthenticated setup via testEnv.withSecurityRulesDisabled
+  // Seed data (rules disabled for setup)
   await testEnv.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
-    await setDoc(doc(db, "users/owner1"), {
-      email: "owner@test.com", username: "owneruser", fullName: "Owner User",
-      admin: true, owner: true, status: "approved",
-      createdAt: new Date(), registrationPath: "direct",
+    const seed = (uid, data) => setDoc(doc(db, `users/${uid}`), {
+      ...data, createdAt: serverTimestamp(), registrationPath: "direct",
     });
-    await setDoc(doc(db, "users/admin1"), {
-      email: "admin@test.com", username: "adminuser", fullName: "Admin User",
-      admin: true, owner: false, status: "approved",
-      createdAt: new Date(), registrationPath: "direct",
-    });
-    await setDoc(doc(db, "users/revoked1"), {
-      email: "revoked@test.com", username: "revokeduser", fullName: "Revoked User",
-      admin: true, owner: false, status: "revoked",
-      createdAt: new Date(), registrationPath: "direct",
-    });
-    await setDoc(doc(db, "config/migration"), {
-      pinRegistrationOpen: true, cutoffDate: "2026-11-01",
-    });
+    await seed("owner1", { email: "owner@test.com", username: "owneruser", fullName: "Owner User", admin: true, owner: true, status: "approved" });
+    await seed("admin1", { email: "admin@test.com", username: "adminuser", fullName: "Admin User", admin: true, owner: false, status: "approved" });
+    await seed("revoked1", { email: "revoked@test.com", username: "revokeduser", fullName: "Revoked User", admin: true, owner: false, status: "revoked" });
+    await seed("plain1", { email: "plain@test.com", username: "plainuser", fullName: "Plain User", admin: false, owner: false, status: "approved" });
+    await seed("pending1", { email: "pending@test.com", username: "pendinguser", fullName: "Pending User", admin: false, owner: false, status: "pending" });
+    await setDoc(doc(db, "config/migration"), { pinRegistrationOpen: true, cutoffDate: "2026-11-01" });
     await setDoc(doc(db, "vault/testkey"), { key: "secret123" });
   });
 
@@ -62,373 +53,275 @@ async function main() {
   const owner = authCtx("owner1", "owner@test.com", true);
   const adm = authCtx("admin1", "admin@test.com", true);
   const revoked = authCtx("revoked1", "revoked@test.com", true);
-  const unverifiedAdmin = authCtx("admin1", "admin@test.com", false);
-  const newUser = authCtx("newuser1", "new@test.com", true);
-  const noDocUser = authCtx("nodoc1", "nodoc@test.com", true);
+  const unverified = authCtx("admin1", "admin@test.com", false);
+  const plain = authCtx("plain1", "plain@test.com", true);
+  const noDoc = authCtx("nodoc1", "nodoc@test.com", true);
 
-  const dbNoAuth = noAuth.firestore();
-  const dbOwner = owner.firestore();
-  const dbAdmin = adm.firestore();
-  const dbRevoked = revoked.firestore();
-  const dbUnverified = unverifiedAdmin.firestore();
-  const dbNew = newUser.firestore();
-  const dbNoDoc = noDocUser.firestore();
+  const D = {
+    noAuth: noAuth.firestore(), owner: owner.firestore(), admin: adm.firestore(),
+    revoked: revoked.firestore(), unverified: unverified.firestore(),
+    plain: plain.firestore(), noDoc: noDoc.firestore(),
+  };
+
+  // Helper for paired registration
+  const pairedReg = (ctx, uid, email, username) => {
+    const db = ctx.firestore();
+    const batch = writeBatch(db);
+    batch.set(doc(db, `users/${uid}`), {
+      email, username, fullName: "Test User",
+      admin: false, owner: false, status: "pending",
+      createdAt: serverTimestamp(), registrationPath: "direct",
+    });
+    batch.set(doc(db, `usernames/${username}`), { uid, createdAt: serverTimestamp() });
+    return batch.commit();
+  };
 
   // === ORIGINAL 10 ===
-  try { await assertFails(getDoc(doc(dbNoAuth, "vault/testkey"))); record(1, "Signed-out read /vault → DENY", true); }
-  catch (e) { record(1, "Signed-out read /vault → DENY", false, e); }
+  try { await assertFails(getDoc(doc(D.noAuth, "vault/testkey"))); record(1, "Signed-out read /vault → DENY", "PASS"); }
+  catch (e) { record(1, "Signed-out read /vault → DENY", "FAIL", e); }
 
-  try { await assertFails(getDoc(doc(dbNoDoc, "vault/testkey"))); record(2, "No-doc user read /vault → DENY", true); }
-  catch (e) { record(2, "No-doc user read /vault → DENY", false, e); }
+  try { await assertFails(getDoc(doc(D.noDoc, "vault/testkey"))); record(2, "No-doc user read /vault → DENY", "PASS"); }
+  catch (e) { record(2, "No-doc user read /vault → DENY", "FAIL", e); }
 
-  // Test 3: admin:false user — need to create one
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "users/plain1"), {
-      email: "plain@test.com", username: "plainuser", fullName: "Plain",
-      admin: false, owner: false, status: "approved",
-      createdAt: new Date(), registrationPath: "direct",
-    });
-  });
-  const plainUser = authCtx("plain1", "plain@test.com", true);
-  try { await assertFails(getDoc(doc(plainUser.firestore(), "vault/testkey"))); record(3, "Non-admin read /vault → DENY", true); }
-  catch (e) { record(3, "Non-admin read /vault → DENY", false, e); }
+  try { await assertFails(getDoc(doc(D.plain, "vault/testkey"))); record(3, "Non-admin read /vault → DENY", "PASS"); }
+  catch (e) { record(3, "Non-admin read /vault → DENY", "FAIL", e); }
 
-  try { await assertSucceeds(getDoc(doc(dbAdmin, "vault/testkey"))); record(4, "Approved admin read /vault → ALLOW", true); }
-  catch (e) { record(4, "Approved admin read /vault → ALLOW", false, e); }
+  try { await assertSucceeds(getDoc(doc(D.admin, "vault/testkey"))); record(4, "Approved admin read /vault → ALLOW", "PASS"); }
+  catch (e) { record(4, "Approved admin read /vault → ALLOW", "FAIL", e); }
 
-  try { await assertFails(setDoc(doc(dbAdmin, "users/other1"), { email: "x@x.com" })); record(5, "Admin write other user → DENY", true); }
-  catch (e) { record(5, "Admin write other user → DENY", false, e); }
+  try { await assertFails(setDoc(doc(D.admin, "users/hacker1"), { email: "x@x.com" })); record(5, "Admin write other user → DENY", "PASS"); }
+  catch (e) { record(5, "Admin write other user → DENY", "FAIL", e); }
+
+  { // 6: privilege injection
+    const u = authCtx("inj6", "inj6@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/inj6"), { email: "inj6@test.com", username: "injuser6", fullName: "Inj", admin: true, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/injuser6"), { uid: "inj6", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(6, "Create with admin:true → DENY", "PASS");
+    } catch (e) { record(6, "Create with admin:true → DENY", "FAIL", e); }
+  }
+
+  try { await assertFails(getDocs(collection(D.admin, "users"))); record(7, "Admin list /users → DENY", "PASS"); }
+  catch (e) { record(7, "Admin list /users → DENY", "FAIL", e); }
+
+  try { await assertSucceeds(getDoc(doc(D.admin, "users/admin1"))); record(8, "Get own doc → ALLOW", "PASS"); }
+  catch (e) { record(8, "Get own doc → ALLOW", "FAIL", e); }
+
+  try { await assertFails(setDoc(doc(D.noAuth, "users/x"), { a: 1 })); record(9, "Signed-out write → DENY", "PASS"); }
+  catch (e) { record(9, "Signed-out write → DENY", "FAIL", e); }
+
+  try { await assertFails(getDoc(doc(D.revoked, "vault/testkey"))); record(10, "Revoked admin read /vault → DENY", "PASS"); }
+  catch (e) { record(10, "Revoked admin read /vault → DENY", "FAIL", e); }
+
+  // === V2 (11-29) ===
+  { // 11: valid paired registration
+    const u = authCtx("reg11", "reg11@test.com", true);
+    try { await assertSucceeds(pairedReg(u, "reg11", "reg11@test.com", "reguser11")); record(11, "Valid paired registration → ALLOW", "PASS"); }
+    catch (e) { record(11, "Valid paired registration → ALLOW", "FAIL", e); }
+  }
+
+  { // 12: owner:true injection
+    const u = authCtx("inj12", "inj12@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/inj12"), { email: "inj12@test.com", username: "injuser12", fullName: "Inj", admin: false, owner: true, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/injuser12"), { uid: "inj12", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(12, "Create with owner:true → DENY", "PASS");
+    } catch (e) { record(12, "Create with owner:true → DENY", "FAIL", e); }
+  }
+
+  { // 13: extra field
+    const u = authCtx("ext13", "ext13@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/ext13"), { email: "ext13@test.com", username: "extuser13", fullName: "Ext", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct", role: "superadmin" });
+      batch.set(doc(db, "usernames/extuser13"), { uid: "ext13", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(13, "Create with extra field → DENY", "PASS");
+    } catch (e) { record(13, "Create with extra field → DENY", "FAIL", e); }
+  }
+
+  { // 14: uid mismatch
+    const u = authCtx("mm14", "mm14@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/OTHER_UID"), { email: "mm14@test.com", username: "mmuser14", fullName: "Mm", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/mmuser14"), { uid: "mm14", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(14, "Create uid mismatch → DENY", "PASS");
+    } catch (e) { record(14, "Create uid mismatch → DENY", "FAIL", e); }
+  }
+
+  { // 15: email mismatch
+    const u = authCtx("em15", "real15@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/em15"), { email: "fake@test.com", username: "emuser15", fullName: "Em", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/emuser15"), { uid: "em15", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(15, "Create email mismatch → DENY", "PASS");
+    } catch (e) { record(15, "Create email mismatch → DENY", "FAIL", e); }
+  }
+
+  try { await assertFails(updateDoc(doc(D.admin, "users/admin1"), { fullName: "Hacked" })); record(16, "Non-owner update own doc → DENY", "PASS"); }
+  catch (e) { record(16, "Non-owner update own doc → DENY", "FAIL", e); }
+
+  try { await assertSucceeds(getDocs(collection(D.owner, "users"))); record(17, "Owner list /users → ALLOW", "PASS"); }
+  catch (e) { record(17, "Owner list /users → ALLOW", "FAIL", e); }
+
+  try { await assertFails(getDocs(collection(D.plain, "users"))); record(18, "Non-owner list /users → DENY", "PASS"); }
+  catch (e) { record(18, "Non-owner list /users → DENY", "FAIL", e); }
 
   try {
-    const batch = writeBatch(dbNew);
-    batch.set(doc(dbNew, "users/newuser1"), {
-      email: "new@test.com", username: "newuser", fullName: "New",
-      admin: true, owner: false, status: "pending",
-      createdAt: new Date(), registrationPath: "direct",
+    await assertSucceeds(updateDoc(doc(D.owner, "users/pending1"), { admin: true, status: "approved", approvedAt: serverTimestamp(), approvedBy: "owner1" }));
+    record(19, "Owner approve user → ALLOW", "PASS");
+  } catch (e) { record(19, "Owner approve user → ALLOW", "FAIL", e); }
+
+  try { await assertFails(updateDoc(doc(D.owner, "users/owner1"), { owner: false })); record(20, "Owner remove own owner flag → DENY", "PASS"); }
+  catch (e) { record(20, "Owner remove own owner flag → DENY", "FAIL", e); }
+
+  try { await assertFails(deleteDoc(doc(D.owner, "users/owner1"))); record(21, "Owner delete own doc → DENY", "PASS"); }
+  catch (e) { record(21, "Owner delete own doc → DENY", "FAIL", e); }
+
+  { // 22: owner delete regular user
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users/del22"), { email: "del@test.com", username: "deluser22", fullName: "Del", admin: false, owner: false, status: "rejected", createdAt: serverTimestamp(), registrationPath: "direct" });
     });
-    batch.set(doc(dbNew, "usernames/newuser"), { uid: "newuser1", createdAt: new Date() });
-    await assertFails(batch.commit());
-    record(6, "Create with admin:true → DENY", true);
-  } catch (e) { record(6, "Create with admin:true → DENY", false, e); }
+    try { await assertSucceeds(deleteDoc(doc(D.owner, "users/del22"))); record(22, "Owner delete regular → ALLOW", "PASS"); }
+    catch (e) { record(22, "Owner delete regular → ALLOW", "FAIL", e); }
+  }
 
-  try { await assertFails(getDocs(collection(dbAdmin, "users"))); record(7, "Admin list /users → DENY", true); }
-  catch (e) { record(7, "Admin list /users → DENY", false, e); }
+  try { await assertFails(deleteDoc(doc(D.admin, "users/pending1"))); record(23, "Admin delete user → DENY", "PASS"); }
+  catch (e) { record(23, "Admin delete user → DENY", "FAIL", e); }
 
-  try { await assertSucceeds(getDoc(doc(dbAdmin, "users/admin1"))); record(8, "Admin get own doc → ALLOW", true); }
-  catch (e) { record(8, "Admin get own doc → ALLOW", false, e); }
+  try { await assertFails(getDoc(doc(D.unverified, "vault/testkey"))); record(24, "Unverified admin read /vault → DENY", "PASS"); }
+  catch (e) { record(24, "Unverified admin read /vault → DENY", "FAIL", e); }
 
-  try { await assertFails(setDoc(doc(dbNoAuth, "users/x"), { a: 1 })); record(9, "Signed-out write → DENY", true); }
-  catch (e) { record(9, "Signed-out write → DENY", false, e); }
+  // 25-26: PIN cutoff requires future time — NOT_TESTED honestly
+  not_tested(25, "PIN registration after Nov 1 cutoff → DENY", "Requires request.time > Nov 1 2026; emulator clock is Oct 2026");
+  not_tested(26, "Direct registration after cutoff → ALLOW (pending)", "Requires request.time > Nov 1 2026; emulator clock is Oct 2026");
 
-  try { await assertFails(getDoc(doc(dbRevoked, "vault/testkey"))); record(10, "Revoked admin read /vault → DENY", true); }
-  catch (e) { record(10, "Revoked admin read /vault → DENY", false, e); }
+  { // 27: duplicate username
+    const u = authCtx("dup27", "dup27@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/dup27"), { email: "dup27@test.com", username: "reguser11", fullName: "Dup", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/reguser11"), { uid: "dup27", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(27, "Duplicate username → DENY", "PASS");
+    } catch (e) { record(27, "Duplicate username → DENY", "FAIL", e); }
+  }
 
-  // === V2 ADDITIONS (11-29) ===
-  // 11: valid registration (paired batch)
-  const regUser = authCtx("reguser1", "reg@test.com", true);
-  try {
-    const batch = writeBatch(regUser.firestore());
-    batch.set(doc(regUser.firestore(), "users/reguser1"), {
-      email: "reg@test.com", username: "reguser", fullName: "Reg User",
-      admin: false, owner: false, status: "pending",
-      createdAt: new Date(), registrationPath: "direct",
+  try { await assertFails(getDoc(doc(D.admin, "usernames/reguser11"))); record(28, "Admin read /usernames → DENY", "PASS"); }
+  catch (e) { record(28, "Admin read /usernames → DENY", "FAIL", e); }
+
+  // #29 was duplicate of #18 in old numbering; renumbered below
+
+  // === V3 (29-36) ===
+  try { await assertFails(getDoc(doc(D.admin, "users/owner1"))); record(29, "Admin get other user doc → DENY (PII)", "PASS"); }
+  catch (e) { record(29, "Admin get other user doc → DENY (PII)", "FAIL", e); }
+
+  { // 30: missing required field
+    const u = authCtx("miss30", "miss30@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/miss30"), { email: "miss30@test.com", username: "missuser30", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" }); // no fullName
+      batch.set(doc(db, "usernames/missuser30"), { uid: "miss30", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(30, "Create missing fullName → DENY", "PASS");
+    } catch (e) { record(30, "Create missing fullName → DENY", "FAIL", e); }
+  }
+
+  { // 31: wrong type (admin as string)
+    const u = authCtx("type31", "type31@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/type31"), { email: "type31@test.com", username: "typeuser31", fullName: "Type", admin: "true", owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/typeuser31"), { uid: "type31", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(31, "Create admin as string → DENY", "PASS");
+    } catch (e) { record(31, "Create admin as string → DENY", "FAIL", e); }
+  }
+
+  not_tested(32, "Username race (concurrent) → one ALLOW one DENY", "Requires concurrent batch writes; not implemented in sequential test");
+
+  try { await assertFails(updateDoc(doc(D.owner, "users/owner1"), { admin: false })); record(33, "Owner self-demote admin → DENY", "PASS"); }
+  catch (e) { record(33, "Owner self-demote admin → DENY", "FAIL", e); }
+
+  try { await assertFails(updateDoc(doc(D.owner, "users/owner1"), { status: "revoked" })); record(34, "Owner self-revoke status → DENY", "PASS"); }
+  catch (e) { record(34, "Owner self-revoke status → DENY", "FAIL", e); }
+
+  not_tested(35, "PIN at Nov 1 00:01 CT → DENY (boundary)", "Requires request.time = Nov 1 00:01 CT; emulator clock is Oct 2026");
+  not_tested(36, "PIN at Oct 31 23:59 CT → ALLOW (boundary)", "Requires request.time = Oct 31 23:59 CT; emulator clock close but not exact");
+
+  // === V4 (37-44) ===
+  { // 37: standalone username squat
+    const u = authCtx("sq37", "sq37@test.com", true);
+    try {
+      await assertFails(setDoc(doc(u.firestore(), "usernames/squat37"), { uid: "sq37", createdAt: serverTimestamp() }));
+      record(37, "Standalone username create → DENY", "PASS");
+    } catch (e) { record(37, "Standalone username create → DENY", "FAIL", e); }
+  }
+
+  { // 38: batch squat — 5 standalone username creates in one batch
+    const u = authCtx("sq38", "sq38@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      for (let i = 0; i < 5; i++) batch.set(doc(db, `usernames/squat38_${i}`), { uid: "sq38", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(38, "Batch of 5 standalone squats → DENY", "PASS");
+    } catch (e) { record(38, "Batch of 5 standalone squats → DENY", "FAIL", e); }
+  }
+
+  { // 39: uppercase username
+    const u = authCtx("case39", "case39@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/case39"), { email: "case39@test.com", username: "Fudgie", fullName: "Case", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/Fudgie"), { uid: "case39", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(39, 'Username "Fudgie" → DENY', "PASS");
+    } catch (e) { record(39, 'Username "Fudgie" → DENY', "FAIL", e); }
+  }
+
+  { // 40: too short
+    const u = authCtx("sh40", "sh40@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/sh40"), { email: "sh40@test.com", username: "ab", fullName: "Short", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/ab"), { uid: "sh40", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(40, 'Username "ab" → DENY', "PASS");
+    } catch (e) { record(40, 'Username "ab" → DENY', "FAIL", e); }
+  }
+
+  { // 41: invalid char
+    const u = authCtx("inv41", "inv41@test.com", true);
+    try {
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/inv41"), { email: "inv41@test.com", username: "fudgie!", fullName: "Inv", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "direct" });
+      batch.set(doc(db, "usernames/fudgie!"), { uid: "inv41", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(41, 'Username "fudgie!" → DENY', "PASS");
+    } catch (e) { record(41, 'Username "fudgie!" → DENY', "FAIL", e); }
+  }
+
+  { // 42: PIN with flag=false
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "config/migration"), { pinRegistrationOpen: false, cutoffDate: "2026-11-01" });
     });
-    batch.set(doc(regUser.firestore(), "usernames/reguser"), { uid: "reguser1", createdAt: new Date() });
-    await assertSucceeds(batch.commit());
-    record(11, "Valid paired registration → ALLOW", true);
-  } catch (e) { record(11, "Valid paired registration → ALLOW", false, e); }
-
-  // 12-16: privilege injection (using fresh users)
-  for (const [num, field, val, desc] of [
-    [12, "admin", true, "Create with admin:true → DENY"],
-    [13, "owner", true, "Create with owner:true → DENY"],
-  ]) {
-    const u = authCtx(`inj${num}`, `inj${num}@test.com`, true);
+    const u = authCtx("pinoff42", "pinoff42@test.com", true);
     try {
-      const batch = writeBatch(u.firestore());
-      const data = {
-        email: `inj${num}@test.com`, username: `injuser${num}`, fullName: "Inj",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      };
-      data[field] = val;
-      batch.set(doc(u.firestore(), `users/inj${num}`), data);
-      batch.set(doc(u.firestore(), `usernames/injuser${num}`), { uid: `inj${num}`, createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(num, desc, true);
-    } catch (e) { record(num, desc, false, e); }
-  }
-
-  // 14: extra field
-  {
-    const u = authCtx("extra1", "extra@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/extra1"), {
-        email: "extra@test.com", username: "extrauser", fullName: "Extra",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct", role: "superadmin",
-      });
-      batch.set(doc(u.firestore(), "usernames/extrauser"), { uid: "extra1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(14, "Create with extra field → DENY", true);
-    } catch (e) { record(14, "Create with extra field → DENY", false, e); }
-  }
-
-  // 15: uid mismatch
-  {
-    const u = authCtx("mismatch1", "mismatch@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/other_uid"), {
-        email: "mismatch@test.com", username: "mismatchuser", fullName: "Mismatch",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/mismatchuser"), { uid: "mismatch1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(15, "Create with uid mismatch → DENY", true);
-    } catch (e) { record(15, "Create with uid mismatch → DENY", false, e); }
-  }
-
-  // 16: email mismatch
-  {
-    const u = authCtx("emailmm1", "real@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/emailmm1"), {
-        email: "fake@test.com", username: "emailmmuser", fullName: "EmailMm",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/emailmmuser"), { uid: "emailmm1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(16, "Create with email mismatch → DENY", true);
-    } catch (e) { record(16, "Create with email mismatch → DENY", false, e); }
-  }
-
-  // 17: non-owner update own doc
-  try { await assertFails(updateDoc(doc(dbAdmin, "users/admin1"), { fullName: "Hacked" })); record(17, "Non-owner update own doc → DENY", true); }
-  catch (e) { record(17, "Non-owner update own doc → DENY", false, e); }
-
-  // 18: owner list
-  try { await assertSucceeds(getDocs(collection(dbOwner, "users"))); record(18, "Owner list /users → ALLOW", true); }
-  catch (e) { record(18, "Owner list /users → ALLOW", false, e); }
-
-  // 19: non-owner admin list (already tested as 7, skip duplicate)
-  record(19, "Non-owner admin list → DENY (see #7)", true);
-
-  // 20: owner approve
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "users/pending1"), {
-      email: "pending@test.com", username: "pendinguser", fullName: "Pending",
-      admin: false, owner: false, status: "pending",
-      createdAt: new Date(), registrationPath: "direct",
+      const db = u.firestore(); const batch = writeBatch(db);
+      batch.set(doc(db, "users/pinoff42"), { email: "pinoff42@test.com", username: "pinoffuser42", fullName: "PinOff", admin: false, owner: false, status: "pending", createdAt: serverTimestamp(), registrationPath: "pin" });
+      batch.set(doc(db, "usernames/pinoffuser42"), { uid: "pinoff42", createdAt: serverTimestamp() });
+      await assertFails(batch.commit()); record(42, "PIN with flag=false → DENY", "PASS");
+    } catch (e) { record(42, "PIN with flag=false → DENY", "FAIL", e); }
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "config/migration"), { pinRegistrationOpen: true, cutoffDate: "2026-11-01" });
     });
-  });
-  try {
-    await assertSucceeds(updateDoc(doc(dbOwner, "users/pending1"), {
-      admin: true, status: "approved", approvedAt: new Date(), approvedBy: "owner1",
-    }));
-    record(20, "Owner approve user → ALLOW", true);
-  } catch (e) { record(20, "Owner approve user → ALLOW", false, e); }
-
-  // 21: owner demote self
-  try { await assertFails(updateDoc(doc(dbOwner, "users/owner1"), { owner: false })); record(21, "Owner set own owner:false → DENY", true); }
-  catch (e) { record(21, "Owner set own owner:false → DENY", false, e); }
-
-  // 22: owner delete self
-  try { await assertFails(deleteDoc(doc(dbOwner, "users/owner1"))); record(22, "Owner delete own doc → DENY", true); }
-  catch (e) { record(22, "Owner delete own doc → DENY", false, e); }
-
-  // 23: owner delete regular
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "users/del1"), {
-      email: "del@test.com", username: "deluser", fullName: "Del",
-      admin: false, owner: false, status: "rejected",
-      createdAt: new Date(), registrationPath: "direct",
-    });
-  });
-  try { await assertSucceeds(deleteDoc(doc(dbOwner, "users/del1"))); record(23, "Owner delete regular → ALLOW", true); }
-  catch (e) { record(23, "Owner delete regular → ALLOW", false, e); }
-
-  // 24: admin delete
-  try { await assertFails(deleteDoc(doc(dbAdmin, "users/pending1"))); record(24, "Admin delete user → DENY", true); }
-  catch (e) { record(24, "Admin delete user → DENY", false, e); }
-
-  // 25: unverified admin
-  try { await assertFails(getDoc(doc(dbUnverified, "vault/testkey"))); record(25, "Unverified admin read /vault → DENY", true); }
-  catch (e) { record(25, "Unverified admin read /vault → DENY", false, e); }
-
-  // 26-27: PIN cutoff (can't test future time directly — document as manual)
-  record(26, "PIN after cutoff → DENY (requires future time, manual)", true);
-  record(27, "Direct after cutoff → ALLOW (requires future time, manual)", true);
-
-  // 28: duplicate username
-  {
-    const u = authCtx("dup1", "dup@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/dup1"), {
-        email: "dup@test.com", username: "reguser", fullName: "Dup", // reguser already taken
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/reguser"), { uid: "dup1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(28, "Duplicate username → DENY", true);
-    } catch (e) { record(28, "Duplicate username → DENY", false, e); }
   }
 
-  // 29: non-owner read usernames
-  try { await assertFails(getDoc(doc(dbAdmin, "usernames/reguser"))); record(29, "Admin read /usernames → DENY", true); }
-  catch (e) { record(29, "Admin read /usernames → DENY", false, e); }
+  try { await assertFails(updateDoc(doc(D.owner, "users/pending1"), { createdAt: serverTimestamp() })); record(43, "Owner change createdAt → DENY", "PASS"); }
+  catch (e) { record(43, "Owner change createdAt → DENY", "FAIL", e); }
 
-  // === V3 ADDITIONS (30-36) ===
-  // 30: revoked + admin:true (already seeded as revoked1)
-  // (tested as #10)
-  record(30, "Revoked+admin read /vault → DENY (see #10)", true);
+  try { await assertFails(updateDoc(doc(D.owner, "users/pending1"), { registrationPath: "pin" })); record(44, "Owner change registrationPath → DENY", "PASS"); }
+  catch (e) { record(44, "Owner change registrationPath → DENY", "FAIL", e); }
 
-  // 31: admin get other user's doc
-  try { await assertFails(getDoc(doc(dbAdmin, "users/owner1"))); record(31, "Admin get other user doc → DENY (PII)", true); }
-  catch (e) { record(31, "Admin get other user doc → DENY (PII)", false, e); }
-
-  // 32: missing field
-  {
-    const u = authCtx("miss1", "miss@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/miss1"), {
-        email: "miss@test.com", username: "missuser",
-        // missing fullName
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/missuser"), { uid: "miss1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(32, "Create missing field → DENY", true);
-    } catch (e) { record(32, "Create missing field → DENY", false, e); }
-  }
-
-  // 33: wrong types tested via 12-14; mark pass
-  record(33, "Create wrong types → DENY (see #12-14)", true);
-
-  // 34: race condition (skip — requires concurrency)
-  record(34, "Username race → manual (requires concurrency)", true);
-
-  // 35: owner self-demote admin
-  try { await assertFails(updateDoc(doc(dbOwner, "users/owner1"), { admin: false })); record(35, "Owner set own admin:false → DENY", true); }
-  catch (e) { record(35, "Owner set own admin:false → DENY", false, e); }
-
-  // 36: PIN at cutoff (manual)
-  record(36, "PIN at Nov 1 00:01 CT → DENY (manual, future time)", true);
-
-  // === V4 ADDITIONS (37-44) ===
-  // 37: standalone username create
-  {
-    const u = authCtx("sq1", "sq@test.com", true);
-    try {
-      await assertFails(setDoc(doc(u.firestore(), "usernames/squat1"), {
-        uid: "sq1", createdAt: new Date(),
-      }));
-      record(37, "Standalone username create → DENY", true);
-    } catch (e) { record(37, "Standalone username create → DENY", false, e); }
-  }
-
-  // 38: batch squat (skip detailed, covered by 37)
-  record(38, "Batch squat → DENY (see #37)", true);
-
-  // 39: uppercase username
-  {
-    const u = authCtx("case1", "case@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/case1"), {
-        email: "case@test.com", username: "Fudgie", fullName: "Case",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/Fudgie"), { uid: "case1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(39, 'Username "Fudgie" → DENY', true);
-    } catch (e) { record(39, 'Username "Fudgie" → DENY', false, e); }
-  }
-
-  // 40: too short
-  {
-    const u = authCtx("short1", "short@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/short1"), {
-        email: "short@test.com", username: "ab", fullName: "Short",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/ab"), { uid: "short1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(40, 'Username "ab" → DENY', true);
-    } catch (e) { record(40, 'Username "ab" → DENY', false, e); }
-  }
-
-  // 41: invalid char
-  {
-    const u = authCtx("inv1", "inv@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/inv1"), {
-        email: "inv@test.com", username: "fudgie!", fullName: "Inv",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "direct",
-      });
-      batch.set(doc(u.firestore(), "usernames/fudgie!"), { uid: "inv1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(41, 'Username "fudgie!" → DENY', true);
-    } catch (e) { record(41, 'Username "fudgie!" → DENY', false, e); }
-  }
-
-  // 42: PIN with flag false
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "config/migration"), {
-      pinRegistrationOpen: false, cutoffDate: "2026-11-01",
-    });
-  });
-  {
-    const u = authCtx("pinoff1", "pinoff@test.com", true);
-    try {
-      const batch = writeBatch(u.firestore());
-      batch.set(doc(u.firestore(), "users/pinoff1"), {
-        email: "pinoff@test.com", username: "pinoffuser", fullName: "PinOff",
-        admin: false, owner: false, status: "pending",
-        createdAt: new Date(), registrationPath: "pin",
-      });
-      batch.set(doc(u.firestore(), "usernames/pinoffuser"), { uid: "pinoff1", createdAt: new Date() });
-      await assertFails(batch.commit());
-      record(42, "PIN with flag=false → DENY", true);
-    } catch (e) { record(42, "PIN with flag=false → DENY", false, e); }
-  }
-  // Restore flag
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), "config/migration"), {
-      pinRegistrationOpen: true, cutoffDate: "2026-11-01",
-    });
-  });
-
-  // 43: owner update createdAt
-  try { await assertFails(updateDoc(doc(dbOwner, "users/pending1"), { createdAt: new Date() })); record(43, "Owner change createdAt → DENY", true); }
-  catch (e) { record(43, "Owner change createdAt → DENY", false, e); }
-
-  // 44: owner update registrationPath
-  try { await assertFails(updateDoc(doc(dbOwner, "users/pending1"), { registrationPath: "pin" })); record(44, "Owner change registrationPath → DENY", true); }
-  catch (e) { record(44, "Owner change registrationPath → DENY", false, e); }
-
-  // Summary
-  console.log(`\n=== RESULTS: ${passed} PASS, ${failed} FAIL ===`);
-  fs.writeFileSync("./test-results.json", JSON.stringify({ passed, failed, results }, null, 2));
-
+  console.log(`\n=== RESULTS: ${passed} PASS, ${failed} FAIL, ${notTested} NOT_TESTED ===`);
+  fs.writeFileSync("./test-results.json", JSON.stringify({ passed, failed, notTested, results }, null, 2));
   await testEnv.cleanup();
 }
 
-main().catch((e) => {
-  console.error("FATAL:", e);
-  process.exit(1);
-});
+main().catch((e) => { console.error("FATAL:", e); process.exit(1); });
