@@ -91,8 +91,13 @@ function main(){
  assert.deepEqual(scripts,['mc.js','tscms-admin-dual.js'],
    'Only the legacy PIN and dual-mode modules may run');
  assert(dual.includes('tscms-admin-login-test'),'Staging module not guarded for TEST project');
- const mc=readStaging('mc.js');
+ let mc=readStaging('mc.js');
  assert(mc.includes('async function unlockAdmin()'),'Original PIN decrypt function not found');
+ // Disable external intro-video requests in the isolated, PUBLIC test preview.
+ // The PIN decrypt function itself remains unchanged.
+ assert.equal((mc.match(/var SIGNON_URL='https:[^']*';/g)||[]).length,1,
+  'Unexpected sign-on URL: audit media dependencies before test hosting');
+ mc=mc.replace(/var SIGNON_URL='https:[^']*';/, "var SIGNON_URL='about:blank';");
  const css=readStaging('mc.css');
  const fakePin='SYNTHETIC_PIN_FOR_ADMIN_QA_20261020'; // NOT a real station PIN.
  // Remove any prior generated pack first; never use it as a Git source tree.
@@ -107,6 +112,10 @@ function main(){
  write('admin-data.v2.enc.json',bundleBuffer);
  write('robots.txt','User-agent: *\nDisallow: /\n');
  write('index.html','<!doctype html><meta name="robots" content="noindex,nofollow"><h1>ISOLATED ADMIN TEST ONLY</h1><p>Do not use with real credentials, station PIN, or member data.</p>');
+ if(Number.isNaN(Date.parse(fixture.generated))){
+  console.log('KNOWN TEST FIXTURE LIMITATION: annotated generated field is not a valid ISO timestamp; snapshot time may render Invalid Date.');
+  console.log('Do not count date formatting PASS unless Cherish issues a new clean ISO synthetic fixture/bundle.');
+ }
  console.log('Prepared 9 synthetic-only files in .local-admin-phase1-browser-pack (NOT uploaded).');
  console.log('Firebase isolated project: tscms-admin-login-test. Fake PIN is test-only.');
  console.log('To examine the fake PIN string, read source before running. Never type real station PIN in public test site.');
