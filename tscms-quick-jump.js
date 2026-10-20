@@ -10,7 +10,7 @@
 
     var items = [
       {key:'home', icon:'⌂', label:'Home'},
-      {key:'gamehouse', icon:'🎮', label:'TSCMS Gamehouse', href:'gamehouse.html'},
+      {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
       {key:'daily', icon:'♫', label:'Daily Songs'},
       {key:'weekly', icon:'▦', label:'Weekly Songs'},
@@ -54,7 +54,7 @@
     drawer.innerHTML='<button class="tscms-qj-close" type="button" aria-label="Close quick jump menu">×</button>'+
       '<div class="tscms-qj-hero">'+
         '<div class="tscms-qj-brand">★ THE SUNO COUNTRY MUSIC SPOT ★</div>'+
-        '<h2 id="tscms-qj-title">☰ Quick Jump</h2>'+
+        '<h2 id="tscms-qj-title">Quick Jump</h2>'+
         '<p class="tscms-qj-tagline">Songs · Friends · Community</p>'+
       '</div>'+
       '<nav class="tscms-qj-drawer-links" aria-label="Quick jump destinations"></nav>'+

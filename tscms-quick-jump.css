@@ -44,42 +44,54 @@
 .tscms-qj-hero{
  position:relative;
  display:flex;align-items:center;flex-direction:column;
- height:250px;
+ height:170px;
  margin:0 -15px 7px;
- padding:44px 10px 0;
+ padding:0;
  background:
   linear-gradient(180deg,rgba(15,8,5,.1),rgba(15,8,5,.18)),
-  url("assets/tscms-quick-jump-hero.jpg") center center/cover no-repeat;
+  url("assets/tscms-quick-jump-hero.jpg") center 52%/cover no-repeat;
  border-bottom:1px solid #dfa953;
  overflow:hidden;
 }
 .tscms-qj-brand{
- font:700 11px/1.4 Georgia,serif;
- letter-spacing:.9px;
- margin:18px 0 0;
+ position:absolute;
+ top:21px;left:12px;right:57px;
+ font:700 10.5px/1.4 Georgia,serif;
+ letter-spacing:.55px;
+ text-align:center;
+ margin:0;
  text-shadow:0 2px 5px #080403,0 0 7px #160b04;
  color:#ffe0a6;
 }
 #tscms-qj-title{
  color:#ffdea0;
- font:700 30px/1.15 Georgia,serif!important;
- margin:13px 0 0 60px;
+ position:absolute;
+ top:67px;right:13px;
+ font:700 28px/1.15 Georgia,serif!important;
+ margin:0;
+ text-align:right;
  letter-spacing:0;
  text-shadow:2px 3px 4px #160906,0 0 14px #1b0b06,0 0 22px #090403;
 }
 .tscms-qj-tagline{
- font:italic 13px/1.3 Georgia,serif;
- color:#ffdc9c;
- margin:8px 0 0 60px;
- padding:0;
- border:0;
+ position:absolute;
+ right:11px;top:118px;
+ max-width:205px;
+ font:italic 12.5px/1.3 Georgia,serif;
+ color:#ffe4b0;
+ margin:0;
+ padding:6px 9px;
+ border:1px solid rgba(226,175,93,.24);
+ border-radius:10px;
+ background:rgba(20,9,5,.76);
+ box-shadow:0 2px 9px rgba(0,0,0,.33);
  text-shadow:0 2px 7px #120804,0 0 8px #0b0603;
 }
 .tscms-qj-drawer-links{display:grid;gap:0;margin:0}
 .tscms-qj-drawer-links .tscms-qj-link{
  display:flex;position:relative;
- margin:0 -15px;padding:12px 13px 12px 18px;
- min-height:72px;
+ margin:0 -15px;padding:9px 13px 9px 18px;
+ min-height:66px;
  border:0;border-bottom:1px solid rgba(223,170,82,.7);
  border-radius:0;
  font:700 17px/1.25 Georgia,serif;
@@ -105,7 +117,9 @@
 .tscms-qj-drawer-links .tscms-qj-chevron{display:none}
 .tscms-qj-footer{font:700 11px/1.35 Georgia,serif;margin:15px 0 0;padding:16px 0 2px;border-color:#ab824e;text-align:center;color:#e8b972}
 @media(max-width:350px){
- #tscms-qj-title{font-size:26px!important;margin-left:55px}
+ #tscms-qj-title{font-size:25px!important;right:9px}
+ .tscms-qj-brand{font-size:9px;left:8px;right:55px}
+ .tscms-qj-tagline{right:8px;font-size:11.5px;max-width:184px}
  .tscms-qj-drawer-links .tscms-qj-link{font-size:15px}
 }
 @media(prefers-reduced-motion:reduce){.tscms-qj-drawer{animation:none}}
