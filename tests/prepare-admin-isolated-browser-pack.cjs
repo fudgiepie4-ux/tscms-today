@@ -3,6 +3,7 @@
  * Usage (in local Git checkout of feature/firebase-admin-auth-preview-20261019):
  * node tests/prepare-admin-isolated-browser-pack.cjs --fixture /absolute/path/test-fixture-dashboard.json --bundle /absolute/path/admin-data.v2.TEST-DASHBOARD.enc.json
  * Requires the already vetted test/admin-phase1-isolated-firebase-20261020 branch to be available locally.
+ * Pinned to Cherish's CLEAN synthetic v2 bundle + clean ISO timestamp fixture (15:39 CT).
  * Output: .local-admin-phase1-browser-pack/ (untracked; use ONLY after approval).
  * Never reads, imports, or uploads real admin-data.enc.json or production key.
  */
@@ -45,9 +46,9 @@ function main(){
  const fixturePath=requireArg('--fixture'),bundlePath=requireArg('--bundle');
  const fixtureBuffer=fs.readFileSync(fixturePath),bundleBuffer=fs.readFileSync(bundlePath);
  const sha=input=>crypto.createHash('sha256').update(input).digest('hex');
- assert.equal(sha(fixtureBuffer),'a37aa97ff7b757eb16798fd143f78472679b88d3291d9035affd1d0d6898e0b2',
+ assert.equal(sha(fixtureBuffer),'fb4f22b6547395a1f6e4c330fb75726a011af0117b61c3d7d95a8d6c62ceb720',
     'Unknown synthetic dashboard plaintext fixture');
- assert.equal(sha(bundleBuffer),'f25b838aea79aeba2aedfb5c78245e1df5f5c90f7df00426a5edeb97152ac6d6',
+ assert.equal(sha(bundleBuffer),'22b7239c1e0ca0e7d3789b89955a5598e344597a23488d013a5b27060d7be173',
     'Unknown synthetic dashboard v2 ciphertext bundle');
  const fixture=JSON.parse(fixtureBuffer);
  assert.equal(fixture.danger.length,5,'Only the 5-member fictional fixture is approved');
