@@ -322,6 +322,13 @@ async function main() {
   console.log(`\n=== RESULTS: ${passed} PASS, ${failed} FAIL, ${notTested} NOT_TESTED ===`);
   fs.writeFileSync("./test-results.json", JSON.stringify({ passed, failed, notTested, results }, null, 2));
   await testEnv.cleanup();
+
+  // Exit non-zero if any test FAILED — GitHub Actions must show red, not green
+  if (failed > 0) {
+    console.error(`\n${failed} test(s) FAILED — exiting with code 1`);
+    process.exit(1);
+  }
+  console.log("\nAll executed tests passed.");
 }
 
 main().catch((e) => { console.error("FATAL:", e); process.exit(1); });
