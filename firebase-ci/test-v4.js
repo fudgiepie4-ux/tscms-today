@@ -323,12 +323,16 @@ async function main() {
   fs.writeFileSync("./test-results.json", JSON.stringify({ passed, failed, notTested, results }, null, 2));
   await testEnv.cleanup();
 
-  // Exit non-zero if any test FAILED — GitHub Actions must show red, not green
-  if (failed > 0) {
-    console.error(`\n${failed} test(s) FAILED — exiting with code 1`);
-    process.exit(1);
+  // Exit non-zero if any test FAILED — GitHub Actions must show red, not green.
+  // Also fail if the total doesn't add up to 44 (missing or duplicate test numbers).
+  const total = passed + failed + notTested;
+  const uniqueNums = new Set(results.map(r => r.num)).size;
+  if (failed > 0 || total !== 44 || results.length !== 44 || uniqueNums !== 44) {
+    console.error(`\nFAILED: ${failed} failures, total=${total}, results=${results.length}, unique=${uniqueNums} — exiting with code 1`);
+    process.exitCode = 1;
+  } else {
+    console.log("\nAll executed tests passed.");
   }
-  console.log("\nAll executed tests passed.");
 }
 
 main().catch((e) => { console.error("FATAL:", e); process.exit(1); });
