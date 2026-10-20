@@ -69,8 +69,11 @@ function steps() {
   let number = 0;
   return title => console.log('[' + (++number) + '] ' + title);
 }
-async function waitForStatus(page, pattern, ms = 30000) {
-  await page.locator('#status').getByText(pattern).waitFor({state:'visible',timeout:ms});
+async function waitForStatus(page, phrase, ms = 30000) {
+  await page.waitForFunction(needle => {
+    const item=document.querySelector('#status');
+    return !!item && item.textContent.includes(needle);
+  }, phrase, {timeout:ms});
 }
 async function accountContains(page, required, ms = 30000) {
   await page.waitForFunction(value =>
@@ -105,7 +108,10 @@ async function main() {
     await form.locator('[name="password"]').fill(password);
     await form.locator('[name="confirm"]').fill(password);
     await form.locator('[type="submit"]').click();
-    await signup.locator('#tc-upgrade-status').getByText(/Registration saved|Account saved and awaiting approval/).waitFor({timeout:45000});
+    await signup.waitForFunction(() => {
+      const text=document.querySelector('#tc-upgrade-status')?.textContent || '';
+      return /Registration saved|Account saved and awaiting approval/.test(text);
+    }, null, {timeout:45000});
     console.log('PASS: registration handler reported pending account saved. Confirm atomic /users + /usernames in TEST console.');
     if(issues.length)console.log('CAUTION: browser page errors occurred; inspect locally (count '+issues.length+').');
     const account=await context.newPage();
@@ -136,7 +142,7 @@ async function main() {
     await account.locator('#refresh').click();
     await accountContains(account,'Account status: approved');
     await accountContains(account,'Admin approved: YES');
-    await waitForStatus(account,/Approved Admin login verified/);
+    await waitForStatus(account,'Approved Admin login verified');
     console.log('PASS: approved + verified personal login; Admin role accepted.');
     log('Revoke TEST applicant and verify access is denied on refresh.');
     await prompt.question('CHERISH: Revoke TEST applicant (status revoked/admin false), then press Enter. ');
