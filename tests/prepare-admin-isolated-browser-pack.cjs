@@ -53,6 +53,8 @@ function main(){
  const fixture=JSON.parse(fixtureBuffer);
  assert.equal(fixture.danger.length,5,'Only the 5-member fictional fixture is approved');
  assert.equal(fixture.flags.length,2,'Only the 2-flag fictional fixture is approved');
+ assert(!Number.isNaN(Date.parse(fixture.generated)),
+    'Synthetic dashboard timestamp is not a JavaScript-compatible ISO date');
  for(const entry of fixture.danger)assert(String(entry.author).startsWith('TEST MEMBER '),'Unexpected real member record');
  const envelope=JSON.parse(bundleBuffer);
  assert.equal(envelope.formatVersion,2);assert.equal(envelope.kid,'v2');
@@ -116,10 +118,7 @@ function main(){
  write('admin-data.v2.enc.json',bundleBuffer);
  write('robots.txt','User-agent: *\nDisallow: /\n');
  write('index.html','<!doctype html><meta name="robots" content="noindex,nofollow"><h1>ISOLATED ADMIN TEST ONLY</h1><p>Do not use with real credentials, station PIN, or member data.</p>');
- if(Number.isNaN(Date.parse(fixture.generated))){
-  console.log('KNOWN TEST FIXTURE LIMITATION: annotated generated field is not a valid ISO timestamp; snapshot time may render Invalid Date.');
-  console.log('Do not count date formatting PASS unless Cherish issues a new clean ISO synthetic fixture/bundle.');
- }
+ console.log('Clean ISO synthetic timestamp validated for browser snapshot-time UI test.');
  console.log('Prepared 9 synthetic-only files in .local-admin-phase1-browser-pack (NOT uploaded).');
  console.log('Firebase isolated project: tscms-admin-login-test. Fake PIN is test-only.');
  console.log('To examine the fake PIN string, read source before running. Never type real station PIN in public test site.');
