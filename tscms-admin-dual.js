@@ -6,6 +6,10 @@ import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
 import {getFirestore,doc,collection,writeBatch,serverTimestamp,
   getDocFromServer,getDocs,updateDoc} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 import {tscmsFirebaseConfig} from "./firebase-admin-config.js";
+/* Test lane guard — no Auth or Firestore initialization on production project. */
+if(tscmsFirebaseConfig.projectId !== "tscms-admin-login-test") {
+  throw new Error("STOP: isolated Firebase test project required; no production writes permitted");
+}
 
 // Separate in-memory Auth context: registering staff must NEVER sign out the Owner.
 const app=initializeApp(tscmsFirebaseConfig),auth=getAuth(app),db=getFirestore(app);
