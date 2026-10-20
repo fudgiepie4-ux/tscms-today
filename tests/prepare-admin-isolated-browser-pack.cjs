@@ -82,7 +82,8 @@ function main(){
  html=html.replace(/<script>fetch\('admin-banner\.jpg'\)[\s\S]*?<\/script>/,'');
  html=html.replace(/src="public-assets\/TSCMS%20Studio%20Intro%20v3%20Final\.mp4"/g,'');
  html=one(html,'<body>','<body><div role="alert" style="position:relative;z-index:99999;background:#4a1b08;color:#fff4de;padding:15px;text-align:center;font:700 16px system-ui">TEST ONLY — fictional Admin records; not the live TSCMS Admin site; PIN simulation uses a throwaway test-only value.</div>', 'test warning');
- html=one(html,'<head>','<head><meta name="robots" content="noindex,nofollow">','test noindex');
+ html=one(html,'<!DOCTYPE html><html lang="en"><head>',
+  '<!DOCTYPE html><html lang="en"><head><meta name="robots" content="noindex,nofollow">','test noindex');
  // Ensure no third-party analytics, real private data, or accidental outbound
  // asset dependencies survive the transformation.
  assert(!/gc\.zgo\.at|goatcounter|tscms-feedback\.js|admin-banner\.jpg|public-assets\//.test(html),
