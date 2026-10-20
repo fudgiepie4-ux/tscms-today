@@ -145,11 +145,14 @@ function base64Bytes(value){
   return out;
 }
 async function loadNewAdminData(){
-  // Cherish/Clara staging interface contract; pipeline output NOT YET TESTED:
+  // Cherish/Clara confirmed v2 crypto contract. Production bundle NOT YET PREPARED:
   // Firestore /vault/keys {keys:{v2:<base64 of raw 32 bytes>}, current:"v2"}
-  // PROPOSED pending Cherish's confirmation; STAGING ONLY.
+  // CONFIRMED by Cherish at 06:52 CT Oct 20, 2026; still STAGING ONLY.
   // admin-data.v2.enc.json {formatVersion:2,kid:"v2",iv:<base64 12-byte GCM nonce>,ct:<base64 ciphertext+tag>}
   // AAD UTF8: tscms-admin-data|formatVersion=2|kid=v2 (no newline).
+  // Cherish's 274-byte crypto-only synthetic fixture uses `danger_zone` rather than
+  // the actual Admin UI's `danger` and omits `flags`; it validates crypto, NOT
+  // dashboard schema parity. Request an actual Admin-shaped synthetic fixture.
   // Python AESGCM.encrypt and WebCrypto AES-GCM append the 16-byte tag to ct.
   const vaultSnapshot=await getDocFromServer(doc(db,"vault","keys"));
   if(!vaultSnapshot.exists())throw new Error("Personal-login data key is not prepared yet");
