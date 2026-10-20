@@ -196,9 +196,7 @@ async function personalLogin(user){
   logout.style.cssText="min-height:44px;display:block;margin:8px auto;";
   logout.addEventListener("click",async()=>{
     await signOut(auth);
-    firebaseApproved=false;adminBody.style.display="none";gate.style.display="";
-    logout.remove();const owner=document.getElementById("tc-owner-panel");if(owner)owner.remove();
-    updateStatus(loginMsg,"Signed out of your personal account.");
+    window.location.reload();
   });
   adminBody.prepend(logout);
   if(profile.owner===true)await showOwnerApprovals(user.uid);
