@@ -24,6 +24,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyB6m_Oj_b3c2cZtwfd4xfpsyg9Qjcks2hY",
@@ -34,6 +35,7 @@ firebase.initializeApp({
   appId: "1:1026184954656:web:76d907d77a96cffdf2cd45"
 });
 var auth = firebase.auth();
+var db = firebase.firestore();
 var out = document.getElementById('status');
 var sv = document.getElementById('sendverify');
 var rf = document.getElementById('refresh');
@@ -41,31 +43,53 @@ var rf = document.getElementById('refresh');
 function show() {
   var u = auth.currentUser;
   if (!u) { out.textContent = "Not signed in."; return; }
+  sv.disabled = false; rf.disabled = false;
   var verified = u.emailVerified;
-  out.innerHTML =
+  var text =
     "Signed in: " + u.email + "\n" +
     "UID: " + u.uid + "\n" +
-    "Email verified: " + (verified ? "<span class='ok'>YES</span>" : "<span class='bad'>NO</span>") + "\n\n" +
-    (verified
-      ? "Your email is verified. Tell Cherish — owner powers are ready to test."
-      : "Your email is NOT verified yet. Tap 'Send verification email', check Gmail, click the link, then tap 'Refresh my status'.");
+    "Email verified: " + (verified ? "YES" : "NO") + "\n";
+  out.textContent = text + "\nChecking Owner permissions…";
+  if (!verified) {
+    out.innerHTML =
+      "Signed in: " + u.email + "\nUID: " + u.uid + "\n" +
+      "Email verified: <span class='bad'>NO</span>\n\n" +
+      "Tap 'Send verification email', check Gmail (and spam), click the link, then tap 'Refresh my status'.";
+    return;
+  }
+  // Force a fresh token so the verified claim is current, then attempt the
+  // Owner-only read: listing the users collection (v4 rules: list = owner only).
+  u.getIdToken(true).then(function() {
+    return db.collection('users').get();
+  }).then(function(snap) {
+    var line = "Email verified: <span class='ok'>YES</span>";
+    out.innerHTML =
+      "Signed in: " + u.email + "\nUID: " + u.uid + "\n" + line + "\n\n" +
+      "Owner permissions: <span class='ok'>WORKING</span>\n" +
+      "Users list read allowed — " + snap.size + " user record(s) visible.\n\n" +
+      "Tell Cherish: Owner permissions are working.";
+  }).catch(function(e) {
+    out.innerHTML =
+      "Signed in: " + u.email + "\nUID: " + u.uid + "\n" +
+      "Email verified: <span class='ok'>YES</span>\n\n" +
+      "Owner permissions: <span class='bad'>DENIED</span>\n" +
+      "Users list read was refused (" + e.code + ").\n\n" +
+      "Tell Cherish exactly this — do not retry.";
+  });
 }
 document.getElementById('signin').onclick = function() {
   out.textContent = "Signing in…";
   auth.signInWithEmailAndPassword(
     document.getElementById('email').value.trim(),
     document.getElementById('password').value
-  ).then(function() {
-    sv.disabled = false; rf.disabled = false;
-    show();
-  }).catch(function(e) {
+  ).then(show).catch(function(e) {
     out.textContent = "Sign-in failed: " + e.code + "\n" + e.message;
   });
 };
 sv.onclick = function() {
   var u = auth.currentUser; if (!u) return;
   u.sendEmailVerification().then(function() {
-    out.textContent = "Verification email sent to " + u.email + ".\nCheck Gmail and click the link, then tap 'Refresh my status'.";
+    out.textContent = "Verification email sent to " + u.email + ".\nCheck Gmail (and spam) and click the link, then tap 'Refresh my status'.";
   }).catch(function(e) { out.textContent = "Could not send: " + e.message; });
 };
 rf.onclick = function() {
