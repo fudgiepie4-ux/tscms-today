@@ -69,6 +69,7 @@ const MischiefIntegration = (() => {
         card: { isJoker: true }  // Don't expose full card data
       });
       fireEvent('mischief:burned', { card: 'joker' });
+      try { if (window.TSCMS_SOLITAIRE_TRACK) window.TSCMS_SOLITAIRE_TRACK.swiper(); } catch(e) {}
       fireEvent('mischief:leave', { helped: false, scared: true });
       // Note: NO history barrier, NO undo lock for scares
       
@@ -96,6 +97,7 @@ const MischiefIntegration = (() => {
         fireEvent('mischief:steal', { 
           cardId: result.stolenCard.artId 
         });
+        try { if (window.TSCMS_SOLITAIRE_TRACK) window.TSCMS_SOLITAIRE_TRACK.swiper(); } catch(e) {}
         fireEvent('mischief:place', result.destination);
         
         const helped = checkIfHelped(S);

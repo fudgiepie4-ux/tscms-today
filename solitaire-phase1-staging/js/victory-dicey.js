@@ -198,6 +198,7 @@ const VictoryDicey = (() => {
           try {
             const cur = SaloonEngine.getState();
             if (cur && cur.gameWon && !victoryShown) {
+              try { if (window.TSCMS_SOLITAIRE_TRACK) window.TSCMS_SOLITAIRE_TRACK.win(); } catch(e) {}
               showVictory(finalElapsed);
             }
           } catch (e) {}

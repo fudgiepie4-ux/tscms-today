@@ -64,7 +64,7 @@
 #menu .menu-extra-settings .menu-extra-note{font:12px/1.5 system-ui,sans-serif;color:#e6d0a8;margin:9px 0 13px;}
 #menu #launch-back-to-saloon{width:100%;display:block;margin-top:15px;}
 #menu #launch-settings-status{min-height:1.3em;color:#ffe8ac;}
-</style></head><body>
+</style><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
 <main aria-label="TSCMS Gamehouse playable Solitaire" class="main">
 <div class="stage" id="stage">
 <button aria-label="Exit to TSCMS homepage; save game before leaving" id="btn-exit" title="Exit and Save" type="button"></button><img alt="Locked approved warm Old West Solitaire saloon with TSCMS Radio neon color equalizer jukebox, empty board, and four wooden control buttons" class="stage-art" draggable="false" src="assets/TSCMS_APPROVED_MASTER_DOWNLOAD.png"/>
@@ -214,13 +214,18 @@
   else init();
 })();
 </script>
+<script src="tscms-solitaire-tracking.js?v=20261020-a"></script>
 <script src="solitaire-phase1-staging/js/renderer-binding.js"></script>
 <script src="solitaire-phase1-staging/js/locked-visual-adapter.js"></script><script>
 // Initialize on DOM ready — Swiper bootstrap wraps renderer init
 document.addEventListener('DOMContentLoaded', function() {
   try {
     SwiperVisualBridgeV2.init();
-    SwiperLaunchBootstrap.start(() => RendererBinding.init());
+    SwiperLaunchBootstrap.start(() => {
+      // Wrapped AFTER Swiper's preference/engine hooks, BEFORE the initial new deal.
+      if (window.TSCMS_SOLITAIRE_TRACK) window.TSCMS_SOLITAIRE_TRACK.installStartHook();
+      RendererBinding.init();
+    });
     console.log('Phase 1 staging initialized (Swiper bootstrap)');
   } catch (e) {
     console.error('Phase 1 init failed:', e);
