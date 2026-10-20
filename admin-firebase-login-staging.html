@@ -76,6 +76,10 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.0/firebase
 import {getAuth,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut,onAuthStateChanged,reload,getIdToken} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import {getFirestore,doc,getDoc,collection,getDocs,updateDoc,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 import {tscmsFirebaseConfig} from "./firebase-admin-config.js";
+/* Test lane guard — no Auth or Firestore initialization on production project. */
+if(tscmsFirebaseConfig.projectId !== "tscms-admin-login-test") {
+  throw new Error("STOP: isolated Firebase test project required; no production writes permitted");
+}
 const app=initializeApp(tscmsFirebaseConfig);
 const auth=getAuth(app), db=getFirestore(app);
 const el=id=>document.getElementById(id);
