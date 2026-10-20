@@ -171,7 +171,7 @@ async function loadNewAdminData(){
   const clear=await crypto.subtle.decrypt(
     {name:"AES-GCM",iv,additionalData:aad,tagLength:128},key,ct);
   const data=JSON.parse(new TextDecoder().decode(clear));
-  if(!data||!data.stats||!Array.isArray(data.danger))throw new Error("New Admin dataset is incomplete");
+  if(!data||typeof data.stats!=="object"||data.stats===null||!Array.isArray(data.danger)||!Array.isArray(data.flags)||typeof data.generated!=="string")throw new Error("New Admin dataset is incomplete");
   return data;
 }
 async function personalLogin(user){
