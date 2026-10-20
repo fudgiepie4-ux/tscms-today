@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>TSCMS Phase 1 · ISOLATED FIREBASE TEST ONLY</title>
+<style>
+*{box-sizing:border-box}body{background:#14100d;color:#fce4b0;font:16px/1.5 system-ui,sans-serif;margin:0}
+main{max-width:720px;padding:22px 18px;margin:auto}h1{font:700 29px Georgia,serif;color:#ffd47d}
+.staff-panel{background:#271d15;border:2px solid #f0b961;border-radius:15px;padding:22px;margin-top:25px}
+.warning{padding:12px 15px;border:2px solid #ffca63;border-radius:10px;background:#3d2616;font-weight:700}
+button{background:#e9ad51;color:#231609;border:0;border-radius:10px;padding:12px 17px;min-height:46px;font-weight:800;cursor:pointer}
+a{color:#a8eeec}p{max-width:640px}small{color:#d7ba85}
+</style></head><body><main>
+<h1>🔐 Admin Phase 1 — Isolated Firebase Test</h1>
+<div class="warning">TEST ONLY. This is not the public Admin website, is not a real PIN check, and must not be deployed to the public homepage. No actual Admin data is loaded.</div>
+<div id="admingate"><div class="staff-panel">
+<h2>Step 1 · Simulate completed PIN unlock</h2>
+<p>Tap to trigger the exact staged personal-account registration popup. This intentionally bypasses legacy PIN encryption solely for testing the Firebase signup workflow in <strong>tscms-admin-login-test</strong>.</p>
+<button type="button" id="test-pin-ok">Simulate successful PIN step (test only)</button>
+<p><small>No PIN or credentials are hardcoded into this page.</small></p>
+</div></div>
+<div id="adminbody" style="display:none" class="staff-panel">
+<h2>Test registration path opened</h2><p>This placeholder stands in for an unlocked Admin room during isolated QA. It contains no real data.</p>
+</div>
+<p>For test Owner approvals and verification, use <a href="admin-firebase-login-staging.html">the separate staging login and Owner review page</a>, pointed to this same isolated test project.</p>
+</main>
+<script>
+(function(){
+ const button=document.getElementById("test-pin-ok");
+ button.addEventListener("click",function(){
+   document.getElementById("adminbody").style.display="block";
+   button.disabled=true;
+ });
+})();
+</script>
+<script type="module" src="tscms-admin-dual.js?v=test-isolated-20261020"></script>
+</body></html>
