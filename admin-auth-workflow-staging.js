@@ -27,8 +27,8 @@ function createTscmsAdminWorkflow(options) {
   }
   async function startPinSetup(pin){
     didPin=false;
-    // Client clock is merely an advisory UX limit. Firebase rules enforce cutoff.
-    if(Date.now()>=Date.parse('2026-11-01T05:00:00Z'))fail('LEGACY_PIN_WINDOW_ENDED');
+    // Do not impose a client-side deadline. The server-side registration
+    // policy remains authoritative and requires a separately approved update.
     if(typeof validateLegacyPin!=='function')fail('PIN_VALIDATOR_UNAVAILABLE');
     if(typeof pin!=='string'||!pin)fail('PIN_REQUIRED');
     const valid=await validateLegacyPin(pin);
