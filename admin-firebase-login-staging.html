@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>TSCMS Admin — Individual Login & Owner Review (Staging)</title>
+<style>
+:root{color-scheme:dark;--bg:#0c0b0a;--p:#191713;--edge:#69512e;--gold:#e9ba66;--teal:#88dad3;--text:#f5e9d6;--mute:#d1bea1}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 45% 0,#3c2913,transparent 60%),var(--bg);color:var(--text);font:16px system-ui,-apple-system,sans-serif}
+main{max-width:790px;margin:auto;padding:20px 16px 70px}header{text-align:center;padding:15px 5px 10px}
+h1{font:700 clamp(25px,5vw,40px) Georgia,serif;color:var(--gold);margin:12px 0 8px}h2{font:700 23px Georgia,serif;color:var(--gold);margin:0 0 12px}h3{margin:10px 0;color:var(--teal);font:700 19px Georgia,serif}
+p{line-height:1.5;color:var(--mute)}
+.badge{display:inline-block;color:#ffc0a4;border:1px solid #b77b4b;border-radius:8px;padding:7px 13px;letter-spacing:2px;font-size:12px;font-weight:800}
+.notice{border:1px solid #ab7539;background:#332415;border-radius:12px;padding:12px 15px;line-height:1.5;margin:17px 0}
+.panel{background:linear-gradient(135deg,#231d17,#111415);border:1px solid var(--edge);border-radius:17px;padding:24px;margin:20px 0;box-shadow:0 16px 32px #0005}
+label{display:block;font-size:13px;font-weight:700;margin:13px 0 6px}
+input{display:block;width:100%;border:1px solid #8c704b;border-radius:9px;background:#100e0a;color:white;font:inherit;padding:13px;min-height:48px}
+input:focus{outline:2px solid var(--teal);outline-offset:2px}
+button{border:1px solid var(--gold);border-radius:10px;min-height:46px;background:#5c3d18;color:#fff5e5;font:700 15px system-ui;cursor:pointer;padding:10px 16px}
+button:disabled{cursor:not-allowed;opacity:.55}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0}
+.actions>*{flex:1 1 130px}
+button.alt{background:#17302c;border-color:#72aca5;color:#d8faf4}
+button.danger{background:#4d2623;border-color:#c08c81}
+[hidden]{display:none!important}
+#status{border:1px solid #6c603f;background:#181712;padding:13px 15px;border-radius:11px;white-space:pre-wrap;line-height:1.5}
+#status.error{border-color:#ba6661;color:#ffc1bb}
+#status.success{border-color:#4f9688;color:#cbfff6}
+.cards{display:grid;gap:13px}
+.applicant{border:1px solid #625238;border-radius:12px;padding:15px;background:#171713;overflow-wrap:anywhere}
+.details{color:var(--mute);font-size:13px;line-height:1.6}
+.mini{font-size:13px;color:#d7c4a7}
+.a11y{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(100%);white-space:nowrap}
+a{color:var(--teal)}footer{text-align:center;color:var(--mute);padding:16px;font-size:13px}
+@media(max-width:420px){.panel{padding:17px}button{font-size:14px}}
+</style></head>
+<body><main>
+<header><span class="badge">STAFF ACCESS · SECURE SIGN-IN STAGING</span><h1>TSCMS Broadcast Control Room</h1><p>Personal accounts · Owner approval center</p></header>
+<div class="notice"><strong>ISOLATED DEVELOPMENT PAGE.</strong> This uses real Firebase Auth and reads your live permission records <em>only when signed in</em>, but does not open the private Admin dashboard. Do not share or publish this page as the official Admin login until the data migration is verified.</div>
+<section id="login" class="panel" aria-labelledby="login-title">
+<h2 id="login-title">Personal Admin Login</h2>
+<p>Use your Firebase email and personal password. Your username is your public display name, not a login credential.</p>
+<form id="login-form" autocomplete="on">
+<label for="email">Email address</label><input id="email" type="email" autocomplete="email" required maxlength="254">
+<label for="password">Personal password</label><input id="password" type="password" autocomplete="current-password" required>
+<button id="login-button" type="submit" style="width:100%;margin-top:20px">ON AIR · Sign In</button>
+</form>
+<div class="actions"><button class="alt" id="reset" type="button">Forgot Password?</button><a href="./admin-auth-preview.html" style="align-self:center;text-align:center">View PIN signup popup design</a></div>
+</section>
+<section id="account" class="panel" hidden aria-labelledby="account-title">
+<h2 id="account-title">Personal Account Status</h2>
+<div id="account-summary" class="details">Checking...</div>
+<div class="actions">
+<button id="refresh" type="button" class="alt">Refresh Verification & Permissions</button>
+<button id="verify" type="button" class="alt">Resend Verification Email</button>
+<button id="logout" type="button" class="danger">Sign Out</button>
+</div>
+<p class="mini">A successful login alone never grants Admin data access. Firebase checks a verified email, approved account and Admin/Owner role.</p>
+</section>
+<section id="review" class="panel" hidden aria-labelledby="review-title">
+<h2 id="review-title">👑 Owner Review Center</h2>
+<p>Owner-only: the list below comes from Firestore and is unavailable to regular staff or signed-out visitors.</p>
+<div id="owner-counts" class="mini"></div>
+<div id="queue" class="cards" aria-live="polite"></div>
+<p class="mini">For other members, Firebase email-verification status isn't exposed by client Firestore. Don't approve somebody until you've independently confirmed their email is verified. An unverified user cannot read protected data, even if approved.</p>
+</section>
+<section class="panel" aria-labelledby="registration-title">
+<h2 id="registration-title">🔑 Existing PIN → Account Setup</h2>
+<p>The PIN-first popup remains prepared on the separate preview page. <strong>Real PIN registration stays disabled</strong> until the legacy PIN validation method and Firebase registration configuration are ready. The deadline decision is separate from Owner login.</p>
+<a href="./admin-auth-preview.html">Open the account setup preview</a>
+</section>
+<div id="status" role="status" aria-live="polite">Initializing Firebase…</div>
+<footer>No public homepage changes · No encrypted Admin data loaded · Staging only</footer>
+</main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,sendPasswordResetEmail,sendEmailVerification,signOut,onAuthStateChanged,reload,getIdToken} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,collection,getDocs,updateDoc,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+import {tscmsFirebaseConfig} from "./firebase-admin-config.js";
+const app=initializeApp(tscmsFirebaseConfig);
+const auth=getAuth(app), db=getFirestore(app);
+const el=id=>document.getElementById(id);
+const status=(message,kind='')=>{el('status').textContent=message;el('status').className=kind};
+const login=el('login'),account=el('account'),review=el('review');
+let ownerAccess=false,refreshSeq=0,busy=false;
+const authErr=error=>{
+  const code=(error&&error.code)||'unknown';
+  return code==='auth/invalid-credential'?'Email or password not accepted.':
+    code==='auth/too-many-requests'?'Too many attempts. Please wait before retrying.':
+    code==='permission-denied'?'The Firebase security rules denied this action.':
+    'The request could not complete ('+code+').';
+};
+function setBusy(value){busy=value;el('login-button').disabled=value;el('refresh').disabled=value;el('reset').disabled=value;el('verify').disabled=value;}
+function resetPrivate(){ownerAccess=false;review.hidden=true;el('queue').replaceChildren();el('owner-counts').textContent='';}
+function fmt(value){return typeof value==='string'&&value?value:'—'}
+async function refresh(){
+  const seq=++refreshSeq;resetPrivate();
+  const user=auth.currentUser;
+  if(!user){login.hidden=false;account.hidden=true;status('Sign in with your personal Admin email and password.');return}
+  login.hidden=true;account.hidden=false;el('account-summary').textContent='Checking account permissions…';
+  setBusy(true);
+  try{
+    await reload(user);await getIdToken(user,true);
+    const snap=await getDoc(doc(db,'users',user.uid));
+    if(seq!==refreshSeq)return;
+    if(!snap.exists()){
+      el('account-summary').textContent='No Admin profile found for this account.';
+      status('Signed in, but no Admin profile is available. The dashboard remains locked.','error');return;
+    }
+    const p=snap.data();
+    const verified=user.emailVerified===true,approved=p.status==='approved';
+    const allowed=verified&&approved&&(p.admin===true||p.owner===true);
+    const text=['Username: '+fmt(p.username),'Email verified: '+(verified?'YES':'NO'),
+      'Account status: '+fmt(p.status),'Admin approved: '+(allowed?'YES':'NO'),
+      'Owner: '+(allowed&&p.owner===true?'YES':'NO')];
+    el('account-summary').textContent=text.join('\n');
+    el('verify').hidden=verified;
+    if(!allowed){status('Personal sign-in works, but Admin access is not approved/verified yet.','error');return}
+    if(p.owner===true){
+      // Firestore, not the client badge, proves owner-only listing permission.
+      const owners=await getDocs(collection(db,'users'));
+      if(seq!==refreshSeq)return;
+      ownerAccess=true;
+      review.hidden=false;
+      renderQueue(owners);
+      status('Owner permissions VERIFIED by Firestore. Admin data access stays off until migration.','success');
+    }else{
+      status('Approved Admin login verified. The private dashboard is not connected yet.','success');
+    }
+  }catch(e){if(seq!==refreshSeq)return;resetPrivate();status(authErr(e),'error')}
+  finally{setBusy(false)}
+}
+function renderQueue(snapshot){
+  el('queue').replaceChildren();
+  let pending=0,approved=0;
+  snapshot.forEach(item=>{
+    const p=item.data();if(p.status==='pending')pending++;if(p.status==='approved')approved++;
+    if(p.owner===true||!(p.status==='pending'||(p.status==='approved'&&p.admin===true)))return;
+    const card=document.createElement('article');card.className='applicant';
+    const title=document.createElement('h3');title.textContent=fmt(p.username);card.appendChild(title);
+    const desc=document.createElement('div');desc.className='details';
+    desc.textContent='Full name: '+fmt(p.fullName)+'\nEmail: '+fmt(p.email)+'\nStatus: '+fmt(p.status);
+    desc.style.whiteSpace='pre-wrap';card.appendChild(desc);
+    const actions=document.createElement('div');actions.className='actions';
+    const buttons=p.status==='pending'?[['approve','Approve','alt'],['reject','Reject','danger']]:[['revoke','Revoke Admin','danger']];
+    for(const [action,label,cls] of buttons){
+      const btn=document.createElement('button');btn.type='button';btn.className=cls;btn.textContent=label;
+      btn.addEventListener('click',()=>changeAccess(item.id,p,action));actions.appendChild(btn);
+    }
+    card.appendChild(actions);el('queue').appendChild(card);
+  });
+  el('owner-counts').textContent=pending+' pending request(s) · '+approved+' approved record(s).';
+  if(!el('queue').childElementCount){const empty=document.createElement('p');empty.textContent='No pending or approved staff requests to review.';el('queue').appendChild(empty)}
+}
+async function changeAccess(uid,profile,action){
+  if(!ownerAccess||busy||!auth.currentUser){status('Owner authorization required.','error');return}
+  if(!['approve','reject','revoke'].includes(action)||profile.owner===true||uid===auth.currentUser.uid){
+    status('This account cannot be changed here.','error');return;
+  }
+  // Owner confirmation is explicit. Firebase Security Rules enforce the write.
+  const consequence=action==='approve'
+    ?'Email verification cannot be checked from this dashboard. Independently verify the email in Firebase Auth before approving. Approve '+fmt(profile.username)+'?'
+    :action==='revoke'?'Revoke Admin access for '+fmt(profile.username)+'?':'Reject '+fmt(profile.username)+'?';
+  if(!window.confirm(consequence))return;
+  if(action==='approve'&&!window.confirm('Confirm again: I independently verified this person’s email address and authorize Admin access.'))return;
+  setBusy(true);
+  try{
+    const user=auth.currentUser;await reload(user);await getIdToken(user,true);
+    const ownerSnap=await getDoc(doc(db,'users',user.uid)),owner=ownerSnap.data();
+    if(!ownerSnap.exists()||user.emailVerified!==true||owner.owner!==true||owner.status!=='approved')throw {code:'permission-denied'};
+    const target=doc(db,'users',uid),fresh=await getDoc(target);
+    if(!fresh.exists()||fresh.data().owner===true||fresh.data().status!==profile.status)throw {code:'permission-denied'};
+    const change=action==='approve'
+      ?{admin:true,status:'approved',approvedAt:serverTimestamp(),approvedBy:user.uid}
+      :{admin:false,status:action==='reject'?'rejected':'revoked'};
+    await updateDoc(target,change);
+    status('Owner action saved. Rechecking permissions…','success');
+    await refresh();
+  }catch(e){status(authErr(e),'error')}finally{setBusy(false)}
+}
+el('login-form').addEventListener('submit',async e=>{
+  e.preventDefault();if(busy)return;
+  const email=el('email').value.trim(),password=el('password').value;
+  if(!email||!password){status('Enter an email and password.','error');return}
+  setBusy(true);
+  try{await signInWithEmailAndPassword(auth,email,password);el('password').value='';await refresh()}
+  catch(e){el('password').value='';status(authErr(e),'error')}
+  finally{setBusy(false)}
+});
+el('refresh').addEventListener('click',()=>refresh());
+el('logout').addEventListener('click',async()=>{
+  resetPrivate();await signOut(auth);login.hidden=false;account.hidden=true;status('Signed out.','success')
+});
+el('verify').addEventListener('click',async()=>{
+  const u=auth.currentUser;if(!u)return;
+  try{await sendEmailVerification(u);status('Verification email requested. Check your inbox.','success')}
+  catch(e){status(authErr(e),'error')}
+});
+el('reset').addEventListener('click',async()=>{
+  const email=el('email').value.trim();
+  if(!email){status('Enter your email, then tap Forgot Password.','error');return}
+  try{await sendPasswordResetEmail(auth,email);status('If this account exists, follow the password-reset email.','success')}
+  catch(e){status(authErr(e),'error')}
+});
+onAuthStateChanged(auth,()=>refresh(),e=>status(authErr(e),'error'));
+</script></body></html>
