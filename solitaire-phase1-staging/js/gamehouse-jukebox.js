@@ -15,12 +15,41 @@
  * (detail {track,index}) — the legacy channel is untouched. */
 (function () {
   'use strict';
-  var audio = null, tracks = [], index = 0, ready = false, initPromise = null;
+  var audio = null, tracks = [], masterTracks = [], index = 0, ready = false, initPromise = null;
   var requestedPlaying = false, playGeneration = 0, streamFailures = 0;
   // EQ PROTECTION: never put an ordinary no-CORS Suno player through WebAudio.
   var eqRequested = false, eqContext = null, eqAnalyser = null, eqData = null;
   var eqAttachedAudio = null, eqApproved = Object.create(null), eqProbes = Object.create(null);
   var eqLastReason = 'UNVERIFIED';
+  // Shuffle is ON by default, and a returning listener can switch it off.
+  // Start-track history is local to this browser; no tracking or server calls.
+  var SHUFFLE_PREF = 'tscms-gamehouse-radio-shuffle-v1';
+  var LAST_START = 'tscms-gamehouse-radio-last-start-v1';
+  function stored(key) {
+    try { return window.localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function saveSetting(key, value) {
+    try { window.localStorage.setItem(key, value); } catch (e) { /* private mode */ }
+  }
+  var shuffleEnabled = stored(SHUFFLE_PREF) !== 'off';
+  function shuffledCopy(list, avoidFirstStream) {
+    var copy = list.slice();
+    // Fisher-Yates shuffles the entire upcoming play order, not just the first song.
+    for (var i = copy.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp;
+    }
+    if (copy.length > 1 && avoidFirstStream && copy[0].stream === avoidFirstStream) {
+      var alternatives = [];
+      for (var k = 1; k < copy.length; k++)
+        if (copy[k].stream !== avoidFirstStream) alternatives.push(k);
+      if (alternatives.length) {
+        var swap = alternatives[Math.floor(Math.random() * alternatives.length)];
+        var first = copy[0]; copy[0] = copy[swap]; copy[swap] = first;
+      }
+    }
+    return copy;
+  }
 
   function sourceKey(url) { return typeof url === 'string' ? url : ''; }
   // Read-only, tiny range probe. NO changes to the live media element.
@@ -218,7 +247,7 @@
         })
         .then(function (data) {
           var list = Array.isArray(data && data.playlist) ? data.playlist : [];
-          tracks = list.filter(function (item) {
+          masterTracks = list.filter(function (item) {
             return item && typeof item.stream === 'string' && /^https?:\/\//i.test(item.stream);
           }).map(function (item) {
             // v2.1: preserve artist + suno for the V7 artist plate and
@@ -231,7 +260,10 @@
               suno: safeUrl(item.suno)
             };
           });
+          tracks = shuffleEnabled ? shuffledCopy(masterTracks, stored(LAST_START)) : masterTracks.slice();
+          index = 0;
           ready = tracks.length > 0;
+          if (ready && shuffleEnabled) saveSetting(LAST_START, tracks[0].stream);
           if(!ready){announce('unavailable', 'No playable TSCMS Radio tracks are available.');return false;}
           // Optional first-track probe is bounded; if it fails native radio plays as before.
           var permit=eqRequested?verifyStreamCORS(tracks[0].stream):Promise.resolve(false);
@@ -270,6 +302,28 @@
     },
     isPlaying: function () { return !!(audio && ready && requestedPlaying && !audio.paused); },
     currentTrack: function () { return tracks.length ? tracks[index] : null; },
+    isShuffleEnabled: function () { return shuffleEnabled; },
+    // Change the play order without stopping or restarting the current song.
+    // Turning Shuffle ON preserves the song currently playing, while randomizing
+    // what comes next. OFF restores the original official playlist order.
+    setShuffle: function (enabled) {
+      shuffleEnabled = !!enabled;
+      saveSetting(SHUFFLE_PREF, shuffleEnabled ? 'on' : 'off');
+      if (ready && masterTracks.length) {
+        var current = tracks[index];
+        if (shuffleEnabled) {
+          var remaining = shuffledCopy(masterTracks.filter(function(t){ return t !== current; }));
+          tracks = [current].concat(remaining);
+          index = 0;
+        } else {
+          tracks = masterTracks.slice();
+          index = Math.max(0, tracks.indexOf(current));
+        }
+        fireTrackChange();
+      }
+      announce('shuffle', shuffleEnabled ? 'Shuffle on' : 'Shuffle off');
+      return shuffleEnabled;
+    },
 
     // v2: step the playlist with wrap-around. If music is playing, the new
     // track starts playing; if paused, it just loads. Fires trackchange.
@@ -360,7 +414,7 @@
     },
 
     _state: function () {
-      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying };
+      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying, shuffle: shuffleEnabled };
     }
   };
 
