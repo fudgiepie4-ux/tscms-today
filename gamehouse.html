@@ -237,5 +237,66 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="solitaire-phase1-staging/js/gamehouse-jukebox.js"></script>
 <script src="solitaire-phase1-staging/js/gamehouse-jukebox-v7-ui.js"></script>
 <script src="gamehouse-help.js" defer></script>
-<!-- Feedback widget intentionally disabled on the Gamehouse only (Fudgie request, 2026-10-20). Do not re-add without approval. -->
+<!-- Fudgie-approved Gamehouse-only Feedback: one compact button in upper-left saloon corner, 2026-10-20.
+     Button is anchored to the game stage, not the viewport. The modal remains at body level.
+     Game dialogs (Swiper/jukebox/menu) cover the button; no duplicate Feedback controls. -->
+<style id="tscms-game-feedback-park">
+/* Hide until moved into the game stage; prevents the shared widget's viewport-sized fallback. */
+body > #tscms-fb-btn{display:none!important}
+#stage > #tscms-fb-btn{
+  position:absolute!important;
+  z-index:8!important;
+  top:clamp(14px,2.5vw,26px)!important;
+  left:clamp(14px,3vw,30px)!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:122px!important;
+  min-width:0!important;
+  max-width:calc(100% - 30px)!important;
+  height:44px!important;
+  min-height:44px!important;
+  max-height:44px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  padding:8px 12px!important;
+  border:2px solid #eac16c!important;
+  border-radius:24px!important;
+  background:#111!important;
+  color:#ffd75e!important;
+  font:700 14px/1.2 system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  transform:none!important;
+  box-shadow:0 3px 9px #000a!important;
+}
+#stage > #tscms-fb-btn:hover,#stage > #tscms-fb-btn:focus-visible{
+  background:#ffe09b!important;
+  color:#201208!important;
+  outline:2px solid #fff1ce!important;
+  outline-offset:2px!important;
+}
+@media(max-width:380px){
+  #stage > #tscms-fb-btn{width:108px!important;height:42px!important;min-height:42px!important;max-height:42px!important;font-size:13px!important}
+}
+</style>
+<script src="tscms-feedback.js"></script>
+<script>
+(function(){
+  'use strict';
+  function parkGamehouseFeedback(){
+    var stage=document.getElementById('stage');
+    var button=document.getElementById('tscms-fb-btn');
+    if(!stage || !button || button.parentElement===stage)return;
+    stage.appendChild(button);
+    button.setAttribute('title','Send feedback about the Gamehouse');
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',parkGamehouseFeedback,{once:true});
+  }else{
+    parkGamehouseFeedback();
+  }
+})();
+</script>
 </body></html>
