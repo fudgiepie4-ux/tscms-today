@@ -57,7 +57,7 @@ assert('Halloween playlist navigation survives',/tscms-halloween-jump/.test(quic
 if(Date.now()<Date.parse('2026-11-01T05:00:00Z')) {
   assert('Halloween pinned favorites protected until Oct 31',/halloween-pin-head/.test(index));
 }
-assert('Muse card loader exists in protected runtime exactly once',count(runtime,/data-tscms-preserved.*muse-referral/g)===1&&/tscms-muse-referral\.js/.test(runtime));
+assert('Muse card loader exists in protected runtime exactly once',count(runtime,/script\.setAttribute\('data-tscms-preserved', 'muse-referral'\)/g)===1&&/tscms-muse-referral\.js/.test(runtime));
 assert('Muse card uses isolated CSS and footer insertion',/tscms-muse-referral\.css/.test(museJs)&&/footer\.insertAdjacentElement\('beforebegin', section\)/.test(museJs));
 assert('Muse referral code exact, letter O not zero',/var CODE = '1BZI4O'/.test(museJs)&&!/1BZI40/.test(museJs));
 assert('Muse 48-hour and 1-billion-token disclosure',/48 hours of joining/.test(museJs)&&/1 BILLION Muse tokens/.test(museJs));
