@@ -90,20 +90,54 @@
       const sec = Math.floor(value);
       return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     };
+    // Fit the FULL, UNMODIFIED song title and artist into the engraved plate.
+    // Measure rendered text, never guess from string length and never use ellipsis.
+    // Called after the modal becomes visible and whenever the song/viewport changes.
+    function fitPlaqueText() {
+      if (!ui || !panel || panel.hidden) return;
+      const title = ui.title, artist = ui.artist;
+      const plate = title.closest('.plate');
+      if (!plate || !plate.clientWidth || !plate.clientHeight) return;
+      title.style.fontSize = '';
+      artist.style.fontSize = '';
+      let titleSize = parseFloat(getComputedStyle(title).fontSize) || 18;
+      let artistSize = parseFloat(getComputedStyle(artist).fontSize) || 12;
+      const p = getComputedStyle(plate);
+      const limit = plate.clientHeight - (parseFloat(p.paddingTop) || 0)
+        - (parseFloat(p.paddingBottom) || 0) - 1;
+      const rows = Array.from(plate.children);
+      function requiredHeight() {
+        return rows.reduce((sum, row) => {
+          const style = getComputedStyle(row);
+          return sum + row.getBoundingClientRect().height
+            + (parseFloat(style.marginTop) || 0)
+            + (parseFloat(style.marginBottom) || 0);
+        }, 0);
+      }
+      // The entire text must fit. No line-clamping, clipping or replaced names.
+      for (let attempts = 0; attempts < 110; attempts++) {
+        const fits = requiredHeight() <= limit
+          && title.scrollWidth <= title.clientWidth + 1
+          && artist.scrollWidth <= artist.clientWidth + 1;
+        if (fits) break;
+        if (titleSize > 9) {
+          titleSize = Math.max(9, titleSize - .5);
+          title.style.fontSize = titleSize + 'px';
+        } else if (artistSize > 7) {
+          artistSize = Math.max(7, artistSize - .5);
+          artist.style.fontSize = artistSize + 'px';
+        } else if (titleSize > 6) {
+          titleSize = Math.max(6, titleSize - .5);
+          title.style.fontSize = titleSize + 'px';
+        } else break;
+      }
+    }
     function track() {
       if (!ui) return;
       const t = J.currentTrack(), state = J._state();
       ui.title.textContent = t ? t.title : 'TSCMS Radio';
-      // Auto-shrink long titles so they fit the plaque without overlapping (Fudgie 2026-10-18)
-      (function() {
-        var title = ui.title;
-        var len = (t && t.title || '').length;
-        title.style.fontSize = '';
-        if (len > 40) title.style.fontSize = '15px';
-        else if (len > 28) title.style.fontSize = '18px';
-        else if (len > 20) title.style.fontSize = '21px';
-        // else: use CSS clamp default
-      })();
+      // Preserve the exact official title. Layout is calculated from rendered text.
+      fitPlaqueText();
       ui.artist.textContent = (t && t.artist) || 'Suno Country Music Spot';
       ui.trackNum.textContent = t ? 'TRACK ' + (state.index + 1) + ' OF ' + state.count : 'PLAYLIST UNAVAILABLE';
       let song = null;
@@ -185,7 +219,7 @@
       if (!panel) return;
       lastFocus = document.activeElement;
       panel.hidden = false;
-      track(); progress(); idleBars(); reflect();
+      track(); fitPlaqueText(); progress(); idleBars(); reflect();
       document.addEventListener('keydown', keydown);
       ui.close.focus();
       notify('');
@@ -246,6 +280,7 @@
           // V8.1: align live Play/Pause cap with the original photographed button.
           // Do not change side controls, EQ, player events, or approved cabinet photo.
           styles.textContent += '\n.transport button.primary{transform:translate(-7%,-4%)}';
+          styles.textContent += "\n/* Complete artist/song credits are mandatory: never clamp or truncate. */\n.plate {justify-content:center;gap:0}\n.plate > .tiny-label, .plate > .song, .plate > .artist, .plate > .track-counter {flex:0 0 auto;min-height:0}\n.plate .song {display:block!important;-webkit-line-clamp:unset!important;\n  overflow:visible!important;text-overflow:clip!important;white-space:normal;\n  overflow-wrap:anywhere;word-break:normal;hyphens:none;line-height:1.05!important;\n  max-width:100%;text-align:center}\n.plate .artist {display:block;white-space:normal!important;overflow:visible!important;\n  text-overflow:clip!important;overflow-wrap:anywhere;word-break:normal;hyphens:none;\n  line-height:1.05!important}\n.plate .track-counter {white-space:nowrap}\n";
           styles.textContent += '\n#tscms-v7-shuffle{position:absolute;z-index:8;left:50%;top:94.6%;transform:translateX(-50%);min-width:40%;height:3.5%;padding:0 8px;border:1px solid #d5a966;border-radius:12px;background:linear-gradient(160deg,#704624,#28150e);color:#ffe7a8;font:800 clamp(9px,2.5vw,12px)/1 Arial,sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 2px 6px #000b}#tscms-v7-shuffle[aria-pressed=true]{border-color:#70d9c7;color:#b6fff3;box-shadow:0 0 7px #29aa9a88}#tscms-v7-shuffle:focus-visible{outline:3px solid #fff4bd;outline-offset:2px}';
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
@@ -285,7 +320,7 @@
               d.state === 'loading' ? 'Loading TSCMS Radio…' : 'TSCMS Radio');
             track(); reflect();
           });
-          window.addEventListener('resize',() => {idleBars();syncSpectrum();});
+          window.addEventListener('resize',() => {fitPlaqueText();idleBars();syncSpectrum();});
           track(); reflect(); progress();
           return true;
         })
