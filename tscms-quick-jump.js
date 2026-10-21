@@ -218,10 +218,10 @@
 
 
 /* TSCMS Oct 2026 approved autumn art: genuine image + clickable, keyboard-accessible hotspots.
-   Safe fallback: if the exact matching PNG hasn't been uploaded yet, original UI stays active. */
+   Safe fallback: if the approved image hasn't been uploaded yet, original UI stays active. */
 (function(){
 'use strict';
-var artwork='assets/tscms-autumn-public-links.png';
+var artwork='assets/tscms-autumn-public-links.webp';
 function mountAutumnNavigation(){
   if(document.getElementById('tscms-autumn-nav'))return;
   var tabs=document.querySelector('.wrap .tscms-site-tabs');
