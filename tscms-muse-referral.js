@@ -25,7 +25,7 @@
         '<div class=\"tscms-muse-referral-inner\">',
         '<p class=\"tscms-muse-eyebrow\">★ A LITTLE WAY TO HELP ★</p>',
         '<h2 id=\"tscms-muse-title\">❤️ Help Keep the Creativity Going!</h2>',
-        '<p class=\"tscms-muse-lead\">This site&#39;s a labor of love, made with a little help from my AI friends, Muse and ChatGPT. Here&#39;s a <strong>FREE way</strong> to help: join Muse with my code — we both get <strong>1 BILLION tokens!</strong> 🎉</p>',
+        '<p class=\"tscms-muse-lead\">This site&#39;s a labor of love, made with a little help from my AI friends, Muse and ChatGPT. Here&#39;s a <strong>FREE way</strong> to help: join Muse with my code — we both get <strong>1 BILLION Muse tokens!</strong> 🎉</p>',
         '<div class=\"tscms-muse-code-card\">',
         '<span class=\"tscms-muse-code-label\">REFERRAL CODE</span>',
         '<code id=\"tscms-muse-code\" aria-label=\"Referral code 1 B Z I 4 O\">1BZI4O</code>',
