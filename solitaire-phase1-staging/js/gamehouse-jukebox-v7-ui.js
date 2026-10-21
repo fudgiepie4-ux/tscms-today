@@ -136,10 +136,10 @@
       if (!ui) return;
       const t = J.currentTrack(), state = J._state();
       ui.title.textContent = t ? t.title : 'TSCMS Radio';
-      // Preserve the exact official title. Layout is calculated from rendered text.
-      fitPlaqueText();
       ui.artist.textContent = (t && t.artist) || 'Suno Country Music Spot';
       ui.trackNum.textContent = t ? 'TRACK ' + (state.index + 1) + ' OF ' + state.count : 'PLAYLIST UNAVAILABLE';
+      // Measure *after* the title, artist and track count have all updated.
+      fitPlaqueText();
       let song = null;
       try {
         const url = new URL(t && t.suno || '');
