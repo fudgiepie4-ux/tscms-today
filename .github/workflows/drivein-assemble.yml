@@ -1,0 +1,37 @@
+name: TSCMS Drive-In temporary media assembly
+on:
+  push:
+    branches: [feature/drive-in-preview-20261021]
+    paths:
+      - 'assets/drive-in-transfer/**'
+      - '.github/workflows/drivein-assemble.yml'
+permissions:
+  contents: write
+jobs:
+  assemble-reviewed-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact staging branch
+        uses: actions/checkout@v4
+      - name: Reassemble and verify the approved 20-minute recording
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          parts=(assets/drive-in-transfer/audio-part-*.b64)
+          test "${#parts[@]}" -eq 16
+          mkdir -p assets/drive-in
+          cat "${parts[@]}" | tr -d '\r\n' | base64 --decode > assets/drive-in/night-sounds-20min.m4a
+          test "$(wc -c < assets/drive-in/night-sounds-20min.m4a)" -eq 7420428
+          printf '%s  %s\n' 'fa22cbb19ea17b316467c193c836f3662225e858b56bb9a4ec27ea9fff6a3202' 'assets/drive-in/night-sounds-20min.m4a' | sha256sum -c -
+      - name: Commit exact binary and remove temporary transfer chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -rq assets/drive-in-transfer
+          git add assets/drive-in/night-sounds-20min.m4a
+          git commit -m 'Assemble verified 20-minute Western Drive-In night recording'
+          git push origin HEAD:feature/drive-in-preview-20261021
