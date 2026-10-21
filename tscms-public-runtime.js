@@ -103,6 +103,14 @@
     node.style.transition='';
     node.style.transform='rotateX('+(720+r[0])+'deg) rotateY('+(720+r[1])+'deg)';
   }
+  function diceLog(ev,p) {
+    if (!p||!p.post_url) return;
+    var m=/permalink\/(\d+)/.exec(p.post_url); if (!m) return;
+    try {
+      if (window.goatcounter&&typeof goatcounter.count==='function')
+        goatcounter.count({path:'/dice/'+ev+'/'+m[1],event:true});
+    } catch (e) {}
+  }
   function showResult(p) {
     el('diceMember').textContent=p.member;
     el('diceSong').textContent=p.title ? '🎵 '+p.title : 'Discover this member’s post';
@@ -112,9 +120,11 @@
     link.className='btn post'; link.textContent='❤️ VISIT FACEBOOK POST ↗';
     link.href=p.post_url; link.target='_blank'; link.rel='noopener noreferrer';
     actions.appendChild(link);
+    link.addEventListener('click',function () { diceLog('tap',p); });
     var result=el('diceResult');
     result.classList.remove('show'); void result.offsetWidth; result.classList.add('show');
     result.scrollIntoView({behavior:'smooth',block:'nearest'});
+    diceLog('roll',p);
   }
   window.diceRoll=function () {
     if (rolling||!dicePool.length) return;
