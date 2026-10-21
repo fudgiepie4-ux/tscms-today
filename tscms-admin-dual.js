@@ -21,7 +21,10 @@ styles.textContent=".tc-auth{max-width:480px;margin:20px auto;padding:20px;backg
 +".tc-auth .tc-later{background:#162326;color:#9ae2d9;border-color:#6ebcb1}.tc-auth-status{color:#ffda8d;min-height:20px;font-size:13px;padding:7px 0}"
 +"dialog.tc-auth{width:min(95vw,500px);max-height:90vh;overflow:auto;box-shadow:0 10px 45px #000c}"
 +"dialog.tc-auth::backdrop{background:#000c}.tc-owner{max-width:940px;margin:12px auto;padding:14px;background:#192421;color:#ecf9f4;border:1px solid #6bada4;border-radius:12px}"
-+".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #57796f}";
+ +".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #57796f}"
++".tc-signed-in{max-width:940px;margin:14px auto 10px;box-sizing:border-box;padding:14px 20px;border:1px solid #75ad83;border-radius:12px;background:linear-gradient(135deg,#192c21,#152019);color:#e1f5db;font:700 17px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 18px #0005}"
++"button.tc-signout{display:block;min-height:44px;margin:10px auto 24px;padding:11px 28px;border:1px solid #d8a957;border-radius:12px;background:linear-gradient(180deg,#56351a,#25170e);color:#fbe7b8;font:700 15px/1.3 system-ui,sans-serif;box-shadow:0 4px 14px #0007;cursor:pointer}"
++"button.tc-signout:hover,button.tc-signout:focus-visible{background:linear-gradient(180deg,#76481e,#35210e);outline:2px solid #ffd68a;outline-offset:2px}";
 document.head.appendChild(styles);
 const login=document.createElement("section");
 login.className="tc-auth";
@@ -243,11 +246,20 @@ async function personalLogin(user){
   if(typeof window.zi==="function")window.zi(data.danger,data.generated);
   if(typeof window.ziIssues==="function")window.ziIssues(data.flags||[]);
   const logout=document.createElement("button");
-  logout.textContent="Sign Out of Personal Admin";
-  logout.style.cssText="min-height:44px;display:block;margin:8px auto;";
+  logout.textContent="Sign Out";
+  logout.className="tc-signout";
   logout.addEventListener("click",()=>{void endPersonalSession();});
   adminBody.prepend(logout);
   if(profile.owner===true)await showOwnerApprovals(user.uid);
+  // Put the login confirmation above approvals and Sign Out so nobody
+  // mistakes the Owner inbox for their own approval status.
+  const signedIn=document.createElement("div");
+  signedIn.className="tc-signed-in";
+  signedIn.setAttribute("role","status");
+  const displayName=String(profile.username||profile.fullName||"Admin").trim();
+  const friendlyName=displayName.charAt(0).toUpperCase()+displayName.slice(1);
+  signedIn.textContent="✅ Signed in as "+friendlyName+" · "+(profile.owner===true?"Owner":"Admin");
+  adminBody.prepend(signedIn);
 }
 document.getElementById("tc-login-form").addEventListener("submit",async(ev)=>{
   ev.preventDefault();
@@ -262,7 +274,7 @@ document.getElementById("tc-login-form").addEventListener("submit",async(ev)=>{
 });
 async function showOwnerApprovals(ownerUid){
   const panel=document.createElement("section");panel.id="tc-owner-panel";panel.className="tc-owner";
-  panel.innerHTML="<h2>👑 Pending Admin Approvals</h2><p>Only Fudgie can review private names and emails or approve access.</p>";
+  panel.innerHTML="<h2>👑 Admin Requests — Your Approval Inbox</h2><p>New admin sign-ups waiting for your OK will show up here.</p>";
   adminBody.prepend(panel);
   async function refresh(){
     panel.querySelectorAll(".tc-owner-row").forEach(n=>n.remove());
