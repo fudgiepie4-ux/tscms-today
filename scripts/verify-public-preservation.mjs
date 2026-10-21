@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(process.argv[2] || path.join(scriptDir,'..'));
 let failures = [], passed = 0;
@@ -138,6 +139,43 @@ assert('Dubby independent CSS and control styles preserved',
   /tscms-home-dubby/.test(homeDubbyCss)&&
   /tscms-dubby-actions/.test(homeDubbyCss)&&
   /tscms-dubby-shop/.test(homeDubbyCss));
+
+
+/* TSCMS Western Drive-In — owner-approved public showcase.
+   A generator rebuild MUST NOT publish a Quick Jump video link unless its
+   standalone page, exact reviewed art, and real (non-synthetic) audio exist.
+   Prevent accidental opening of submissions before server-side consent exists. */
+const driveIn=read('videos.html');
+const driveInAssets=[
+  ['assets/drive-in/western-drive-in.jpg',250759,'3894f121c33fb733069454e54002336d62283b762c246a37b48d504030d7f942'],
+  ['assets/drive-in/wood-sides.jpg',284714,'70efea49d064f2f5aad631ff7609f92ebd744a216bda2e99d5b090251bd6fce2'],
+  ['assets/drive-in/submit-title.jpg',43073,'49db3f9fb933a4311ee1e75588e2197ce6370a4b0c87a0919b137efa929e874b'],
+  ['assets/drive-in/night-sounds-20min.m4a',7420428,'fa22cbb19ea17b316467c193c836f3662225e858b56bb9a4ec27ea9fff6a3202']
+];
+for (const [filename,size,sha256] of driveInAssets) {
+  let ok=false;
+  try {
+    const bytes=fs.readFileSync(path.join(root,filename));
+    ok=bytes.byteLength===size&&
+      crypto.createHash('sha256').update(bytes).digest('hex')===sha256;
+  } catch {}
+  assert('Western Drive-In reviewed asset unchanged: '+filename,ok);
+}
+assert('Quick Jump has approved Videos link and navigates there normally',
+  /key:'videos'/.test(quickJs)&&/href:'videos\.html'/.test(quickJs)&&
+  /key==='gamehouse'\|\|key==='videos'/.test(quickJs));
+assert('Western Drive-In page preserves vinyl easter egg, one coherent hero and spotlight',
+  /Jim B Records/.test(driveIn)&&/www\.facebook\.com\/share\/1LdqyvJKso/.test(driveIn)&&
+  /western-drive-in\.jpg/.test(driveIn)&&/beam-one/.test(driveIn)&&/signal-drift/.test(driveIn));
+assert('Western Drive-In uses only original 20-minute audio and on-off control',
+  /night-sounds-20min\.m4a/.test(driveIn)&&/id="sound-toggle"/.test(driveIn)&&
+  !/data:audio\/mp4;base64,/.test(driveIn));
+assert('Western Drive-In consent and actual-video-only rules remain visible',
+  /Read the Full Video Submission Terms/.test(driveIn)&&/id="agree"/.test(driveIn)&&
+  /ACTUAL VIDEO FILES ONLY/.test(driveIn)&&!/Video Link \(Optional\)/.test(driveIn));
+assert('Western Drive-In public pre-release buttons remain locked pending consent service',
+  /email\.disabled=messenger\.disabled=true/.test(driveIn)&&
+  /SUBMISSIONS NOT YET OPEN/.test(driveIn));
 
 for(const [name,source] of [['tscms-muse-referral.js',museJs],['tscms-public-runtime.js',runtime],['tscms-quick-jump.js',quickJs],['tscms-home-dubby.js',homeDubbyJs]]) {
   let valid=true;

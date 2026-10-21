@@ -11,6 +11,7 @@
     var items = [
       {key:'home', icon:'⌂', label:'Home'},
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
+      {key:'videos', icon:'🎬', label:'Videos — Coming Soon', href:'videos.html'},
       {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
       {key:'daily', icon:'♫', label:'Daily Songs'},
@@ -78,7 +79,7 @@
         var box=sections.dicey;
         return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' && getComputedStyle(box).display!=='none');
       }
-      if (key==='gamehouse' || key==='home') return true;
+      if (key==='gamehouse' || key==='home' || key==='videos') return true;
       if (key==='halloween') return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
       return !!sections[key];
     }
@@ -186,7 +187,7 @@
       var link=e.target.closest('.tscms-qj-link');
       if(!link)return;
       var key=link.dataset.target;
-      if(key==='gamehouse'){closeMenu(false);return;} // Normal existing Gamehouse page navigation.
+      if(key==='gamehouse'||key==='videos'){closeMenu(false);return;} // External site pages use normal navigation.
       e.preventDefault();
       if(!isReady(key))return;
       closeMenu(false);
