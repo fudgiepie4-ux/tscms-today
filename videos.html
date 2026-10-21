@@ -177,14 +177,24 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
 (()=>{
 'use strict';
 const form=document.getElementById('video-form');const consent=document.getElementById('agree');const status=document.getElementById('terms-hint');const email=document.getElementById('send-email');const messenger=document.getElementById('send-messenger');
+// VERIFIED PERSONAL DESTINATION — Cherish checked the Facebook profile, Oct 21.
+// Future activation requires Fudgie's separate GO, approved terms,
+// durable server-side consent receipts, and secure submission handling.
+const MESSENGER_URL='https://m.me/Fudgiepie';
+const MESSENGER_SUBMISSIONS_OPEN=false; // LOCKED: preview stays COMING SOON.
 const fields=['artist','facebook','song'].map(id=>document.getElementById(id));
-function update(){const ready=consent.checked&&fields.every(f=>f.value.trim().length>0);email.disabled=messenger.disabled=true;document.getElementById('email-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';document.getElementById('messenger-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';status.textContent=ready?'Preview unlocked. No submission is accepted and no consent is stored.':'Complete the required fields and check the permission box to continue.'}
+function update(){const ready=consent.checked&&fields.every(f=>f.value.trim().length>0);email.disabled=true;messenger.disabled=!(MESSENGER_SUBMISSIONS_OPEN&&ready);document.getElementById('email-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';document.getElementById('messenger-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';status.textContent=ready?'Preview unlocked. No submission is accepted and no consent is stored.':'Complete the required fields and check the permission box to continue.'}
 form.addEventListener('input',update);form.addEventListener('change',update);update();
 const open=(id)=>document.getElementById(id).showModal();
 document.getElementById('read-terms').addEventListener('click',()=>open('terms-dialog'));
 for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>document.getElementById(b.dataset.close).close());
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',(e)=>{if(e.target===d)d.close()});
-email.addEventListener('click',()=>open('demo-dialog'));messenger.addEventListener('click',()=>open('demo-dialog'));
+email.addEventListener('click',()=>open('demo-dialog'));
+messenger.addEventListener('click',()=>{
+  if(!MESSENGER_SUBMISSIONS_OPEN||messenger.disabled){open('demo-dialog');return;}
+  // Messenger opens the personal chat; the member attaches MP4/MOV manually.
+  window.open(MESSENGER_URL,'_blank','noopener,noreferrer');
+});
  const toggle=document.getElementById('sound-toggle');
  const choice=document.getElementById('sound-choice');
  const desc=document.getElementById('sound-description');
