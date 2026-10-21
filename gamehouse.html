@@ -65,10 +65,6 @@
 #menu #launch-back-to-saloon{width:100%;display:block;margin-top:15px;}
 #menu #launch-settings-status{min-height:1.3em;color:#ffe8ac;}
 </style><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<!-- TSCMS game-page exception (Fudgie order, 2026-10-20): the shared Feedback pill is fixed bottom-right, where it covers tableau cards and the jukebox transport buttons on this page. On the Gamehouse page only, park it top-left over the saloon art. Remove when the feedback component gains a top position. -->
-<style>
-#tscms-fb-btn{top:10px!important;left:10px!important;right:auto!important;bottom:auto!important}
-</style>
 </head><body>
 <main aria-label="TSCMS Gamehouse playable Solitaire" class="main">
 <div class="stage" id="stage">
@@ -241,9 +237,5 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="solitaire-phase1-staging/js/gamehouse-jukebox.js"></script>
 <script src="solitaire-phase1-staging/js/gamehouse-jukebox-v7-ui.js"></script>
 <script src="gamehouse-help.js" defer></script>
-<script src="tscms-feedback.js" defer></script>
-<style>
-/* Gamehouse: lift Feedback button above the game control bar so it never covers NEW GAME */
-#tscms-fb-btn { bottom: 96px !important; }
-</style>
+<!-- Feedback widget intentionally disabled on the Gamehouse only (Fudgie request, 2026-10-20). Do not re-add without approval. -->
 </body></html>
