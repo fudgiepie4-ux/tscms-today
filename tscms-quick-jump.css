@@ -134,7 +134,7 @@
 .tscms-halloween-jump .halloween-arrow{font:700 32px/1 Georgia,serif;margin-left:auto;color:#ffc875}
 .tscms-halloween-jump:hover,.tscms-halloween-jump:focus-visible{border-color:#ffd88c;background:linear-gradient(145deg,#713914,#3a200f);color:#fff1d9}
 .tscms-halloween-jump:focus-visible{outline:3px solid #fff0b2;outline-offset:3px}
-.tscms-qj-drawer-links .tscms-qj-link[data-target="halloween"]{background-image:linear-gradient(90deg,#522508 0%,#371b0b 58%,#21110b 100%);border-bottom-color:#db863a}
+.tscms-qj-drawer-links .tscms-qj-link[data-target="halloween"]{background-image:linear-gradient(90deg,rgba(45,18,7,.95) 0%,rgba(44,20,10,.87) 39%,rgba(22,12,8,.48) 72%,rgba(20,12,9,.03) 100%),url("assets/tscms-quick-jump-rows.jpg");background-repeat:no-repeat,no-repeat;background-size:100% 100%,100% 700%;background-position:center,center 0%;border-bottom-color:rgba(223,170,82,.7)}
 .tscms-qj-drawer-links .tscms-qj-link[data-target="halloween"] .tscms-qj-icon{color:#ffb767}
 .halloween-pin-head{scroll-margin-top:100px}
 @media(max-width:400px){.tscms-halloween-jump{gap:9px;padding:11px}.tscms-halloween-jump strong{font-size:15px}.tscms-halloween-jump small{font-size:11px}}
