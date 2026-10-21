@@ -215,3 +215,78 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);
   else initialize();
 })();
+
+
+/* TSCMS Oct 2026 approved autumn art: genuine image + clickable, keyboard-accessible hotspots.
+   Safe fallback: if the exact matching PNG hasn't been uploaded yet, original UI stays active. */
+(function(){
+'use strict';
+var artwork='assets/tscms-autumn-public-links.png';
+function mountAutumnNavigation(){
+  if(document.getElementById('tscms-autumn-nav'))return;
+  var tabs=document.querySelector('.wrap .tscms-site-tabs');
+  var game=document.querySelector('.wrap .saloon-playnow');
+  if(!tabs||!game)return;
+  var preflight=new Image();
+  preflight.onload=function(){
+    if(document.getElementById('tscms-autumn-nav'))return;
+    var style=document.createElement('style');
+    style.id='tscms-autumn-nav-style';
+    style.textContent=[
+      'body.tscms-autumn-nav-ready .wrap #tscms-qj-bar,',
+      'body.tscms-autumn-nav-ready .wrap .tscms-site-tabs,',
+      'body.tscms-autumn-nav-ready .wrap .saloon-playnow{display:none!important}',
+      '.tscms-autumn-nav{position:relative;width:100%;margin:10px 0 16px;aspect-ratio:1448/1086;overflow:hidden}',
+      '.tscms-autumn-nav img{display:block;width:100%;height:auto;aspect-ratio:1448/1086}',
+      '.tscms-autumn-nav .tscms-autumn-hotspot{position:absolute;display:block;box-sizing:border-box;',
+      'border:2px solid transparent;border-radius:12px;background:transparent;color:transparent;',
+      'text-decoration:none;cursor:pointer;padding:0;-webkit-tap-highlight-color:rgba(255,211,147,.15)}',
+      '.tscms-autumn-nav .tscms-autumn-hotspot:hover{border-color:rgba(255,226,172,.85)}',
+      '.tscms-autumn-nav .tscms-autumn-hotspot:focus-visible{outline:3px solid #ffe9ae;outline-offset:-3px;',
+      'background:rgba(255,209,126,.1);border-color:#ffe9ae}',
+      '.tscms-autumn-nav .hotspot-quick{left:5.7%;top:2.1%;width:88.5%;height:21.2%}',
+      '.tscms-autumn-nav .hotspot-group{left:3%;top:36.7%;width:31%;height:29.7%}',
+      '.tscms-autumn-nav .hotspot-youtube{left:35.2%;top:36.7%;width:28.9%;height:29.7%}',
+      '.tscms-autumn-nav .hotspot-public{left:65%;top:36.7%;width:31.6%;height:29.7%}',
+      '.tscms-autumn-nav .hotspot-game{left:3%;top:70.3%;width:94%;height:23.4%}',
+      '@media(max-width:400px){.tscms-autumn-nav .tscms-autumn-hotspot{border-radius:7px}}'
+    ].join('');
+    document.head.appendChild(style);
+    var nav=document.createElement('section');
+    nav.id='tscms-autumn-nav';
+    nav.className='tscms-autumn-nav';
+    nav.setAttribute('aria-label','TSCMS website quick links');
+    var image=document.createElement('img');
+    image.src=artwork;image.width=1448;image.height=1086;
+    image.alt='';image.setAttribute('aria-hidden','true');image.decoding='async';
+    nav.appendChild(image);
+    function hotspot(type,cls,label,url){
+      var el=document.createElement(type);
+      el.className='tscms-autumn-hotspot hotspot-'+cls;
+      el.setAttribute('aria-label',label);
+      el.title=label;
+      if(type==='a'){
+        el.href=url;
+        if(/^https?:/.test(url)){el.target='_blank';el.rel='noopener noreferrer'}
+        else el.target='_self';
+      }else el.type='button';
+      nav.appendChild(el);return el;
+    }
+    var quick=hotspot('button','quick','Open Quick Jump navigation');
+    quick.addEventListener('click',function(){
+      var original=document.querySelector('#tscms-qj-bar .tscms-qj-trigger');
+      if(original)original.click();
+    });
+    hotspot('a','group','Visit The Suno Country Music Spot Facebook Group','https://www.facebook.com/share/g/1HhNCD6FSS/');
+    hotspot('a','youtube','Visit TSCMS on YouTube','https://www.youtube.com/@TSCMSLive');
+    hotspot('a','public','Visit the TSCMS Facebook Public Page','https://www.facebook.com/share/19z71PkNja/');
+    hotspot('a','game','Play TSCMS Gamehouse Solitaire',game.getAttribute('href')||'gamehouse.html');
+    tabs.parentNode.insertBefore(nav,tabs);
+    document.body.classList.add('tscms-autumn-nav-ready');
+  };
+  preflight.onerror=function(){/* Retain original navigation when artwork is unavailable. */};
+  preflight.src=artwork;
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountAutumnNavigation);
+else mountAutumnNavigation();
+})();
