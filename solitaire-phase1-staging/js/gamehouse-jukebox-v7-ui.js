@@ -234,14 +234,33 @@
           repairedPhoto.src = new URL('solitaire-phase1-staging/assets/TSCMS_V7_CABINET_SEAM_CLEAN_v8.jpg', document.baseURI).href;
           approvedCabinet.querySelectorAll('.speaker-row,#speakerListen,#captureNote').forEach(n => n.remove());
           approvedCabinet.querySelectorAll('script,audio,iframe').forEach(n => n.remove());
+          // Tactile shuffle setting on the existing photographic V7 cabinet.
+          // This is the ONLY player: do not add preview audio or duplicate streams.
+          const shuffleButton = document.createElement('button');
+          shuffleButton.type = 'button';
+          shuffleButton.id = 'tscms-v7-shuffle';
+          shuffleButton.title = 'Shuffle the TSCMS Radio playlist';
+          shuffleButton.setAttribute('aria-label', 'Toggle radio shuffle');
+          approvedCabinet.appendChild(shuffleButton);
           overlay.appendChild(approvedCabinet);
           // V8.1: align live Play/Pause cap with the original photographed button.
           // Do not change side controls, EQ, player events, or approved cabinet photo.
           styles.textContent += '\n.transport button.primary{transform:translate(-7%,-4%)}';
+          styles.textContent += '\n#tscms-v7-shuffle{position:absolute;z-index:8;left:50%;top:94.6%;transform:translateX(-50%);min-width:40%;height:3.5%;padding:0 8px;border:1px solid #d5a966;border-radius:12px;background:linear-gradient(160deg,#704624,#28150e);color:#ffe7a8;font:800 clamp(9px,2.5vw,12px)/1 Arial,sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 2px 6px #000b}#tscms-v7-shuffle[aria-pressed=true]{border-color:#70d9c7;color:#b6fff3;box-shadow:0 0 7px #29aa9a88}#tscms-v7-shuffle:focus-visible{outline:3px solid #fff4bd;outline-offset:2px}';
           shadow.append(styles, overlay);
           document.body.appendChild(panel);
           ui = Object.fromEntries(required.map(id => [id,shadow.getElementById(id)]));
           if (required.some(id => !ui[id])) { panel.remove(); panel = null; ui = null; throw new Error('V7 controls incomplete'); }
+          function reflectShuffle() {
+            const on = typeof J.isShuffleEnabled === 'function' && J.isShuffleEnabled();
+            shuffleButton.textContent = on ? '🔀 SHUFFLE ON' : '🔀 SHUFFLE OFF';
+            shuffleButton.setAttribute('aria-pressed',String(on));
+          }
+          shuffleButton.addEventListener('click',() => {
+            if (typeof J.setShuffle === 'function') J.setShuffle(!J.isShuffleEnabled());
+            reflectShuffle();
+          });
+          reflectShuffle();
           ui.close.setAttribute('aria-label','Close jukebox and return to Solitaire');
           ui.close.addEventListener('click',close);
           ui.play.addEventListener('click',() => { J.toggle(); reflect(); });
@@ -256,7 +275,7 @@
           ui.original.addEventListener('click',e => {
             if (ui.original.getAttribute('aria-disabled') === 'true') e.preventDefault();
           });
-          J.on('trackchange',() => { track(); reflect(); });
+          J.on('trackchange',() => { track(); reflect(); reflectShuffle(); });
           J.on('timeupdate',progress);
           document.addEventListener('tscms:jukebox',e => {
             const d = e.detail || {};
