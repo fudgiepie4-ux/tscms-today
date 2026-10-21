@@ -370,7 +370,7 @@
     if (!document.querySelector('.wrap > footer.mono')) return;
     if (document.querySelector('script[data-tscms-preserved="muse-referral"]')) return;
     var script = document.createElement('script');
-    script.src = './tscms-muse-referral.js?v=20261021-1';
+    script.src = './tscms-muse-referral.js?v=20261021-2';
     script.setAttribute('data-tscms-preserved', 'muse-referral');
     script.async = true;
     script.onerror = function () { console.warn('TSCMS preserved Muse referral module did not load.'); };
