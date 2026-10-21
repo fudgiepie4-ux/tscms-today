@@ -358,3 +358,25 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
+
+/* PRESERVED MODULE: Muse referral, owner-approved October 20, 2026.
+   The daily song generator must retain the tscms-public-runtime.js script tag.
+   The referral lives entirely in its own JS + CSS files and is inserted before
+   the public footer at runtime. NEVER paste it into generated homepage HTML. */
+(function () {
+  'use strict';
+  function loadPreservedMuseReferral() {
+    if (!document.querySelector('.wrap > footer.mono')) return;
+    if (document.querySelector('script[data-tscms-preserved="muse-referral"]')) return;
+    var script = document.createElement('script');
+    script.src = './tscms-muse-referral.js?v=20261021-1';
+    script.setAttribute('data-tscms-preserved', 'muse-referral');
+    script.async = true;
+    script.onerror = function () { console.warn('TSCMS preserved Muse referral module did not load.'); };
+    document.head.appendChild(script);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadPreservedMuseReferral, { once: true });
+  } else loadPreservedMuseReferral();
+})();
