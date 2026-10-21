@@ -20,8 +20,8 @@ styles.textContent=".tc-auth{max-width:480px;margin:20px auto;padding:20px;backg
 +".tc-auth button,.tc-owner button{min-height:44px;margin:9px 6px 0 0;padding:9px 15px;background:#dfae54;border:1px solid #edc77d;border-radius:8px;color:#211602;font-weight:700;cursor:pointer}"
 +".tc-auth .tc-later{background:#162326;color:#9ae2d9;border-color:#6ebcb1}.tc-auth-status{color:#ffda8d;min-height:20px;font-size:13px;padding:7px 0}"
 +"dialog.tc-auth{width:min(95vw,500px);max-height:90vh;overflow:auto;box-shadow:0 10px 45px #000c}"
-+"dialog.tc-auth::backdrop{background:#000c}.tc-owner{max-width:940px;margin:12px auto;padding:14px;background:#192421;color:#ecf9f4;border:1px solid #6bada4;border-radius:12px}"
- +".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #57796f}"
++"dialog.tc-auth::backdrop{background:#000c}.tc-owner{max-width:940px;margin:12px auto;padding:16px;background:#1d1710;color:#f3e9d2;border:1px solid #c9a227;border-radius:12px}.tc-owner h2{color:#e8c766;margin:0 0 6px;font-size:21px}.tc-owner p{margin:0 0 8px;line-height:1.5}"
+ +".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #5a4a26}.tc-owner-waiting{font-weight:700;color:#ffda8d;padding:10px 0 2px;border-top:1px solid #5a4a26}"
 +".tc-signed-in{max-width:940px;margin:14px auto 10px;box-sizing:border-box;padding:14px 20px;border:1px solid #75ad83;border-radius:12px;background:linear-gradient(135deg,#192c21,#152019);color:#e1f5db;font:700 17px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 18px #0005}"
 +"button.tc-signout{display:block;min-height:44px;margin:10px auto 24px;padding:11px 28px;border:1px solid #d8a957;border-radius:12px;background:linear-gradient(180deg,#56351a,#25170e);color:#fbe7b8;font:700 15px/1.3 system-ui,sans-serif;box-shadow:0 4px 14px #0007;cursor:pointer}"
 +"button.tc-signout:hover,button.tc-signout:focus-visible{background:linear-gradient(180deg,#76481e,#35210e);outline:2px solid #ffd68a;outline-offset:2px}";
@@ -258,7 +258,7 @@ async function personalLogin(user){
   signedIn.setAttribute("role","status");
   const displayName=String(profile.username||profile.fullName||"Admin").trim();
   const friendlyName=displayName.charAt(0).toUpperCase()+displayName.slice(1);
-  signedIn.textContent="✅ Signed in as "+friendlyName+" · "+(profile.owner===true?"Owner":"Admin");
+  signedIn.textContent="✅ Signed in as "+friendlyName+" · "+(profile.owner===true?"Owner":"Admin")+" — this room is yours";
   adminBody.prepend(signedIn);
 }
 document.getElementById("tc-login-form").addEventListener("submit",async(ev)=>{
@@ -274,12 +274,14 @@ document.getElementById("tc-login-form").addEventListener("submit",async(ev)=>{
 });
 async function showOwnerApprovals(ownerUid){
   const panel=document.createElement("section");panel.id="tc-owner-panel";panel.className="tc-owner";
-  panel.innerHTML="<h2>👑 Admin Requests — Your Approval Inbox</h2><p>New admin sign-ups waiting for your OK will show up here.</p>";
+  panel.innerHTML="<h2>👑 Admin Requests — Your Approval Inbox</h2><p>Your approval inbox — when someone creates a login, their name lands here for your OK. Nobody gets in without you.</p>";
   adminBody.prepend(panel);
   async function refresh(){
     panel.querySelectorAll(".tc-owner-row").forEach(n=>n.remove());
     const profiles=await getDocs(collection(db,"users")); // Firestore v4 Owner-only list
     const others=profiles.docs.filter(d=>d.id!==ownerUid);
+    const waiting=others.filter(d=>d.data().status==="pending").length;
+    if(waiting>0){const w=document.createElement("div");w.className="tc-owner-waiting";w.textContent="🔔 "+waiting+(waiting===1?" person":" people")+" waiting for your OK";panel.appendChild(w);}
     for(const profile of others){
       const data=profile.data(),row=document.createElement("div");row.className="tc-owner-row";
       const label=document.createElement("span");
@@ -309,7 +311,7 @@ async function showOwnerApprovals(ownerUid){
       }
       panel.appendChild(row);
     }
-    if(!others.length){const p=document.createElement("p");p.className="tc-owner-row";p.textContent="No registrations yet.";panel.appendChild(p);}
+    if(!others.length){const p=document.createElement("p");p.className="tc-owner-row";p.textContent="🎉 All quiet — no one is waiting right now.";panel.appendChild(p);}
   }
   await refresh();
 }
