@@ -160,21 +160,33 @@
         });
         if (!dicePool.length) throw Error('no valid public Dicey posts');
         buildDie('die1'); buildDie('die2'); updateCount();
-        section.hidden=false;
-        section.removeAttribute('aria-hidden');
-        section.style.removeProperty('display');
-        /* Protected Dicey upgrade: isolated CSS and JS, loaded only for a verified
-           Facebook-post discovery pool. Legacy Dicey remains the fallback. */
-        if (!document.querySelector('[data-dicey-v3-css]')) {
+        /* Approved Dicey V6: load the complete playable saloon scene before
+           revealing the module. Keep the verified Facebook pool as source of truth.
+           The old runtime remains a fallback if an asset cannot load. */
+        function activateDicey() {
+          section.hidden=false;
+          section.removeAttribute('aria-hidden');
+          section.style.removeProperty('display');
+          requestAnimationFrame(function () { window.dispatchEvent(new Event('resize')); });
+        }
+        if (!document.querySelector('[data-dicey-v6-css]')) {
           var css=document.createElement('link');
-          css.rel='stylesheet';css.href='tscms-dicey-autumn-v3.css?v=20261021';
-          css.setAttribute('data-dicey-v3-css','');
+          css.rel='stylesheet';css.href='tscms-dicey-v6.css?v=20261021-approved';
+          css.setAttribute('data-dicey-v6-css','');
           css.onload=function () {
-            if (document.querySelector('[data-dicey-v3-js]')) return;
             var js=document.createElement('script');
-            js.src='tscms-dicey-autumn-v3.js?v=20261021';
-            js.setAttribute('data-dicey-v3-js','');
+            js.src='tscms-dicey-v6.js?v=20261021-approved';
+            js.setAttribute('data-dicey-v6-js','');
+            js.onload=activateDicey;
+            js.onerror=function () {
+              console.warn('Dicey V6 controller unavailable; retaining original Dicey controller');
+              activateDicey();
+            };
             document.head.appendChild(js);
+          };
+          css.onerror=function () {
+            console.warn('Dicey V6 artwork unavailable; keeping original discovery UI');
+            activateDicey();
           };
           document.head.appendChild(css);
         }

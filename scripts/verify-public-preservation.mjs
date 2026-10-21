@@ -57,9 +57,33 @@ const diceLogic=read('tscms-dicey-autumn-v3.js');
 assert('Dicey standalone style + code preserved',
   /dicey-autumn-v3/.test(diceSkin)&&/dicey-v3-cards/.test(diceSkin)&&
   /dicey-v3-visit/.test(diceSkin)&&/TSCMSDiceyUpgrade/.test(diceLogic));
-assert('Dicey isolated loaders retained in protected runtime',
-  /data-dicey-v3-css/.test(runtime)&&/data-dicey-v3-js/.test(runtime)&&
+assert('Dicey V6 isolated loaders retained in protected runtime',
+  /data-dicey-v6-css/.test(runtime)&&/data-dicey-v6-js/.test(runtime)&&
+  /tscms-dicey-v6\.css/.test(runtime)&&/tscms-dicey-v6\.js/.test(runtime)&&
   /TSCMSDiceyUpgrade\.roll\(dicePool/.test(runtime));
+const v6Css=read('tscms-dicey-v6.css');
+const v6Js=read('tscms-dicey-v6.js');
+assert('Dicey V6 approved saloon is fully included in its own protected file',
+  /dicey-v4-sign/.test(v6Css)&&/dicey-v4-felt/.test(v6Css)&&
+  /dicey-v4-plaque/.test(v6Css)&&
+  (v6Css.match(/data:image\/webp;base64,/g)||[]).length===9&&
+  /dicey-v4 \.die-col/.test(v6Css));
+assert('Dicey V6 shared-table collisions + secure outcome-first face decisions preserved',
+  /crypto\.getRandomValues/.test(v6Js)&&
+  /const nums=\[rand\(6\)\+1,rand\(6\)\+1\]/.test(v6Js)&&
+  /const doClack=rand\(10\)<4/.test(v6Js)&&
+  /edgeGap=s\.size\*\.80/.test(v6Js)&&
+  /columns\.forEach\(\(c,i\)=>/.test(v6Js));
+assert('Dicey V6 retains original post, unique voices and ONLY one Facebook link',
+  /chooseSongs\(pool,doubles\?2:1,bridge\)/.test(v6Js)&&
+  /used\.add\(v\)/.test(v6Js)&&
+  /bridge\.saveSeen/.test(v6Js)&&
+  /bridge\.diceLog/.test(v6Js)&&
+  /a\.href=p\.post_url/.test(v6Js)&&
+  /a\.textContent='❤️ VISIT FACEBOOK POST'/.test(v6Js)&&
+  !/createElement\(['"]audio['"]\)/.test(v6Js)&&
+  !/TEST A DICE-TO-DICE COLLISION/.test(v6Js)&&
+  !/Sarah Johnson/.test(v6Js));
 assert('Dicey single Facebook action with full text and new-tab safety',
   /'❤️ VISIT FACEBOOK POST'/.test(diceLogic)&&
   /link\.href=p\.post_url/.test(diceLogic)&&/noopener noreferrer/.test(diceLogic)&&
