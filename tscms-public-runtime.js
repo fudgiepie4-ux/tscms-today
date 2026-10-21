@@ -274,3 +274,77 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSpotlight);
   else addSpotlight();
 })();
+
+
+/* TSCMS Original Artwork Personal Note — standalone, public homepage only. */
+(function(){
+  'use strict';
+  function init(){
+    if(/(?:^|\/)admin\.html$/i.test(location.pathname))return;
+    if(document.getElementById('tscms-personal-note'))return;
+    var play=document.querySelector('a.saloon-playnow');
+    if(!play)return;
+    var stylesheet=document.createElement('link');
+    stylesheet.rel='stylesheet';stylesheet.href='./tscms-personal-note.css?v=20261020-original-1';
+    document.head.appendChild(stylesheet);
+    var section=document.createElement('section');
+    section.id='tscms-personal-note';section.className='tscms-note';
+    section.setAttribute('aria-label','A personal message from Fudgie Pie');
+    section.innerHTML=`
+      <div class="tn-poster">
+        <img class="tn-poster-art" src="./assets/tscms-pn/original.webp" alt="Original autumn TSCMS Radio artwork with the personal welcome from Fudgie Pie" width="1536" height="1024">
+        <button type="button" class="tn-hit tn-read-hit" id="tnReadDesktop" aria-label="Read My Full Message">Read My Full Message</button>
+        <button type="button" class="tn-hit tn-feedback-hit" id="tnFeedbackDesktop" aria-label="Share Your Feedback">Share Your Feedback</button>
+      </div>
+      <div class="tn-mobile">
+        <div class="tn-mobile-hero"><img src="./assets/tscms-pn/logo.webp" width="535" height="225" alt="The original TSCMS Radio autumn sign: Country Music Lives Here"></div>
+        <div class="tn-mobile-body">
+          <p class="tn-eyebrow">★ PUBLIC BETA · WORK IN PROGRESS ★</p>
+          <h2>❤️ A Personal Message to Our TSCMS Family</h2>
+          <p class="tn-intro">First and foremost, welcome to TSCMSRadio.com! 🎶</p>
+          <p>I want to take a moment to share why I created this website and what I hope it will become.</p>
+          <p><strong>I'm not trying to take anyone away from our Facebook group. Quite the opposite!</strong></p>
+          <div class="tn-actions"><button type="button" id="tnReadMobile" aria-expanded="false" aria-controls="tnLetter">📖 Read My Full Message</button><button type="button" class="tn-feedback" id="tnFeedbackMobile">💬 Share Your Feedback</button></div>
+        </div>
+      </div>
+      <div class="tn-letter" id="tnLetter" hidden>
+        <p class="tn-eyebrow">★ FROM FUDGIE PIE ★</p>
+        <h2>❤️ A Personal Message to Our TSCMS Family</h2>
+        <div class="tn-letter-copy">
+<p>First and foremost, welcome to TSCMSRadio.com! 🎶</p>
+<p>I want to take a moment to share a little about why I created this website and what I hope it will eventually become.</p>
+<p><em>Let me make one thing very clear: I'm not trying to take anyone away from our Facebook group. Quite the opposite!</em></p>
+<p>Our TSCMS Facebook community is what brought us together, and I never want this website to replace that. My goal is to create something that works <em>alongside our group</em>, giving everyone another convenient way to enjoy the incredible music and talent our members share.</p>
+<p>With so many wonderful songs being posted every day, it's easy for some to get buried or overlooked. There are probably songs and artists you haven't even discovered yet!</p>
+<p><em>That's what I want this website to help change.</em> ❤️</p>
+<p>I envision a place where you can easily find music, discover new artists, revisit your favorites, explore community activities, and eventually enjoy even more ways to interact with one another.</p>
+<p>And whenever possible, I want to help connect you right back to the artists and their original posts in our Facebook group.</p>
+<p><em>This website is meant to support our community, not compete with it.</em></p>
+<h3>🛠️ We're Still Building!</h3>
+<p>I also want everyone to understand that this website is very much a <em>work in progress</em>.</p>
+<p>I'm learning as I go, and I've poured countless hours, hard work, and heart into bringing this vision to life.</p>
+<p>I have so many exciting ideas for the future, but bringing them to life takes time. Some things may not work perfectly yet, and certain features are still being developed.</p>
+<p>All I ask is for a little patience and understanding while I continue working to make things better.</p>
+<h3>💬 Your Feedback Matters!</h3>
+<p><em>Please don't be afraid to tell me what you think — good or bad!</em></p>
+<p>If you love something, let me know! If something is broken, confusing, difficult to use, or could be improved, I want to know that too.</p>
+<p>Your feedback will help guide what this website becomes.</p>
+<p>I may not be able to fix or add everything overnight, but I'm listening, I'm learning, and I'm doing my best.</p>
+<p><em>My dream is simple: Give our TSCMS family more opportunities to hear the music, support one another, and celebrate the talent that makes this community so special.</em></p>
+<p>Thank you for being patient with me, believing in this project, and helping turn a little idea into something we can all enjoy together.</p>
+<p><em>We're just getting started!</em> 🎶❤️</p>
+<p class="pn-sign">With love and appreciation,<br/><em>Fudgie Pie</em><br/>TSCMS Website Creator</p></div>
+        <div class="tn-actions"><button type="button" id="tnClose">📖 Close Message</button><button type="button" class="tn-feedback" id="tnFeedbackFull">💬 Share Your Feedback</button></div>
+      </div>`;
+    play.insertAdjacentElement('afterend',section);
+    var letter=section.querySelector('#tnLetter');
+    var mobileRead=section.querySelector('#tnReadMobile');
+    function openLetter(){section.dataset.expanded='true';letter.hidden=false;mobileRead.setAttribute('aria-expanded','true');letter.scrollIntoView({block:'start',behavior:'instant'});}
+    function closeLetter(){letter.hidden=true;section.dataset.expanded='false';mobileRead.setAttribute('aria-expanded','false');section.scrollIntoView({block:'start',behavior:'instant'});}
+    function feedback(){var f=document.getElementById('tscms-fb-btn');if(f&&typeof f.click==='function'){f.click();return;}window.location.href='mailto:fudgiepie4@gmail.com?subject=TSCMS%20Website%20Feedback';}
+    ['tnReadDesktop','tnReadMobile'].forEach(function(id){section.querySelector('#'+id).addEventListener('click',openLetter);});
+    section.querySelector('#tnClose').addEventListener('click',closeLetter);
+    ['tnFeedbackDesktop','tnFeedbackMobile','tnFeedbackFull'].forEach(function(id){section.querySelector('#'+id).addEventListener('click',feedback);});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
