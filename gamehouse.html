@@ -64,7 +64,12 @@
 #menu .menu-extra-settings .menu-extra-note{font:12px/1.5 system-ui,sans-serif;color:#e6d0a8;margin:9px 0 13px;}
 #menu #launch-back-to-saloon{width:100%;display:block;margin-top:15px;}
 #menu #launch-settings-status{min-height:1.3em;color:#ffe8ac;}
-</style><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script></head><body>
+</style><script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<!-- TSCMS game-page exception (Fudgie order, 2026-10-20): the shared Feedback pill is fixed bottom-right, where it covers tableau cards and the jukebox transport buttons on this page. On the Gamehouse page only, park it top-left over the saloon art. Remove when the feedback component gains a top position. -->
+<style>
+#tscms-fb-btn{top:10px!important;left:10px!important;right:auto!important;bottom:auto!important}
+</style>
+</head><body>
 <main aria-label="TSCMS Gamehouse playable Solitaire" class="main">
 <div class="stage" id="stage">
 <button aria-label="Exit to TSCMS homepage; save game before leaving" id="btn-exit" title="Exit and Save" type="button"></button><img alt="Locked approved warm Old West Solitaire saloon with TSCMS Radio neon color equalizer jukebox, empty board, and four wooden control buttons" class="stage-art" draggable="false" src="assets/TSCMS_APPROVED_MASTER_DOWNLOAD.png"/>
