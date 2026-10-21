@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#1b0d17">
-<meta name="description" content="Help TSCMS prepare for Monday Music Video Night and the Western Drive-In. Artist video submissions coming soon.">
-<title>TSCMS Western Drive-In — Video Submissions Coming Soon</title>
+<meta name="description" content="Help TSCMS prepare for Monday Music Video Night and the Western Drive-In. Artist music video submissions are now open by email.">
+<title>TSCMS Western Drive-In — Submit Your Music Video by Email</title>
 <style>
 :root{--hero:url('assets/drive-in/western-drive-in.jpg');--title:url('assets/drive-in/submit-title.jpg');--sides:url('assets/drive-in/wood-sides.jpg');--gold:#fddc89;--rust:#8e321b;--paper:#ffe6ba;--dark:#1b1211;color-scheme:dark}
 *{box-sizing:border-box}
@@ -57,7 +57,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
 .terms-open{border:0;background:none;padding:0 2px;color:#18568d;text-decoration:underline;font-weight:700;cursor:pointer}
 .terms-hint{margin:8px 0 0;text-align:center;color:#a02217;font-weight:800;font-size:13px}
 .send-head{position:relative;text-align:center;background:linear-gradient(180deg,#5f351b,#301809,#5a2e16);border:3px ridge #b88942;color:#ffe6ad;text-shadow:1px 2px #1a0e09;letter-spacing:.055em;font:bold clamp(18px,2.2vw,25px) Georgia,serif;box-shadow:0 6px 10px #0007;padding:11px;margin:24px -15px 13px}
-.send-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.send-grid{display:grid;grid-template-columns:1fr;gap:14px}
 .send-btn{border-radius:9px;padding:12px 10px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:3px solid #d3aa61;box-shadow:inset 0 0 0 2px #274c79,0 5px 15px #0007;background:linear-gradient(#205a91,#082441);color:#fff5db;text-shadow:1px 1px 4px #091521;font:bold clamp(15px,1.9vw,22px) Georgia,serif}
 .send-btn:disabled{background:linear-gradient(#7c7777,#504b4e);border-color:#9b8c75;box-shadow:none;color:#eee8e2}
 .send-btn span{font-size:28px}.send-btn small{font:12px/1.3 system-ui;opacity:.85}
@@ -106,7 +106,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
 </style>
 </head>
 <body>
-<div class="preview-ribbon">COMING SOON · VIDEO SUBMISSIONS NOT YET OPEN · NIGHT SOUNDS AVAILABLE</div>
+<div class="preview-ribbon">VIDEO SUBMISSIONS OPEN BY EMAIL · DRIVE-IN THEATER COMING SOON · NIGHT SOUNDS AVAILABLE</div>
 <div id="shell">
   <header class="hero" aria-label="The TSCMS Western Drive-In, original approved cinematic artwork">
     <a class="home-click" aria-label="Back to TSCMS homepage" title="Back to the homepage" href="https://tscmsradio.com/"></a>
@@ -123,7 +123,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
   <main class="form-world" id="submit-video">
     <div class="paper">
       <p class="paper-header">The theater is coming soon — but we're gathering the lineup now!<br>Help fill the screen with our community's music videos.</p>
-      <div class="file-warning"><span class="film" aria-hidden="true">🎞️</span><div><strong>ACTUAL VIDEO FILES ONLY — NO VIDEO LINKS</strong>When submissions open, send the original <b>MP4 or MOV file</b> using Email or Messenger. YouTube, Facebook, and Suno links are not accepted as video submissions.</div></div>
+      <div class="file-warning"><span class="film" aria-hidden="true">🎞️</span><div><strong>ACTUAL VIDEO FILES ONLY — NO VIDEO LINKS</strong>Email your original <b>MP4 or MOV file</b> as an attachment. YouTube, Facebook, and Suno links are not accepted as video submissions. Email attachments work best below approximately 25 MB; limits vary by email app.</div></div>
       <form id="video-form" novalidate>
         <div class="fields">
           <div class="field"><label for="artist">♟ Artist / Member Name <span class="req">*</span></label><input id="artist" name="artist" type="text" autocomplete="name" maxlength="100" required placeholder="Your name as it appears in TSCMS"></div>
@@ -133,7 +133,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
         </div>
         <section class="terms-box" aria-labelledby="terms-heading">
           <h2 id="terms-heading">▣ REQUIRED — VIDEO SUBMISSION PERMISSION</h2>
-          <p style="margin:0 0 12px"><button class="terms-open" id="read-terms" type="button" aria-haspopup="dialog">Read the Full Video Submission Terms</button> <span style="font-size:12px;color:#604c3e">(opens full draft before you agree)</span></p>
+          <p style="margin:0 0 12px"><button class="terms-open" id="read-terms" type="button" aria-haspopup="dialog">Read the Full Video Submission Terms</button> <span style="font-size:12px;color:#604c3e">(read these terms before you agree)</span></p>
           <div class="legal-check">
             <input id="agree" name="agree" type="checkbox" required aria-describedby="terms-hint">
             <label for="agree">I confirm I am at least 18 and own or have obtained the necessary rights to the music, lyrics, visuals, and video in my submission. I grant TSCMS non-exclusive, royalty-free permission to receive, review, store, and, if approved, feature my video on the TSCMS website, during Monday Music Video Night, and at the Western Drive-In. I keep ownership of my work. Submission does not guarantee selection. I understand I may request that TSCMS stop future uses. I have read and agree to the full terms linked above.</label>
@@ -143,9 +143,8 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
         <div class="send-head">★ CHOOSE HOW TO SEND YOUR VIDEO ★</div>
         <div class="send-grid">
           <button class="send-btn" type="button" id="send-email" disabled><span aria-hidden="true">✉</span>SEND BY EMAIL<small id="email-status">Complete the form &amp; agreement first.</small></button>
-          <button class="send-btn" type="button" id="send-messenger" disabled><span aria-hidden="true">◉</span>SEND VIA MESSENGER<small id="messenger-status">Complete the form &amp; agreement first.</small></button>
         </div>
-        <p class="submission-note">This coming-soon page demonstrates the submission form. <strong>It does not store consent, receive videos, or send any information.</strong> Submission destinations and legal review are required before public launch.</p>
+        <p class="submission-note">Complete the form, read the terms, check the agreement, then tap SEND BY EMAIL. Your email app will open a prepared message; <strong>you must attach your MP4 or MOV video and press Send yourself.</strong> The website does not collect or store submissions. Your sent email serves as your consent record.</p>
       </form>
     </div>
   </main>
@@ -158,33 +157,58 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
 <dialog class="dialog" id="terms-dialog" aria-labelledby="terms-dialog-title">
   <div class="dialog-head"><h2 id="terms-dialog-title">Full Video Submission Terms</h2><button class="dialog-close" type="button" data-close="terms-dialog" aria-label="Close terms">✕ Close</button></div>
   <div class="dialog-content">
-    <p class="draft-note">DRAFT v2026-10-21 — NOT LEGALLY REVIEWED. These proposed terms must be approved, and real contact/privacy details supplied, before submissions open.</p>
-    <p>These terms describe how The Suno Country Music Spot (TSCMS) proposes to receive and use member-submitted music video files for Monday Music Video Night, the TSCMS website, and the Western Drive-In.</p>
+    <p class="draft-note">Terms version 2026-10-21 — These terms have not received independent legal review. Please read them carefully before accepting.</p>
+    <p>These terms describe how The Suno Country Music Spot (TSCMS) receives and uses member-submitted music video files for Monday Music Video Night, the TSCMS website, and the Western Drive-In.</p>
     <h3>1. Eligibility and authority</h3><p>You must be at least 18, authorized to submit the video, and able to grant the uses below. Obtain all necessary rights from other owners of music, sound recordings, performances, imagery, footage, and other included material.</p>
-    <h3>2. Actual video files only</h3><p>Submit the original video file, such as MP4 or MOV, through an approved Email or Messenger destination after the form is completed. Links to YouTube, Facebook, Suno or other streams do not substitute for files.</p>
+    <h3>2. Actual video files only</h3><p>Email the original MP4 or MOV video file to fudgiepie4@gmail.com after completing the form and accepting these terms. You must attach the actual file to your email. Links to YouTube, Facebook, Suno or other streams do not substitute for files. Email attachment limits are typically about 25 MB and may vary by sender.</p>
     <h3>3. Permission to TSCMS</h3><p>You retain ownership. You grant TSCMS non-exclusive, royalty-free permission to receive, securely store, technically process, review, and—if selected—display or stream your submitted video on the TSCMS site, during Monday Music Video Night, and at the TSCMS Western Drive-In. This permission allows reasonable format conversion needed for playback. It does not transfer ownership or authorize TSCMS to sell or sublicense your video to unrelated third parties.</p>
     <h3>4. Review and selection</h3><p>Submission does not guarantee acceptance, scheduling, display, or indefinite storage. TSCMS may decline or stop showing videos for quality, rights, technical, suitability, or community-guideline reasons.</p>
     <h3>5. Copyright, AI-generated content and other people</h3><p>Confirm any rules of the services used to make the song or video, including commercial use and redistribution. Obtain appropriate permission for third-party copyrighted material and people depicted in the video. Checking this box does not grant missing third-party rights.</p>
-    <h3>6. Withdrawal and removal</h3><p>You may ask TSCMS to stop future use of your video. After verifying the request, TSCMS intends to make reasonable efforts to remove hosted copies and stop future presentations. Past live streams or copies beyond TSCMS's control may not be reversible. A working contact address must be provided before launch.</p>
-    <h3>7. Information, consent and privacy</h3><p>The eventual system is intended to collect artist/member name, Facebook profile name, complete song title, optional notes, and a verifiable consent record (date/time and terms version). A privacy notice, access controls, retention/deletion policy, and consent-recording backend must be finalized before accepting submissions. This <strong>preview stores none of that data</strong>.</p>
+    <h3>6. Withdrawal and removal</h3><p>You may ask TSCMS to stop future use of your video. After verifying the request, TSCMS intends to make reasonable efforts to remove hosted copies and stop future presentations. Past live streams or copies beyond TSCMS's control may not be reversible. Requests can be sent to fudgiepie4@gmail.com.</p>
+    <h3>7. Information, consent and privacy</h3><p>The website itself does not store or send form entries. When you tap Send By Email, your email app opens a draft containing your artist/member name, Facebook profile name, full song title, optional notes, the agreement you checked, and the terms version. Your actual sent email and the copy received by TSCMS serve as the submission and consent record, with email timestamps. Attach the video and send the email yourself. Your email provider processes the message and TSCMS reviews it in the recipient inbox.</p>
     <h3>8. Changes</h3><p>Material changes to uses covered by the permission should require a new affirmative agreement. The system should retain the version of terms accepted for each submission.</p>
-    <h3>9. Questions and contact</h3><p>Contact details for support and withdrawal are not yet confirmed and must be added before release.</p>
-    <p class="draft-note">This document is a draft for design review, not legal advice. Seek qualified legal review before launch.</p>
+    <h3>9. Questions and contact</h3><p>For questions, support, or requests to stop future uses, email fudgiepie4@gmail.com.</p>
+    <p class="draft-note">These terms are not legal advice and have not received independent legal review.</p>
   </div>
 </dialog>
-<dialog class="dialog" id="demo-dialog" aria-labelledby="demo-dialog-title"><div class="dialog-head"><h2 id="demo-dialog-title">Almost Showtime! 🎬</h2><button class="dialog-close" type="button" data-close="demo-dialog">✕ Close</button></div><div class="dialog-content"><p><b>This is an early look at the planned submission experience.</b> The permission box and form are interactive so you can see how they will work, but nothing has been sent or saved.</p><p>Before public launch, TSCMS must connect a secure consent-recording system and verify the actual Email/Messenger destinations. Artists will then attach their original MP4 or MOV video files there.</p></div></dialog>
+
 <script>
 (()=>{
 'use strict';
-const form=document.getElementById('video-form');const consent=document.getElementById('agree');const status=document.getElementById('terms-hint');const email=document.getElementById('send-email');const messenger=document.getElementById('send-messenger');
+const form=document.getElementById('video-form');const consent=document.getElementById('agree');const status=document.getElementById('terms-hint');const email=document.getElementById('send-email');
 const fields=['artist','facebook','song'].map(id=>document.getElementById(id));
-function update(){const ready=consent.checked&&fields.every(f=>f.value.trim().length>0);email.disabled=messenger.disabled=true;document.getElementById('email-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';document.getElementById('messenger-status').textContent=ready?'COMING SOON — submission not yet active':'Complete the form & agreement first.';status.textContent=ready?'Preview unlocked. No submission is accepted and no consent is stored.':'Complete the required fields and check the permission box to continue.'}
+function update(){const ready=consent.checked&&fields.every(f=>f.value.trim().length>0);email.disabled=!ready;document.getElementById('email-status').textContent=ready?'Opens your email app — attach your MP4 or MOV before sending':'Complete the form & agreement first.';status.textContent=ready?'Ready — tap SEND BY EMAIL and attach your video before sending.':'Complete the required fields and check the permission box to continue.'}
 form.addEventListener('input',update);form.addEventListener('change',update);update();
 const open=(id)=>document.getElementById(id).showModal();
 document.getElementById('read-terms').addEventListener('click',()=>open('terms-dialog'));
 for(const b of document.querySelectorAll('[data-close]'))b.addEventListener('click',()=>document.getElementById(b.dataset.close).close());
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',(e)=>{if(e.target===d)d.close()});
-email.addEventListener('click',()=>open('demo-dialog'));messenger.addEventListener('click',()=>open('demo-dialog'));
+// Email-only submissions. No form data is sent by this website; sender must attach
+// the video and send the composed email themselves to create a consent record.
+email.addEventListener('click',()=>{
+  if(email.disabled || !consent.checked || !fields.every(f=>f.value.trim()))return;
+  const name=fields[0].value.trim();
+  const fb=fields[1].value.trim();
+  const song=fields[2].value.trim();
+  const notes=document.getElementById('notes').value.trim();
+  const agreement=document.querySelector('label[for="agree"]').textContent.trim().replace(/\s+/g,' ');
+  const subject='TSCMS Drive-In Submission — '+song.replace(/[\r\n]+/g,' ');
+  const body=[
+    'IMPORTANT: attach your video file to this email before sending.',
+    '',
+    'Artist / Member Name: '+name,
+    'Facebook Profile Name: '+fb,
+    'Full Song Title: '+song,
+    'Additional Information: '+(notes||'(none)'),
+    '',
+    'TERMS VERSION: TSCMS Western Drive-In — 2026-10-21',
+    'AGREEMENT CONFIRMED BY CHECKBOX:',
+    agreement,
+    '',
+    'I am submitting this video under the agreement above.'
+  ].join('\r\n');
+  window.location.href='mailto:fudgiepie4@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+});
  const toggle=document.getElementById('sound-toggle');
  const choice=document.getElementById('sound-choice');
  const desc=document.getElementById('sound-description');
