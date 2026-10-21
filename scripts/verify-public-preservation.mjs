@@ -32,6 +32,8 @@ const siteJs=read('site.js');
 const game=read('gamehouse.html');
 const museJs=read('tscms-muse-referral.js');
 const museCss=read('tscms-muse-referral.css');
+const homeDubbyJs=read('tscms-home-dubby.js');
+const homeDubbyCss=read('tscms-home-dubby.css');
 const pages=[['index.html',index],['tscms-today.html',today]];
 for(const [label,s] of pages) {
   assert(label+' → public runtime exactly once',count(s,/<script\b[^>]*src=["']tscms-public-runtime\.js(?:\?[^"']*)?["']/g)===1);
@@ -43,6 +45,7 @@ for(const [label,s] of pages) {
   assert(label+' → song day tabs',/class=["']tabs["']/.test(s)&&/id=["']day-0["']/.test(s));
   assert(label+' → protected footer anchor',/<footer class=["']mono["']>MADE WITH LOVE FOR THE TSCMS FAMILY/.test(s));
   assert(label+' → public icon links',/favicon-32\.png/.test(s)&&/manifest-public\.json/.test(s));
+  assert(label+' → dynamic stats and Dubby insertion anchors',count(s,/class=["']stats["']/g)===1&&count(s,/class=["']yt-banner["']/g)===1&&count(s,/class=["']feat["']/g)===1&&/<h1 class=["']slab["']>Today in/.test(s));
 }
 assert('Gamehouse Play Now + PUBLIC gold styles in safe CSS',/\.saloon-playnow\{/.test(siteCss)&&/\.tscms-site-tab\{/.test(siteCss));
 assert('Quick Jump drawer + Home/Gamehouse routes',/tscms-qj-drawer/.test(quickJs)&&/href:'gamehouse\.html'/.test(quickJs)&&/tscms-qj-drawer/.test(quickCss));
@@ -62,7 +65,63 @@ assert('Muse card uses isolated CSS and footer insertion',/tscms-muse-referral\.
 assert('Muse referral code exact, letter O not zero',/var CODE = '1BZI4O'/.test(museJs)&&!/1BZI40/.test(museJs));
 assert('Muse 48-hour and 1-billion-token disclosure',/48 hours of joining/.test(museJs)&&/1 BILLION Muse tokens/.test(museJs));
 assert('Muse independent CSS is present',/\.tscms-muse-referral-inner/.test(museCss)&&/\.tscms-muse-copy/.test(museCss));
-for(const [name,source] of [['tscms-muse-referral.js',museJs],['tscms-public-runtime.js',runtime],['tscms-quick-jump.js',quickJs]]) {
+
+/* Homepage enhancements live in independent protected files so regenerated daily
+   HTML cannot erase them. These tests guard wiring, assets, links, and failover. */
+function validAsset(name,minBytes) {
+  try {
+    const info=fs.statSync(path.join(root,name));
+    return info.isFile()&&info.size>=minBytes;
+  } catch(e) {return false;}
+}
+assert('Autumn navigation artwork safely present',
+  validAsset('assets/tscms-autumn-public-links.webp',100000));
+assert('Autumn artwork + guarded fallback in Quick Jump',
+  /var artwork='assets\/tscms-autumn-public-links\.webp'/.test(quickJs)&&
+  /preflight\.onload/.test(quickJs)&&/preflight\.onerror/.test(quickJs)&&
+  /tscms-autumn-nav-ready/.test(quickJs));
+assert('Autumn navigation has all five clickable destinations',
+  /hotspot\('button','quick'/.test(quickJs)&&
+  /hotspot\('a','group'/.test(quickJs)&&
+  /hotspot\('a','youtube'/.test(quickJs)&&
+  /hotspot\('a','public'/.test(quickJs)&&
+  /hotspot\('a','game'/.test(quickJs)&&
+  /www\.facebook\.com\/share\/g\/1HhNCD6FSS\//.test(quickJs)&&
+  /www\.facebook\.com\/share\/19z71PkNja\//.test(quickJs)&&
+  /www\.youtube\.com\/@TSCMSLive/.test(quickJs));
+assert('Home statistics and Sponsor TV boot once via protected Quick Jump file',
+  count(quickJs,/data-tscms-preserved','home-dubby-style'/g)===1&&
+  count(quickJs,/data-tscms-preserved','home-dubby'/g)===1&&
+  /tscms-home-dubby\.css/.test(quickJs)&&/tscms-home-dubby\.js/.test(quickJs)&&
+  /style\.onload/.test(quickJs)&&/style\.onerror/.test(quickJs));
+assert('Stats relocated intact above YouTube and sponsor takes original spot',
+  /stats\.parentNode\.insertBefore\(sponsor, stats\)/.test(homeDubbyJs)&&
+  /youtube\.parentNode\.insertBefore\(stats, youtube\)/.test(homeDubbyJs)&&
+  /stats\.classList\.add\('tscms-home-stats'\)/.test(homeDubbyJs)&&
+  /stats\.tscms-home-stats/.test(homeDubbyCss));
+assert('Home stats remain dynamic, with three small evenly spaced tiles',
+  !/SONGS TODAY[\s\S]{0,70}267/.test(homeDubbyJs)&&
+  /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/.test(homeDubbyCss)&&
+  /tscms-home-stats \.stat \.v/.test(homeDubbyCss));
+assert('Dubby promotional poster and original video backed by repository assets',
+  validAsset('public-assets/dubby-poster.jpg',10000)&&
+  validAsset('public-assets/dubby-promo.mp4',1000000)&&
+  /public-assets\/dubby-poster\.jpg/.test(homeDubbyJs)&&
+  /public-assets\/dubby-promo\.mp4/.test(homeDubbyJs));
+assert('Dubby referral link, coupon, disclosure and accessible playback controls',
+  /https:\/\/www\.dubby\.gg\/discount\/TSCMSLIVE\?ref=xdejzekt/.test(homeDubbyJs)&&
+  /Save 10%/.test(homeDubbyJs)&&/TSCMSLIVE/.test(homeDubbyJs)&&
+  /Affiliate partner/.test(homeDubbyJs)&&
+  /data-dubby-action=\\"play\\"/.test(homeDubbyJs)&&
+  /data-dubby-action=\\"pause\\"/.test(homeDubbyJs)&&
+  /data-dubby-action=\\"stop\\"/.test(homeDubbyJs)&&
+  /pauseOtherMedia/.test(homeDubbyJs)&&/preload=\\"metadata\\"/.test(homeDubbyJs));
+assert('Dubby independent CSS and control styles preserved',
+  /tscms-home-dubby/.test(homeDubbyCss)&&
+  /tscms-dubby-actions/.test(homeDubbyCss)&&
+  /tscms-dubby-shop/.test(homeDubbyCss));
+
+for(const [name,source] of [['tscms-muse-referral.js',museJs],['tscms-public-runtime.js',runtime],['tscms-quick-jump.js',quickJs],['tscms-home-dubby.js',homeDubbyJs]]) {
   let valid=true;
   try {new vm.Script(source,{filename:name});}catch(e){valid=false;}
   assert(name+' JavaScript syntax',valid);
