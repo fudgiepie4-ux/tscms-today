@@ -9,6 +9,7 @@
     if (!insertBefore) return;
 
     var items = [
+      {key:'admin', icon:'🔐', label:'Admin Sign In', href:'admin.html'},
       {key:'home', icon:'⌂', label:'Home'},
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
       {key:'videos', icon:'🎬', label:'Videos — Coming Soon', href:'videos.html'},
@@ -19,8 +20,8 @@
       {key:'loved', icon:'♥', label:'Most Loved'},
       {key:'spotlight', icon:'★', label:'Monthly Spotlight'}
     ];
-    // Admin is intentionally excluded. Its secure sign-in/access controls
-    // must be completed and approved before an Admin shortcut is added.
+    // The Admin shortcut is navigation to the protected login page only.
+    // Public navigation never grants Admin access or bypasses authentication.
     var bar = document.createElement('nav');
     bar.id='tscms-qj-bar';
     bar.className='tscms-qj-bar';
@@ -79,7 +80,7 @@
         var box=sections.dicey;
         return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' && getComputedStyle(box).display!=='none');
       }
-      if (key==='gamehouse' || key==='home' || key==='videos') return true;
+      if (key==='admin' || key==='gamehouse' || key==='home' || key==='videos') return true;
       if (key==='halloween') return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
       return !!sections[key];
     }
@@ -187,7 +188,7 @@
       var link=e.target.closest('.tscms-qj-link');
       if(!link)return;
       var key=link.dataset.target;
-      if(key==='gamehouse'||key==='videos'){closeMenu(false);return;} // External site pages use normal navigation.
+      if(key==='admin'||key==='gamehouse'||key==='videos'){closeMenu(false);return;} // Separate site pages use normal navigation.
       e.preventDefault();
       if(!isReady(key))return;
       closeMenu(false);
