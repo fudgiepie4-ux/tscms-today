@@ -11,6 +11,7 @@
     var items = [
       {key:'home', icon:'⌂', label:'Home'},
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
+      {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
       {key:'daily', icon:'♫', label:'Daily Songs'},
       {key:'weekly', icon:'▦', label:'Weekly Songs'},
@@ -65,6 +66,7 @@
     var lastFocus=null,oldOverflow='';
     var sections = {
       dicey:document.getElementById('diceSection'),
+      halloween:document.querySelector('.daypanel .halloween-pin-head'),
       loved:document.querySelector('.most-loved-autumn'),
       spotlight:document.getElementById('tscms-september-spotlight-2026'),
       weekly:document.querySelector('.tabs button.tab[data-day]')?.closest('.tabs') || null,
@@ -77,6 +79,7 @@
         return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' && getComputedStyle(box).display!=='none');
       }
       if (key==='gamehouse' || key==='home') return true;
+      if (key==='halloween') return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
       return !!sections[key];
     }
     function createLink(item, targetContainer) {
@@ -157,6 +160,23 @@
         if(dayButton && typeof window.showDay==='function')window.showDay(Number(dayButton.dataset.day));
         scrollToElement(sections.daily);return;
       }
+      if(key==='halloween'){
+        var pin=sections.halloween;
+        var halloweenPanel=pin && pin.closest('.daypanel[id^="day-"]');
+        if(!halloweenPanel)return;
+        var day=Number(halloweenPanel.id.slice(4));
+        if(typeof window.showDay==='function')window.showDay(day);
+        // If someone is already on the Halloween day but on a later song page,
+        // return to its first page before scrolling to the pinned collection.
+        var prev;
+        for(var n=0;n<35;n++){
+          prev=halloweenPanel.querySelector('.song-pager--top button[aria-label="Previous page of songs"]');
+          if(!prev || prev.disabled)break;
+          prev.click();
+        }
+        requestAnimationFrame(function(){scrollToElement(pin);});
+        return;
+      }
       if(key==='weekly'){scrollToElement(sections.weekly);return;}
       if(key==='loved'){scrollToElement(sections.loved);return;}
       if(key==='spotlight'){scrollToElement(sections.spotlight);return;}
@@ -177,6 +197,18 @@
     if(sections.dicey && window.MutationObserver){
       var observer=new MutationObserver(syncAvailable);
       observer.observe(sections.dicey,{attributes:true,attributeFilter:['hidden','aria-hidden','style']});
+    }
+    // Permanent Halloween shortcut beside the date tabs. It does not duplicate
+    // songs or audio; it activates the day containing the existing pinned set.
+    if(isReady('halloween') && sections.daily && !document.getElementById('tscms-halloween-jump')){
+      var halloweenButton=document.createElement('button');
+      halloweenButton.type='button';
+      halloweenButton.id='tscms-halloween-jump';
+      halloweenButton.className='tscms-halloween-jump';
+      halloweenButton.setAttribute('aria-label','Open Halloween Favorites playlist');
+      halloweenButton.innerHTML='<span class="halloween-pumpkin" aria-hidden="true">🎃</span><span class="halloween-words"><strong>HALLOWEEN PLAYLIST</strong><small>Open Halloween favorites from any day</small></span><span class="halloween-arrow" aria-hidden="true">›</span>';
+      sections.daily.parentNode.insertBefore(halloweenButton,sections.daily);
+      halloweenButton.addEventListener('click',function(){jump('halloween');});
     }
     syncAvailable();
   }
