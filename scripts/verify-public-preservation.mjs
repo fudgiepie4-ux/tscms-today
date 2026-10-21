@@ -197,9 +197,15 @@ assert('Western Drive-In uses only original 20-minute audio and on-off control',
 assert('Western Drive-In consent and actual-video-only rules remain visible',
   /Read the Full Video Submission Terms/.test(driveIn)&&/id="agree"/.test(driveIn)&&
   /ACTUAL VIDEO FILES ONLY/.test(driveIn)&&!/Video Link \(Optional\)/.test(driveIn));
-assert('Western Drive-In public pre-release buttons remain locked pending consent service',
-  /email\.disabled=messenger\.disabled=true/.test(driveIn)&&
-  /SUBMISSIONS NOT YET OPEN/.test(driveIn));
+assert('Western Drive-In email-only activation requires completed form and checkbox, with no Messenger',
+  /email\.disabled=!ready/.test(driveIn)&&
+  /const ready=consent\.checked&&fields\.every/.test(driveIn)&&
+  /mailto:fudgiepie4@gmail\.com\?subject=/.test(driveIn)&&
+  /TSCMS Drive-In Submission/.test(driveIn)&&
+  /IMPORTANT: attach your video file/.test(driveIn)&&
+  /AGREEMENT CONFIRMED BY CHECKBOX/.test(driveIn)&&
+  /id="send-email"/.test(driveIn)&&
+  !/Messenger|messenger|m\.me\//.test(driveIn));
 
 for(const [name,source] of [['tscms-muse-referral.js',museJs],['tscms-public-runtime.js',runtime],['tscms-quick-jump.js',quickJs],['tscms-home-dubby.js',homeDubbyJs]]) {
   let valid=true;
