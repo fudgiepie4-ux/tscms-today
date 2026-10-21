@@ -112,10 +112,10 @@ assert('Dubby referral link, coupon, disclosure and accessible playback controls
   /https:\/\/www\.dubby\.gg\/discount\/TSCMSLIVE\?ref=xdejzekt/.test(homeDubbyJs)&&
   /Save 10%/.test(homeDubbyJs)&&/TSCMSLIVE/.test(homeDubbyJs)&&
   /Affiliate partner/.test(homeDubbyJs)&&
-  /data-dubby-action=\\"play\\"/.test(homeDubbyJs)&&
-  /data-dubby-action=\\"pause\\"/.test(homeDubbyJs)&&
-  /data-dubby-action=\\"stop\\"/.test(homeDubbyJs)&&
-  /pauseOtherMedia/.test(homeDubbyJs)&&/preload=\\"metadata\\"/.test(homeDubbyJs));
+  /data-dubby-action="play"/.test(homeDubbyJs)&&
+  /data-dubby-action="pause"/.test(homeDubbyJs)&&
+  /data-dubby-action="stop"/.test(homeDubbyJs)&&
+  /pauseOtherMedia/.test(homeDubbyJs)&&/preload="metadata"/.test(homeDubbyJs));
 assert('Dubby independent CSS and control styles preserved',
   /tscms-home-dubby/.test(homeDubbyCss)&&
   /tscms-dubby-actions/.test(homeDubbyCss)&&
