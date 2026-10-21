@@ -127,6 +127,9 @@
     diceLog('roll',p);
   }
   window.diceRoll=function () {
+    if (window.TSCMSDiceyUpgrade && typeof window.TSCMSDiceyUpgrade.roll === 'function') {
+      return window.TSCMSDiceyUpgrade.roll(dicePool, {getSeen:getSeen,saveSeen:saveSeen,updateCount:updateCount,diceLog:diceLog});
+    }
     if (rolling||!dicePool.length) return;
     rolling=true;
     var button=el('diceBtn'); button.disabled=true;
@@ -160,6 +163,21 @@
         section.hidden=false;
         section.removeAttribute('aria-hidden');
         section.style.removeProperty('display');
+        /* Protected Dicey upgrade: isolated CSS and JS, loaded only for a verified
+           Facebook-post discovery pool. Legacy Dicey remains the fallback. */
+        if (!document.querySelector('[data-dicey-v3-css]')) {
+          var css=document.createElement('link');
+          css.rel='stylesheet';css.href='tscms-dicey-autumn-v3.css?v=20261021';
+          css.setAttribute('data-dicey-v3-css','');
+          css.onload=function () {
+            if (document.querySelector('[data-dicey-v3-js]')) return;
+            var js=document.createElement('script');
+            js.src='tscms-dicey-autumn-v3.js?v=20261021';
+            js.setAttribute('data-dicey-v3-js','');
+            document.head.appendChild(js);
+          };
+          document.head.appendChild(css);
+        }
       })
       .catch(function (e) { console.warn('Dicey remains hidden until its post pool is available',e); });
   }

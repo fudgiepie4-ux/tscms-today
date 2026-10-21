@@ -51,6 +51,24 @@ assert('Gamehouse Play Now + PUBLIC gold styles in safe CSS',/\.saloon-playnow\{
 assert('Quick Jump drawer + Home/Gamehouse routes',/tscms-qj-drawer/.test(quickJs)&&/href:'gamehouse\.html'/.test(quickJs)&&/tscms-qj-drawer/.test(quickCss));
 assert('Personal Note letter preserved in external public runtime',/tscms-personal-note/.test(runtime)&&/tnLetter/.test(runtime));
 assert('Dicey protected runtime intact',/diceCount/.test(runtime)&&/dicePool/.test(runtime));
+const diceSkin=read('tscms-dicey-autumn-v3.css');
+const diceLogic=read('tscms-dicey-autumn-v3.js');
+assert('Dicey standalone style + code preserved',
+  /dicey-autumn-v3/.test(diceSkin)&&/dicey-v3-cards/.test(diceSkin)&&
+  /dicey-v3-visit/.test(diceSkin)&&/TSCMSDiceyUpgrade/.test(diceLogic));
+assert('Dicey isolated loaders retained in protected runtime',
+  /data-dicey-v3-css/.test(runtime)&&/data-dicey-v3-js/.test(runtime)&&
+  /TSCMSDiceyUpgrade\.roll\(dicePool/.test(runtime));
+assert('Dicey single Facebook action with full text and new-tab safety',
+  /'❤️ VISIT FACEBOOK POST'/.test(diceLogic)&&
+  /link\.href=p\.post_url/.test(diceLogic)&&/noopener noreferrer/.test(diceLogic)&&
+  !/createElement\(['"]audio['"]\)/.test(diceLogic));
+assert('Dicey outcome-first crypto + distinct doubles retained',
+  /cryptoSource\.getRandomValues/.test(diceLogic)&&
+  /doublesFaces=\[dieFace\(\),dieFace\(\)\]/.test(diceLogic)&&
+  /selectSongs\(pool,doubles\?2:1/.test(diceLogic)&&
+  /used\.add\(voice\)/.test(diceLogic));
+
 assert('Monthly Spotlight runtime/markup retained',/tscms-september-spotlight-2026/.test(index)||/tscms-september-spotlight-2026/.test(runtime));
 assert('Radio player runtime preserved',/tscms-song-player/.test(runtime)&&/dayPlay/.test(runtime));
 assert('Daily song pagination preserved',/song-page-btn/.test(siteJs)&&/window\.showDay/.test(siteJs));
