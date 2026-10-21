@@ -1,3 +1,5 @@
+> **OWNER UPDATE — October 21, 2026 (CT): RESPONSIBLE ONE-PASS TESTING.** Fudgie approved preparation and focused continuation of Phase 1, but not new public test hosting, production Firebase/key writes or live deployment. The authoritative **short critical-path checklist** is [ADMIN-PHASE1-ONE-PASS-EXECUTION-20261021.md](ADMIN-PHASE1-ONE-PASS-EXECUTION-20261021.md). Previously passing tests listed below are CLOSED absent relevant code changes or a reproducible failure. Do not repeatedly test already-proven behavior to discover hypothetical bugs. A single real combined browser pass, server-side role/cutoff rehearsal, verified production bundle parity, and one release smoke check are the remaining gates; fix only demonstrated failures and rerun only impacted checks. This longer Oct 20 plan remains available for traceability; it is not a mandate to rerun every item.
+
 # TSCMS Admin sign-ins — Phase 1 release-prep QA gate
 **Status: PREPARING · STAGING ONLY · Not approved for deployment**  
 20 October 2026 (CT). Owned by Clara (dual-mode Admin frontend) + Cherish (encrypted dataset and Firebase rules) + Fudgie (all release decisions).
