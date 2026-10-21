@@ -290,3 +290,31 @@ function mountAutumnNavigation(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountAutumnNavigation);
 else mountAutumnNavigation();
 })();
+
+
+/* TSCMS protected home Dubby module bootloader, October 2026 */
+(function(){
+  'use strict';
+  function loadHomeDubby(){
+    var wrap=document.querySelector('.wrap');
+    if(!wrap||!wrap.querySelector('.stats')||!wrap.querySelector('.yt-banner')||!wrap.querySelector('.feat'))return;
+    if(document.querySelector('link[data-tscms-preserved="home-dubby-style"]'))return;
+    var style=document.createElement('link');
+    style.rel='stylesheet';
+    style.href='./tscms-home-dubby.css?v=20261021-1';
+    style.setAttribute('data-tscms-preserved','home-dubby-style');
+    style.onload=function(){
+      if(document.querySelector('script[data-tscms-preserved="home-dubby"]'))return;
+      var script=document.createElement('script');
+      script.src='./tscms-home-dubby.js?v=20261021-1';
+      script.setAttribute('data-tscms-preserved','home-dubby');
+      script.async=true;
+      script.onerror=function(){console.warn('TSCMS Sponsor TV module unavailable; existing statistics remain in place.');};
+      document.head.appendChild(script);
+    };
+    style.onerror=function(){console.warn('TSCMS Sponsor TV styles unavailable; existing homepage layout preserved.');};
+    document.head.appendChild(style);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadHomeDubby,{once:true});
+  else loadHomeDubby();
+})();
