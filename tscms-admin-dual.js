@@ -250,6 +250,7 @@ async function personalLogin(user){
     throw {code:"permission-denied"};
   }
   firebaseApproved=true;
+  document.title="TSCMS Admin — Control Room";
   gate.style.display="none";adminBody.style.display="block";
   if(typeof window.zi==="function")window.zi(data.danger,data.generated);
   if(typeof window.ziIssues==="function")window.ziIssues(data.flags||[]);
@@ -295,7 +296,7 @@ async function showOwnerApprovals(ownerUid){
     if(previous.button.isConnected){
       previous.button.classList.remove("tc-revoke-armed");
       previous.button.textContent="Revoke";
-      previous.button.removeAttribute("aria-label");
+      previous.button.setAttribute("aria-label",previous.button.dataset.idleAriaLabel||"Revoke access");
     }
   }
   // A tap/click anywhere else, a scroll, a tab switch or a re-render cancels.
@@ -382,6 +383,8 @@ async function showOwnerApprovals(ownerUid){
         const revoke=document.createElement("button");
         revoke.type="button";
         revoke.textContent="Revoke";
+        revoke.dataset.idleAriaLabel="Revoke access for "+(data.fullName||data.username||"this person");
+        revoke.setAttribute("aria-label",revoke.dataset.idleAriaLabel);
         revoke.addEventListener("click",()=>{
           if(armedRevoke && armedRevoke.button===revoke &&
               armedRevoke.profileId===profile.id && Date.now()<=armedRevoke.expiresAt){
