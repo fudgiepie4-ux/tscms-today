@@ -82,4 +82,19 @@ test('13 Search preview page remains separate from production homepage',()=>{
   assert.ok(html.includes('tscms-public-runtime.js'));
   assert.ok(html.includes('aria-live="polite"'));
 });
+
+test('14 browser code normalizes search text and apostrophes',()=>{
+  const browser=fs.readFileSync('tscms-search.js','utf8');
+  assert.ok(browser.includes("function searchKey(text)"));
+  assert.ok(browser.includes("function matchesQuery(song,queryKey)"));
+  assert.ok(browser.includes("const q=searchKey(input.value)"));
+  assert.ok(browser.includes("songs.filter(s=>matchesQuery(s,q))"));
+});
+test('15 browser results show original title and friendly week',()=>{
+  const browser=fs.readFileSync('tscms-search.js','utf8');
+  assert.ok(browser.includes("title.textContent=song.title"));
+  assert.ok(browser.includes("meta.textContent=song.artist+' · Week of '+friendlyWeek(song.week)"));
+  assert.ok(browser.includes("timeZone:'UTC'"));
+});
+
 console.log('TSCMS Search seed + grow: '+passes.length+'/'+passes.length+' PASS');
