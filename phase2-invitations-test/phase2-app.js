@@ -7,7 +7,7 @@ import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,
 import {getFirestore,doc,collection,getDocFromServer,writeBatch,setDoc,updateDoc,
   getDocs,onSnapshot,serverTimestamp,Timestamp} from
   'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
-import {firebaseConfig} from './firebase-test-config.js';
+import {firebaseConfig,approvedTestRecipients} from './firebase-test-config.js';
 import {assertTestOnly,normalizeEmail,inviteToken,recipientCanClaim,pendingProfile,safeInviteUrl,TTL_MS} from './phase2-core.mjs';
 const $=id=>document.getElementById(id);
 const status=(s)=>{$('status').textContent=s;};
@@ -21,6 +21,12 @@ await setPersistence(ownerAuth,browserLocalPersistence);
 await setPersistence(recipientAuth,inMemoryPersistence);
 const token=(new URLSearchParams(location.hash.slice(1))).get('invite')||'';
 const isInvite=/^[A-Za-z0-9_-]{43}$/.test(token);
+function requireTestRecipient(address){
+  const email=normalizeEmail(address);
+  if(!Array.isArray(approvedTestRecipients) || !approvedTestRecipients.includes(email))
+    throw new Error('TEST destination not allowlisted');
+  return email;
+}
 let stopOwnerFeed=null;
 let ownerRequest=0;
 function stopFeed(){if(stopOwnerFeed){stopOwnerFeed();stopOwnerFeed=null;}}
@@ -107,7 +113,7 @@ $('invite-form').addEventListener('submit',async ev=>{
   const user=ownerAuth.currentUser;
   try{
     if(!await authorizedOwner(user))throw Error('Owner no longer approved');
-    const email=normalizeEmail($('invite-email').value);
+    const email=requireTestRecipient($('invite-email').value);
     const id=inviteToken(crypto);
     await setDoc(doc(db,'invitations',id),{email,createdBy:user.uid,status:'issued',
       createdAt:serverTimestamp(),lastSentAt:serverTimestamp(),resendCount:0,
@@ -126,7 +132,7 @@ $('request-email').addEventListener('submit',async ev=>{
   ev.preventDefault();
   try{
     if(!isInvite)throw Error('Invalid invitation');
-    const email=normalizeEmail($('recipient-email').value);
+    const email=requireTestRecipient($('recipient-email').value);
     if(isSignInWithEmailLink(recipientAuth,location.href)){
       const user=(await signInWithEmailLink(recipientAuth,email,location.href)).user;
       await reload(user);await getIdToken(user,true);
