@@ -12,7 +12,7 @@
       {key:'admin', icon:'🔐', label:'Admin Sign In', href:'admin.html'},
       {key:'home', icon:'⌂', label:'Home'},
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
-      {key:'videos', icon:'🎬', label:'Videos — Coming Soon', href:'videos.html'},
+      {key:'videos', icon:'🎬', label:'Submit Your Music Video — Now Open', href:'videos.html'},
       {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
       {key:'daily', icon:'♫', label:'Daily Songs'},
