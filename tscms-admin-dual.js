@@ -259,7 +259,11 @@ async function personalLogin(user){
   logout.textContent="Sign Out";
   logout.className="tc-signout";
   logout.addEventListener("click",()=>{void endPersonalSession();});
-  adminBody.prepend(logout);
+  // Put Sign Out beside the shared Return to Public Homepage link.
+  // The link itself is plain navigation: it never signs out or mutates the session.
+  const roomExitTop=document.getElementById("tc-room-exit-top");
+  if(roomExitTop)roomExitTop.appendChild(logout);
+  else adminBody.prepend(logout);
   if(profile.owner===true)await showOwnerApprovals(user.uid);
   // Put the login confirmation above approvals and Sign Out so nobody
   // mistakes the Owner inbox for their own approval status.
