@@ -1,0 +1,24 @@
+name: TSCMS Phase 2 Invitations TEST-ONLY Preflight
+on:
+  pull_request:
+    paths:
+      - 'phase2-invitations-test/**'
+      - 'scripts/test-phase2-invites.cjs'
+      - '.github/workflows/phase2-invites-test.yml'
+  workflow_dispatch:
+jobs:
+  isolated-preflight:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate invitation helper and source test-only guard
+        run: |
+          node --check phase2-invitations-test/phase2-core.mjs
+          node --check phase2-invitations-test/phase2-app.js
+          node --check phase2-invitations-test/tscms-admin-dual-phase2-TEST.js
+          node scripts/test-phase2-invites.cjs
