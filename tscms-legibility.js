@@ -100,9 +100,12 @@
     installControl();
     collectAndApply();
     const watcher=new MutationObserver(events=>{
-      if(events.some(e=>e.type==='childList'))schedule();
+      // Pager, card, menu and form visibility can change after initial paint.
+      // Ignore our own font-size style writes so this never loops.
+      if(events.some(e=>e.type==='childList'||e.type==='attributes'))schedule();
     });
-    watcher.observe(document.body,{subtree:true,childList:true});
+    watcher.observe(document.body,{subtree:true,childList:true,attributes:true,
+      attributeFilter:['hidden','class','aria-hidden']});
     let lastWidth=window.innerWidth;
     window.addEventListener('resize',()=>{
       if(window.innerWidth===lastWidth)return;
