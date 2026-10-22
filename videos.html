@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#1b0d17">
 <meta name="description" content="Help TSCMS prepare for Monday Music Video Night and the Western Drive-In. Artist music video submissions are now open by email.">
-<title>TSCMS Western Drive-In — Submit Your Music Video by Email</title>
+<title>Submit Your Music Video — Now Open | TSCMS Western Drive-In</title>
 <style>
 :root{--hero:url('assets/drive-in/western-drive-in.jpg');--title:url('assets/drive-in/submit-title.jpg');--sides:url('assets/drive-in/wood-sides.jpg');--gold:#fddc89;--rust:#8e321b;--paper:#ffe6ba;--dark:#1b1211;color-scheme:dark}
 *{box-sizing:border-box}
@@ -40,6 +40,12 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
 .paper-header{text-align:center;color:#513018;margin:0 0 14px;font-size:clamp(17px,2vw,23px);line-height:1.4;font-weight:500}
 .file-warning{display:flex;gap:12px;align-items:center;margin:16px auto 22px;padding:12px;background:#fff1d2;border:2px solid #ae7a2f;border-left:6px solid #9c321c;border-radius:9px;font-family:system-ui,sans-serif;font-size:13px;line-height:1.5;color:#3c2719}
 .file-warning .film{font-size:31px;flex-shrink:0}.file-warning strong{display:block;font-size:15px;color:#822219}
+.file-rule{margin:10px 0 0;font-weight:600}
+.submit-steps{margin:14px auto 18px;padding:15px 17px;border:2px solid #b17d37;border-radius:10px;background:#fff8e9;color:#3e2918;font:15px/1.5 system-ui,sans-serif}
+.submit-steps h2{margin:0 0 11px;font:bold clamp(17px,2vw,21px)/1.35 Georgia,serif;color:#6e3217}
+.submit-steps p{margin:8px 0}
+.submit-steps-warning{margin-top:12px!important;padding:10px 12px;border-left:4px solid #a92c1c;background:#ffe9d0;font-weight:650}
+@media(max-width:400px){.submit-steps{padding:12px 10px;font-size:14px}.submit-steps-warning{padding:9px}}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:15px 21px}
 .field{display:flex;flex-direction:column;gap:7px}
 .field-wide{grid-column:1/-1}
@@ -118,12 +124,18 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
     <div><b>🌙 Night Sounds: <span id="sound-choice">ON · awaiting tap</span></b><span id="sound-description">Your 20-minute night recording · tap anywhere to start on mobile</span></div>
     <button id="sound-toggle" type="button" aria-pressed="true">Switch OFF</button>
   </div>
-  <div class="mobile-submit-title">★ SUBMIT YOUR MUSIC VIDEO ★</div>
-  <div class="title-wood" role="heading" aria-level="1" aria-label="Submit your music video"></div>
+  <div class="mobile-submit-title">Submit Your Music Video — Now Open</div>
+  <div class="title-wood" role="heading" aria-level="1" aria-label="Submit Your Music Video — Now Open"></div>
   <main class="form-world" id="submit-video">
     <div class="paper">
-      <p class="paper-header">The theater is coming soon — but we're gathering the lineup now!<br>Help fill the screen with our community's music videos.</p>
-      <div class="file-warning"><span class="film" aria-hidden="true">🎞️</span><div><strong>ACTUAL VIDEO FILES ONLY — NO VIDEO LINKS</strong>Email your original <b>MP4 or MOV file</b> as an attachment. YouTube, Facebook, and Suno links are not accepted as video submissions. Email attachments work best below approximately 25 MB; limits vary by email app.</div></div>
+      <p class="paper-header"><strong>Submit Your Music Video — Now Open</strong><br>The theater night is coming soon — but video submissions are open right now.</p>
+      <div class="file-warning"><span class="film" aria-hidden="true">🎞️</span><div><strong>ACTUAL VIDEO FILES ONLY — NO VIDEO LINKS</strong>Email your original <b>MP4 or MOV file</b> as an attachment. YouTube, Facebook, and Suno links are not accepted as video submissions. Email attachments work best below approximately 25 MB; limits vary by email app.<p class="file-rule">Video files only (MP4 or MOV) — please don't send YouTube or Suno links; they can't be played at the theater.</p></div></div>
+      <section class="submit-steps" aria-labelledby="submit-steps-title">
+        <h2 id="submit-steps-title">How to send your video (2 easy steps)</h2>
+        <p><strong>Step 1.</strong> Fill in the short form below and tick the agreement box.</p>
+        <p><strong>Step 2.</strong> Your email app will open with everything filled in for you. <strong>Attach your video file</strong> — tap the paperclip 📎 and pick your video — then tap <strong>Send</strong>.</p>
+        <p class="submit-steps-warning">⚠️ <em>Before you tap Send, look for the paperclip 📎 on your email. If there's no paperclip, your video isn't attached yet.</em></p>
+      </section>
       <form id="video-form" novalidate>
         <div class="fields">
           <div class="field"><label for="artist">♟ Artist / Member Name <span class="req">*</span></label><input id="artist" name="artist" type="text" autocomplete="name" maxlength="100" required placeholder="Your name as it appears in TSCMS"></div>
@@ -140,7 +152,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
           </div>
           <p class="terms-hint" id="terms-hint">You must complete the form and check the permission box before continuing.</p>
         </section>
-        <div class="send-head">★ CHOOSE HOW TO SEND YOUR VIDEO ★</div>
+        <div class="send-head">SEND YOUR VIDEO</div>
         <div class="send-grid">
           <button class="send-btn" type="button" id="send-email" disabled><span aria-hidden="true">✉</span>SEND BY EMAIL<small id="email-status">Complete the form &amp; agreement first.</small></button>
         </div>
