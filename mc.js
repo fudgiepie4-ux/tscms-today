@@ -344,7 +344,7 @@ function mcLoadDiceyStats(){
       timeZone:'America/Chicago'
     });
     var hoursOld=(Date.now()-time)/3600000;
-    var freshness=hoursOld>12?'Historical snapshot':'Verified snapshot';
+    var freshness=hoursOld>12?'Historical snapshot':'Dicey feed snapshot';
     status.textContent=freshness+' from Dicey statistics feed · '+snapshot+' CT. Figures reflect the recorded period, not guaranteed live activity.';
   }).catch(function(){renderUnavailable();});
 }
