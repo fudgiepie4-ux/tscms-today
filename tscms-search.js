@@ -57,7 +57,8 @@
       const weeks=[...new Set(songs.map(s=>s.week))].sort();
       // Derive coverage from records, not from unverified, possibly stale descriptive fields.
       coverage.textContent='Verified station-week archive: '+weeks[0]+' through '+weeks[weeks.length-1]+
-        ' · '+weeks.length+' '+(weeks.length===1?'week':'weeks')+' represented. This is not a full six-week history until the archive grows.';
+        ' · '+weeks.length+' '+(weeks.length===1?'week':'weeks')+' represented.'+
+        (weeks.length<7?' The rolling archive is still growing toward the current week plus the previous six.':'');
       render();
     }).catch(()=>{
       clear();
