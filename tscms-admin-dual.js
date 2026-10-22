@@ -203,6 +203,7 @@ async function endPersonalSession(){
   adminBody.style.display="none";
   adminBody.replaceChildren();
   gate.style.display="block";
+  document.title="TSCMS Admin — Staff Sign In";
   try{await signOut(auth);}catch(_){}
   // Clearing the JS heap by reloading is essential after using a raw v2 key.
   window.location.reload();
@@ -250,6 +251,7 @@ async function personalLogin(user){
     throw {code:"permission-denied"};
   }
   firebaseApproved=true;
+  document.title="TSCMS Admin — Control Room";
   gate.style.display="none";adminBody.style.display="block";
   if(typeof window.zi==="function")window.zi(data.danger,data.generated);
   if(typeof window.ziIssues==="function")window.ziIssues(data.flags||[]);
@@ -295,7 +297,7 @@ async function showOwnerApprovals(ownerUid){
     if(previous.button.isConnected){
       previous.button.classList.remove("tc-revoke-armed");
       previous.button.textContent="Revoke";
-      previous.button.removeAttribute("aria-label");
+      previous.button.setAttribute("aria-label",previous.button.dataset.idleAriaLabel||"Revoke access");
     }
   }
   // A tap/click anywhere else, a scroll, a tab switch or a re-render cancels.
@@ -370,6 +372,8 @@ async function showOwnerApprovals(ownerUid){
           ["Reject",{status:"rejected",admin:false}]
         ]){
           const button=document.createElement("button");button.textContent=text;
+          button.type="button";
+          button.setAttribute("aria-label",text+" "+(data.fullName||data.username||"this person"));
           button.addEventListener("click",()=>{
             const identityConfirmed=text!=="Approve" || window.confirm(
               "Have you personally contacted and verified "+(data.fullName||data.username||"this person")+
@@ -382,6 +386,8 @@ async function showOwnerApprovals(ownerUid){
         const revoke=document.createElement("button");
         revoke.type="button";
         revoke.textContent="Revoke";
+        revoke.dataset.idleAriaLabel="Revoke access for "+(data.fullName||data.username||"this person");
+        revoke.setAttribute("aria-label",revoke.dataset.idleAriaLabel);
         revoke.addEventListener("click",()=>{
           if(armedRevoke && armedRevoke.button===revoke &&
               armedRevoke.profileId===profile.id && Date.now()<=armedRevoke.expiresAt){
@@ -393,7 +399,7 @@ async function showOwnerApprovals(ownerUid){
           disarmRevoke();
           const identity=data.fullName||data.username||"this person";
           revoke.textContent="Tap again to REVOKE "+identity;
-          revoke.setAttribute("aria-label",revoke.textContent);
+          revoke.setAttribute("aria-label","Tap again to revoke access for "+identity);
           revoke.classList.add("tc-revoke-armed");
           const expiresAt=Date.now()+5000;
           const timer=setTimeout(disarmRevoke,5000);
@@ -404,6 +410,7 @@ async function showOwnerApprovals(ownerUid){
         const restore=document.createElement("button");
         restore.type="button";
         restore.textContent="Restore access";
+        restore.setAttribute("aria-label","Restore access for "+(data.fullName||data.username||"this person"));
         restore.addEventListener("click",()=>{
           const identity=data.fullName||data.username||"this person";
           if(window.confirm(
