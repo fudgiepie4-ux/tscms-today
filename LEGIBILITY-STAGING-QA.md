@@ -16,3 +16,8 @@ Stage changes: isolated `tscms-legibility.js` scans real visible text-bearing el
 - Run `node scripts/test-public-legibility.cjs` and protected-feature CI.
 
 **Known QA limitation:** Static Node unit tests alone do not prove no clipping/overlap on real phones. If any layout conflict appears, revise the scoped legibility layer on THIS PR only, rerun tests, and return for Fudgie's approval. **Do not merge before Search PR #23 publishes AND the Owner approves.**
+
+## Oct 22 15:19 CT: Fudgie's phone-approved subtle boldness (STAGING)
+Fudgie tried a test page using the PR JavaScript and approved the exact paint-only look. While Larger Text is **ON**, items with ORIGINAL font size <=14px gain *only* left/right `0.28px` `currentColor` text shadows; no `font-weight`, `letter-spacing`, transform, width, element box, or reflow changes. OFF removes the enhancement and restores the prior original inline text-shadow. Large text >14px locks its previous computed shadow so inherited shadows never make 18px+ headings look bolder. The already approved font size floor and toggle sizes are unchanged. Cherish must re-check the exact amount/zero reflow plus real rendered mobile ON-state matrix. **Do not publish #25 until separate Fudgie phone pass and explicit release tap.**
+
+**Integration caution:** PR #24 terms also changes videos.html. Preserve both after whichever PR releases first. Search #23 has now merged; this satisfies ONLY the earlier ordering dependency, NOT the remaining phone QA or Owner publication approval.
