@@ -1,4 +1,28 @@
-function mcToggle(id){document.getElementById(id).classList.toggle('open');}
+function mcToggle(id){
+  var mod=document.getElementById(id);if(!mod)return;
+  var expanded=mod.classList.toggle('open');
+  var button=document.getElementById(id+'-toggle');
+  var panel=document.getElementById(id+'-panel');
+  if(button)button.setAttribute('aria-expanded',String(expanded));
+  if(panel)panel.hidden=!expanded;
+}
+function mcJumpToPanel(id){
+  var button=document.getElementById(id+'-toggle');
+  if(button){button.focus();button.scrollIntoView({block:'start'});}
+  return false;
+}
+function mcAnnounceQueue(message){
+  var live=document.getElementById('mc-queue-live');
+  if(live)live.textContent=message;
+}
+function mcQueueSizeKey(event){
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
+  event.preventDefault();
+  var current=document.getElementById('mc-q10').getAttribute('aria-checked')==='true'?10:5;
+  var next=event.key==='Home'?5:event.key==='End'?10:current===5?10:5;
+  zq(next);
+  document.getElementById(next===5?'mc-q5':'mc-q10').focus();
+}
 /* DANGER ZONE working queue — personal frontend checklist, 5/10 toggle */
 var ZD=[];var ZS=5;var ZN={};var ZV=[];var ZG=null;
 try{ZN=JSON.parse(sessionStorage.getItem('dz_done')||'{}');}catch(e){ZN={};}
@@ -6,7 +30,13 @@ function zs(){try{sessionStorage.setItem('dz_done',JSON.stringify(ZN));}catch(e)
 function zq(n){ZS=n;
 document.getElementById('mc-q5').classList.toggle('active',n===5);
 document.getElementById('mc-q10').classList.toggle('active',n===10);
-zFill();zr();}
+  [['mc-q5',n===5],['mc-q10',n===10]].forEach(function(pair){
+    var btn=document.getElementById(pair[0]);if(!btn)return;
+    btn.setAttribute('aria-checked',String(pair[1]));btn.tabIndex=pair[1]?0:-1;
+  });
+zFill();zr();
+mcAnnounceQueue('Now showing '+ZV.length+' posts.');
+}
 function zi(dangerData,generated){
 ZG=typeof generated==='string'?generated:null;
 ZD=(dangerData||[]).slice().sort(function(a,b){return (b.wait_h||0)-(a.wait_h||0);});
@@ -45,20 +75,35 @@ var pid=String(e.url||'#').split('/permalink/').pop().replace(/\/$/,'');
 var tier=Array.isArray(e.tier)?e.tier[0]:e.tier;
 var done=!!ZN[e.url];
 var age=zFriendlyAge(e.wait_h);
+var author=String(e.author||'Member not recorded');
+var urlId=/^\d+$/.test(pid)?pid:'';
+var shortId=urlId?'Post …'+urlId.slice(-8):'Post ID not recorded';
+var title=String(e.title||e.song_title||'').trim();
+var rowLabel=author+', '+age.display+', mark done'+(urlId?', post '+urlId:'');
+var linkLabel='Open Facebook post '+(urlId||'with unrecorded ID')+' by '+author;
 return '<div class="erow'+(done?' done':'')+'">'+
-'<label class="dz-check"><input type="checkbox"'+(done?' checked':'')+' onchange="zt(\''+String(e.url).replace(/'/g,"\\'")+'\',this.checked)"><span>\u2713</span></label>'+
-'<div class="emain"><div class="et">'+escHtml(e.author)+'</div>'+
+'<label class="dz-check"><input type="checkbox" aria-label="'+escHtml(rowLabel)+'"'+(done?' checked':'')+' onchange="zt(\''+String(e.url).replace(/'/g,"\\'")+'\',this.checked)"><span aria-hidden="true">\u2713</span></label>'+
+'<div class="emain"><div class="et">'+escHtml(author)+'</div>'+
+'<span class="mc-postid">'+escHtml(shortId)+'</span>'+
+'<span class="mc-post-title">'+(title?escHtml(title):'Title not recorded')+'</span>'+
 '<div class="etier">'+escHtml(tier)+'</div></div>'+
 '<div class="ehrs" title="'+escHtml(age.detail)+'">'+escHtml(age.display)+'</div>'+
-'<a class="epill" href="'+FB+escHtml(pid)+'" target="_blank">OPEN POST \u2197</a></div>';
+'<a class="epill" href="'+FB+escHtml(pid)+'" target="_blank" aria-label="'+escHtml(linkLabel)+'">OPEN POST \u2197</a></div>';
 }).join('')||'<div class="mc-empty">All clear — nothing waiting.</div>';
 var msg=document.getElementById('mc-danger-msg');
 if(msg){var remaining=ZD.filter(function(e){return !ZN[e.url];}).length;
 msg.textContent=remaining===0?'Queue clear! All eligible posts worked this session.':'';}}
 function zt(url,checked){
 // Mark Done: entry STAYS visible, appears checked. Removed only on Refresh.
+var active=document.activeElement;
+var restoreFocus=!!(active&&active.matches&&active.matches('.dz-check input'));
 if(checked){ZN[url]=1;}else{delete ZN[url];}
-zs();zr();}
+zs();zr();
+if(restoreFocus){
+  var index=ZV.findIndex(function(e){return e.url===url;});
+  var boxes=document.querySelectorAll('#mc-danger-list .dz-check input');
+  if(index>=0&&boxes[index])boxes[index].focus();
+}}
 function zf(){
 // Refresh: drop checked from visible batch, fill with next oldest eligible
 var kept=ZV.filter(function(e){return !ZN[e.url];});
@@ -66,6 +111,7 @@ var inBatch={};kept.forEach(function(e){inBatch[e.url]=1;});
 var avail=ZD.filter(function(e){return !ZN[e.url]&&!inBatch[e.url];});
 ZV=kept.concat(avail.slice(0,ZS-kept.length));
 zr();
+mcAnnounceQueue('Queue refreshed. Now showing '+ZV.length+' posts.');
 var msg=document.getElementById('mc-danger-msg');
 var remaining=ZD.filter(function(e){return !ZN[e.url];}).length;
 if(msg){
@@ -300,7 +346,7 @@ function mcMarkDataCoverage(generated){
     var heading=mod.querySelector('.mc-mhead .mc-name');
     if(!heading || !heading.parentNode)return;
     var existing=heading.parentNode.querySelector('.mc-card-dates');
-    if(!existing){existing=document.createElement('div');existing.className='mc-msub mc-card-dates';heading.parentNode.appendChild(existing);}
+    if(!existing){existing=document.createElement('span');existing.className='mc-msub mc-card-dates';heading.parentNode.appendChild(existing);}
     existing.style.cssText='font-size:11px;line-height:1.4;opacity:.9;margin-top:3px;white-space:normal';
     existing.textContent=coverage+' · '+updated;
   }
