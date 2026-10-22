@@ -61,7 +61,10 @@
     '#tscms-fb-contact b{color:#111;}',
     '#tscms-fb-err{display:none;margin:10px 0 0;padding:8px 10px;background:#fde8e8;border:2px solid #b00020;',
     'border-radius:8px;color:#7a0016;font:700 13px/1.4 system-ui,sans-serif;}',
-    '#tscms-fb-row{display:flex;gap:10px;margin-top:16px;}',
+    '#tscms-fb-send-helper{font:400 14px/1.45 system-ui,sans-serif;color:#252525;margin:12px 0 5px;}', 
+    '#tscms-fb-send-fallback{font:400 12.5px/1.5 system-ui,sans-serif;color:#444;margin:2px 0 6px;}',
+    '#tscms-fb-send-fallback a{color:#124bad;text-decoration:underline;overflow-wrap:anywhere;}',
+    '#tscms-fb-row{display:flex;gap:10px;margin-top:12px;}',
     '#tscms-fb-send{flex:1;background:#111;color:#ffd75e;border:2px solid #111;border-radius:8px;',
     'font:700 16px/1 system-ui,sans-serif;padding:12px;cursor:pointer;}',
     '#tscms-fb-send:hover,#tscms-fb-send:focus-visible{background:#ffd75e;color:#111;outline:3px solid #0b5fff;}',
@@ -191,6 +194,16 @@
     modal.appendChild(contact);
 
     modal.appendChild(el('div', { id: 'tscms-fb-err', role: 'alert' }));
+    var helper = el('p', { id: 'tscms-fb-send-helper', 'class': 'tscms-fb-send-helper' });
+    helper.appendChild(document.createTextNode('This opens your email app — tap '));
+    helper.appendChild(el('strong', null, 'Send'));
+    helper.appendChild(document.createTextNode(' to finish. Nothing reaches us until you tap Send.'));
+    modal.appendChild(helper);
+    var fallback = el('p', { id: 'tscms-fb-send-fallback', 'class': 'tscms-fb-send-fallback' });
+    fallback.appendChild(document.createTextNode('No email app set up? Write to us at '));
+    fallback.appendChild(el('a', { href: 'mailto:fudgiepie4@gmail.com' }, 'fudgiepie4@gmail.com'));
+    fallback.appendChild(document.createTextNode(' — tell us what you found, and what page you were on.'));
+    modal.appendChild(fallback);
 
     var row = el('div', { id: 'tscms-fb-row' });
     var sendBtn = el('button', { id: 'tscms-fb-send', type: 'button' }, 'Send via Email');
