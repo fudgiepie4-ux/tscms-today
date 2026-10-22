@@ -97,4 +97,28 @@ test('15 browser results show original title and friendly week',()=>{
   assert.ok(browser.includes("timeZone:'UTC'"));
 });
 
+
+test('16 real matching helpers ignore curly and plain apostrophes',()=>{
+  const src=fs.readFileSync('tscms-search.js','utf8');
+  const start=src.indexOf('  function searchKey(text){');
+  const end=src.indexOf('  function clear(){',start);
+  assert.ok(start>=0&&end>start);
+  const context={};
+  vm.runInNewContext(src.slice(start,end)+';this.helpers={searchKey,matchesQuery,friendlyWeek}',context);
+  const h=context.helpers;
+  assert.ok(h.matchesQuery({artist:'Singer',title:'That’s a Tomorrow Problem'},h.searchKey('thats a tomorrow')));
+  assert.ok(h.matchesQuery({artist:'Singer',title:"That's a Tomorrow Problem"},h.searchKey('thats a tomorrow')));
+  assert.ok(h.matchesQuery({artist:'O’Connor',title:'Another Song'},h.searchKey('oconnor')));
+  assert.equal(h.friendlyWeek('2026-10-14'),'Oct 14, 2026');
+});
+test('17 real matching helper returns all 21 tracks for an artist',()=>{
+  const src=fs.readFileSync('tscms-search.js','utf8');
+  const start=src.indexOf('  function searchKey(text){');
+  const end=src.indexOf('  function clear(){',start);
+  const context={};
+  vm.runInNewContext(src.slice(start,end)+';this.helpers={searchKey,matchesQuery}',context);
+  const songs=Array.from({length:21},(_,n)=>({artist:'Bettyxxoxx',title:'Track '+n}));
+  assert.equal(songs.filter(s=>context.helpers.matchesQuery(s,context.helpers.searchKey('BETTY'))).length,21);
+});
+
 console.log('TSCMS Search seed + grow: '+passes.length+'/'+passes.length+' PASS');
