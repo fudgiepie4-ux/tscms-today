@@ -23,6 +23,11 @@
     const minimum=Math.max(12,base);
     return active&&base<=14?minimum+(base<=12?3:2.5):minimum;
   }
+  // Fudgie's phone-approved subtle weight: paint only, zero layout change.
+  // No font-weight/letter-spacing/font-size adjustment is used for boldness.
+  function subtleBoldShadow(base,active){
+    return active&&base<=14?'0.28px 0 currentColor, -0.28px 0 currentColor':null;
+  }
   function collectAndApply(){
     if(!document.body)return;
     const candidates=Array.from(document.body.querySelectorAll('*')).filter(directWords);
@@ -36,17 +41,21 @@
         if(style.display==='none'||style.visibility==='hidden')continue;
         const px=parseFloat(style.fontSize);
         if(!Number.isFinite(px)||px<=0)continue;
-        old={base:px,inline:el.style.getPropertyValue('font-size'),priority:el.style.getPropertyPriority('font-size')};
+        old={base:px,inline:el.style.getPropertyValue('font-size'),priority:el.style.getPropertyPriority('font-size'),
+          shadowInline:el.style.getPropertyValue('text-shadow'),shadowPriority:el.style.getPropertyPriority('text-shadow')};
         tracked.set(el,old);
       }
       const target=scaledFontSize(old.base,enabled);
-      upcoming.push([el,target]);
+      upcoming.push([el,target,subtleBoldShadow(old.base,enabled),old]);
     }
     // Lock the original computed pixel size for already-large text as well.
     // This prevents em-sized headings from being unintentionally enlarged by a
     // smaller ancestor that received the accessibility text floor.
-    for(const [el,target] of upcoming){
+    for(const [el,target,shadow,old] of upcoming){
       el.style.setProperty('font-size',target+'px','important');
+      if(shadow)el.style.setProperty('text-shadow',shadow,'important');
+      else if(old.shadowInline)el.style.setProperty('text-shadow',old.shadowInline,old.shadowPriority);
+      else el.style.removeProperty('text-shadow');
     }
     for(const [el] of tracked)if(!el.isConnected)tracked.delete(el);
   }
@@ -114,6 +123,8 @@
         if(!el.isConnected)continue;
         if(old.inline)el.style.setProperty('font-size',old.inline,old.priority);
         else el.style.removeProperty('font-size');
+        if(old.shadowInline)el.style.setProperty('text-shadow',old.shadowInline,old.shadowPriority);
+        else el.style.removeProperty('text-shadow');
       }
       tracked.clear();
       schedule();
