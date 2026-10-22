@@ -15,10 +15,12 @@ function isValidDate(v){
 }
 function safeStream(v){
   return typeof v==='string'&&/^https:\/\/[a-z0-9.-]+\/[^\s<>"'`]+$/i.test(v) &&
-    !/\/\//.test(v.slice(8,16)) && v.length<=2048;
+    !/\/\//.test(v.slice(8,16)) && v.length<=2048 &&
+    /\.(?:mp3|m4a|mp4|wav|ogg)(?:[?#]|$)/i.test(v);
 }
 function validText(v){
-  return typeof v==='string'&&v.trim().length>0&&v.trim().length<=500;
+  return typeof v==='string'&&v.trim().length>0&&v.trim().length<=500&&
+    !/^https?:\/\//i.test(v.trim())&&!/^(?:unknown|n\/a|untitled|no title)$/i.test(v.trim());
 }
 function normalize(row){
   if(!row||typeof row!=='object')return null;
