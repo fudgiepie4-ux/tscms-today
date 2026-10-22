@@ -56,7 +56,7 @@ async function main(){
     assert.ok(rules.includes("&& isVerified()"));
     assert.ok(rules.includes("getAfter(/databases/$(database)/documents/invitations/$(id)).data.status == 'used'"));
     assert.ok(rules.includes("getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'pending'"));
-    assert.ok(rules.includes("request.resource.data.invitationId == inviteId"));
+    assert.ok(rules.includes("getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.invitationId == inviteId"));
     assert.ok(app.includes("batch.update(doc(db,'invitations',token)"));
   }],
   ['10 Resend cannot extend expiry or grant access',()=>{
