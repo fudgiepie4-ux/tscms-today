@@ -9,12 +9,26 @@
   if(!form||!input||!results||!status||!coverage)return;
   let songs=[];
   const goodUrl=value=>typeof value==='string'&&/^https:\/\/[a-z0-9.-]+\/\S+$/i.test(value);
+  // Normalize the SEARCH KEY only. Keep displayed artist and song titles exactly as supplied.
+  function searchKey(text){
+    return String(text||'').normalize('NFKD').toLocaleLowerCase()
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[\u2018\u2019\u02bc\uff07'\x60\u00b4]/g,'')
+      .replace(/[\p{P}\p{S}]/gu,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+  function friendlyWeek(isoWeek){
+    // Explicit UTC avoids the station-week date shifting on US time-zone devices.
+    const date=new Date(isoWeek+'T12:00:00Z');
+    if(!Number.isFinite(date.valueOf()))return isoWeek;
+    return date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+  }
   function clear(){results.replaceChildren();}
   function item(song){
     const li=document.createElement('li');li.className='tscms-search-result';
     const title=document.createElement('strong');title.textContent=song.title;
     const meta=document.createElement('div');meta.className='tscms-search-meta';
-    meta.textContent=song.artist+' · Station week '+song.week;
+    meta.textContent=song.artist+' · Week of '+friendlyWeek(song.week);
     const actions=document.createElement('div');actions.className='tscms-search-actions';
     const play=document.createElement('button');play.type='button';play.className='tscms-search-play';
     play.textContent='▶ PLAY';play.dataset.stream=song.play_url;play.dataset.title=song.title;
@@ -34,9 +48,9 @@
     li.append(title,meta,actions);return li;
   }
   function render(){
-    const q=input.value.trim().toLocaleLowerCase();
+    const q=searchKey(input.value);
     clear();
-    const matching=songs.filter(s=>!q||s.artist.toLocaleLowerCase().includes(q)||s.title.toLocaleLowerCase().includes(q));
+    const matching=songs.filter(s=>!q||searchKey(s.artist).includes(q)||searchKey(s.title).includes(q));
     // No result cap: an artist search must find ALL of that artist's verified songs in the archive window.
     const frag=document.createDocumentFragment();
     matching.forEach(s=>frag.appendChild(item(s)));
