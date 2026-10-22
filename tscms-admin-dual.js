@@ -22,6 +22,9 @@ styles.textContent=".tc-auth{max-width:480px;margin:20px auto;padding:20px;backg
 +"dialog.tc-auth{width:min(95vw,500px);max-height:90vh;overflow:auto;box-shadow:0 10px 45px #000c}"
 +"dialog.tc-auth::backdrop{background:#000c}.tc-owner{max-width:940px;margin:12px auto;padding:16px;background:#1d1710;color:#f3e9d2;border:1px solid #c9a227;border-radius:12px}.tc-owner h2{color:#e8c766;margin:0 0 6px;font-size:21px}.tc-owner p{margin:0 0 8px;line-height:1.5}"
  +".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #5a4a26}.tc-owner-waiting{font-weight:700;color:#ffda8d;padding:10px 0 2px;border-top:1px solid #5a4a26}"
++".tc-owner .tc-owner-approved-bar{display:block;width:100%;text-align:left;color:#fff1d4;background:#352715;border-color:#d6b36f;margin:16px 0 3px;white-space:normal;font:700 15px/1.4 system-ui,sans-serif}.tc-owner .tc-owner-approved-bar:focus-visible{outline:3px solid #fff;outline-offset:3px}"
++".tc-owner-approved-list[hidden]{display:none}.tc-owner-approved-list{padding:2px 4px 9px;border:1px solid #604b2a;border-radius:0 0 9px 9px}"
++".tc-owner-other{margin-top:10px}.tc-owner-other-label{font:700 13px/1.5 system-ui,sans-serif;color:#cdb78e;padding-top:11px}"
 +".tc-owner button.tc-revoke-armed{background:#a9232a!important;border-color:#ffe0d2!important;color:#fff!important;box-shadow:0 0 0 2px #ff7d73}.tc-owner button.tc-revoke-armed:focus-visible{outline:3px solid white;outline-offset:2px}"
 +".tc-signed-in{max-width:940px;margin:14px auto 10px;box-sizing:border-box;padding:14px 20px;border:1px solid #75ad83;border-radius:12px;background:linear-gradient(135deg,#192c21,#152019);color:#e1f5db;font:700 17px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 18px #0005}"
 +"button.tc-signout{display:block;min-height:44px;margin:10px auto 24px;padding:11px 28px;border:1px solid #d8a957;border-radius:12px;background:linear-gradient(180deg,#56351a,#25170e);color:#fbe7b8;font:700 15px/1.3 system-ui,sans-serif;box-shadow:0 4px 14px #0007;cursor:pointer}"
@@ -308,13 +311,50 @@ async function showOwnerApprovals(ownerUid){
   },true);
   window.addEventListener("blur",disarmRevoke);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)disarmRevoke();});
+  let approvedExpanded=false;
   async function refresh(){
     disarmRevoke();
-    panel.querySelectorAll(".tc-owner-row").forEach(n=>n.remove());
+    panel.querySelectorAll(".tc-owner-entry-list").forEach(n=>n.remove());
     const profiles=await getDocs(collection(db,"users")); // Firestore v4 Owner-only list
     const others=profiles.docs.filter(d=>d.id!==ownerUid);
     const waiting=others.filter(d=>d.data().status==="pending").length;
-    if(waiting>0){const w=document.createElement("div");w.className="tc-owner-waiting";w.textContent="🔔 "+waiting+(waiting===1?" person":" people")+" waiting for your OK";panel.appendChild(w);}
+    const approved=others.filter(d=>d.data().status==="approved").length;
+    const pendingZone=document.createElement("div");
+    pendingZone.className="tc-owner-entry-list";
+    const w=document.createElement("div");
+    w.className="tc-owner-waiting";
+    w.textContent="🔔 "+waiting+" waiting for your OK";
+    pendingZone.appendChild(w);
+    panel.appendChild(pendingZone);
+    const approvedShell=document.createElement("div");
+    approvedShell.className="tc-owner-entry-list";
+    const approvedBar=document.createElement("button");
+    approvedBar.type="button";
+    approvedBar.className="tc-owner-approved-bar";
+    const approvedList=document.createElement("div");
+    approvedList.className="tc-owner-approved-list";
+    approvedList.id="tc-owner-approved-list";
+    function syncApprovedBar(){
+      approvedBar.textContent=approvedExpanded
+        ?"✅ Approved Team ("+approved+") · tap to hide"
+        :"✅ Approved Team — "+approved+" so far · tap to show";
+      approvedBar.setAttribute("aria-expanded",String(approvedExpanded));
+      approvedList.hidden=!approvedExpanded;
+    }
+    approvedBar.setAttribute("aria-controls",approvedList.id);
+    approvedBar.addEventListener("click",()=>{disarmRevoke();approvedExpanded=!approvedExpanded;syncApprovedBar();});
+    approvedShell.appendChild(approvedBar);
+    approvedShell.appendChild(approvedList);
+    panel.appendChild(approvedShell);
+    syncApprovedBar();
+    const otherZone=document.createElement("div");
+    otherZone.className="tc-owner-entry-list tc-owner-other";
+    const otherLabel=document.createElement("div");
+    otherLabel.className="tc-owner-other-label";
+    otherLabel.textContent="Other accounts";
+    otherZone.appendChild(otherLabel);
+    panel.appendChild(otherZone);
+    let otherCount=0;
     for(const profile of others){
       const data=profile.data(),row=document.createElement("div");row.className="tc-owner-row";
       const label=document.createElement("span");
@@ -375,9 +415,12 @@ async function showOwnerApprovals(ownerUid){
         });
         row.appendChild(restore);
       }
-      panel.appendChild(row);
+      if(data.status==="pending")pendingZone.appendChild(row);
+      else if(data.status==="approved")approvedList.appendChild(row);
+      else {otherZone.appendChild(row);otherCount++;}
     }
-    if(!others.length){const p=document.createElement("p");p.className="tc-owner-row";p.textContent="🎉 All quiet — no one is waiting right now.";panel.appendChild(p);}
+    if(!otherCount)otherZone.remove();
+    if(!others.length){const p=document.createElement("p");p.className="tc-owner-row";p.textContent="🎉 All quiet — no one is waiting right now.";pendingZone.appendChild(p);}
   }
   await refresh();
 }
