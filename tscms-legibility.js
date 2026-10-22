@@ -19,6 +19,10 @@
     }
     return false;
   }
+  function scaledFontSize(base,active){
+    const minimum=Math.max(12,base);
+    return active&&base<=14?minimum+(base<=12?3:2.5):minimum;
+  }
   function collectAndApply(){
     if(!document.body)return;
     const candidates=Array.from(document.body.querySelectorAll('*')).filter(directWords);
@@ -35,8 +39,7 @@
         old={base:px,inline:el.style.getPropertyValue('font-size'),priority:el.style.getPropertyPriority('font-size')};
         tracked.set(el,old);
       }
-      const floored=Math.max(12,old.base);
-      const target=enabled&&old.base<=14?floored+(old.base<=12?3:2.5):floored;
+      const target=scaledFontSize(old.base,enabled);
       if(target===old.base && old.base>=12)upcoming.push([el,old,null]);
       else upcoming.push([el,old,target]);
     }
