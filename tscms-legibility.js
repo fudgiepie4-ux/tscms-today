@@ -42,11 +42,12 @@
         const px=parseFloat(style.fontSize);
         if(!Number.isFinite(px)||px<=0)continue;
         old={base:px,inline:el.style.getPropertyValue('font-size'),priority:el.style.getPropertyPriority('font-size'),
-          shadowInline:el.style.getPropertyValue('text-shadow'),shadowPriority:el.style.getPropertyPriority('text-shadow')};
+          shadowInline:el.style.getPropertyValue('text-shadow'),shadowPriority:el.style.getPropertyPriority('text-shadow'),
+          shadowComputed:typeof style.textShadow==='string'?style.textShadow:'none'};
         tracked.set(el,old);
       }
       const target=scaledFontSize(old.base,enabled);
-      upcoming.push([el,target,subtleBoldShadow(old.base,enabled),old]);
+      upcoming.push([el,target,enabled&&old.base>14?old.shadowComputed:subtleBoldShadow(old.base,enabled),old]);
     }
     // Lock the original computed pixel size for already-large text as well.
     // This prevents em-sized headings from being unintentionally enlarged by a
