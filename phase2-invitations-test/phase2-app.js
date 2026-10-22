@@ -127,36 +127,25 @@ $('request-email').addEventListener('submit',async ev=>{
   try{
     if(!isInvite)throw Error('Invalid invitation');
     const email=normalizeEmail($('recipient-email').value);
-    // An unauthenticated outsider does NOT learn whether token matches an email:
-    // the Firestore invite will be checked after Firebase email verification.
-    const url=safeInviteUrl(location.origin,location.pathname,token);
-    await sendSignInLinkToEmail(recipientAuth,email,{url,handleCodeInApp:true});
-    status('If this mailbox is eligible, follow the sign-in email. The account is NOT approved.');
-  }catch(_){status('Could not send TEST email link; check test Firebase Auth settings.');}
-});
-if(isInvite && isSignInWithEmailLink(recipientAuth,location.href)){
-  status('Email sign-in link opened. Enter the same invited email to verify identity.');
-  $('request-email').addEventListener('submit',async ev=>{
-    // Submit handler order: first handler attempts email send.
-    // This additional handler handles email link on return; prevent duplicate by manual phase separation in test.
-  });
-  $('request-email').querySelector('button').textContent='Verify email sign-in link';
-  $('request-email').replaceWith($('request-email').cloneNode(true));
-  $('request-email').addEventListener('submit',async ev=>{
-    ev.preventDefault();
-    try{
-      const email=normalizeEmail($('recipient-email').value);
+    if(isSignInWithEmailLink(recipientAuth,location.href)){
       const user=(await signInWithEmailLink(recipientAuth,email,location.href)).user;
       await reload(user);await getIdToken(user,true);
       if(!user.emailVerified||normalizeEmail(user.email)!==email)throw Error('Verified email mismatch');
       const snap=await getDocFromServer(doc(db,'invitations',token));
-      if(!snap.exists()||!recipientCanClaim(snap.data(),email,Date.now()))throw Error('Invalid or expired invite');
+      if(!snap.exists()||!recipientCanClaim(snap.data(),email,Date.now()))throw Error('Invalid/expired invite');
       $('request-email').hidden=true;$('redeem').hidden=false;
-      // Remove Firebase one-time code from address bar after verification (not the invite token).
+      // Wipe Firebase one-time authorization code from location after use.
       history.replaceState(null,'',location.pathname+'#invite='+encodeURIComponent(token));
-      status('Email verified. Create a PENDING request for Fudgie to approve.');
-    }catch(_){status('Email link could not be verified; the invitation remains unused.');}
-  });
+      status('Email verified. Submit a PENDING request; Fudgie still approves it.');
+    }else{
+      const url=safeInviteUrl(location.origin,location.pathname,token);
+      await sendSignInLinkToEmail(recipientAuth,email,{url,handleCodeInApp:true});
+      status('If eligible, follow the TEST sign-in email. No Admin access has been granted.');
+    }
+  }catch(_){status('TEST email-link check failed or expired. No access was granted.');}
+});
+if(isInvite && isSignInWithEmailLink(recipientAuth,location.href)){
+  $('request-email').querySelector('button').textContent='Verify email sign-in link';
 }
 $('recipient-signup').addEventListener('submit',async ev=>{
   ev.preventDefault();
