@@ -16,6 +16,7 @@ if(tsEl&&generated){
   var opts={month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'};
   tsEl.textContent='Last updated '+dt.toLocaleString('en-US',opts)+' CT · Refreshes when admin data is rebuilt';
 }
+mcMarkDataCoverage(generated);
 zFill();zr();}
 function zFill(){
 // Fill visible batch with oldest eligible (non-done) posts
@@ -251,3 +252,33 @@ function mcToggleLargeText(){
     }
   }catch(e){}
 })();
+
+
+/* Wave 2: disclosure only. Snapshot periods are reported honestly; unknown
+   source timestamps/ranges are marked unavailable rather than invented.
+   The Dicey module is deliberately EXCLUDED under Fudgie's standing rule. */
+function mcMarkDataCoverage(generated){
+  var stamp='Last updated: unavailable';
+  if(generated){
+    var dt=new Date(generated);
+    if(!Number.isNaN(dt.valueOf())){
+      stamp='Last updated '+dt.toLocaleString('en-US',{
+        month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',
+        timeZone:'America/Chicago'
+      })+' CT (admin dataset built)';
+    }
+  }
+  function note(id,coverage,updated){
+    var mod=document.getElementById(id);if(!mod)return;
+    var heading=mod.querySelector('.mc-mhead .mc-name');
+    if(!heading || !heading.parentNode)return;
+    var existing=heading.parentNode.querySelector('.mc-card-dates');
+    if(!existing){existing=document.createElement('div');existing.className='mc-msub mc-card-dates';heading.parentNode.appendChild(existing);}
+    existing.style.cssText='font-size:11px;line-height:1.4;opacity:.9;margin-top:3px;white-space:normal';
+    existing.textContent=coverage+' · '+updated;
+  }
+  note('mc-danger','Coverage: eligible no-comment posts; post-date range unavailable',stamp);
+  note('mc-issues','Coverage: flag dates unavailable',stamp+'; not proof of a new scan');
+  note('mc-pulse','Coverage: Oct 8–14, 2026','Last updated: not recorded for this historic snapshot');
+  note('mc-radar','Coverage: source dates not recorded','Last updated: not recorded');
+}
