@@ -23,6 +23,9 @@
     if(!Number.isFinite(date.valueOf()))return isoWeek;
     return date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
   }
+  function matchesQuery(song,queryKey){
+    return !queryKey||searchKey(song.artist).includes(queryKey)||searchKey(song.title).includes(queryKey);
+  }
   function clear(){results.replaceChildren();}
   function item(song){
     const li=document.createElement('li');li.className='tscms-search-result';
@@ -50,7 +53,7 @@
   function render(){
     const q=searchKey(input.value);
     clear();
-    const matching=songs.filter(s=>!q||searchKey(s.artist).includes(q)||searchKey(s.title).includes(q));
+    const matching=songs.filter(s=>matchesQuery(s,q));
     // No result cap: an artist search must find ALL of that artist's verified songs in the archive window.
     const frag=document.createDocumentFragment();
     matching.forEach(s=>frag.appendChild(item(s)));
