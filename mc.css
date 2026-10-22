@@ -216,3 +216,26 @@ body.large-text .etier{white-space:normal}
 .ehrs{flex:none;margin-left:auto}
 .epill{flex:none;margin-left:auto;font-size:10px;padding:5px 10px}
 }
+
+
+/* Wave 4 — Control Room reachability only; preserve existing console visuals. */
+.mc-title{margin:0}
+.mc-heading{margin:0;font:inherit}
+button.mc-mhead{width:100%;box-sizing:border-box;border:0;border-radius:0;text-align:left;font:inherit;color:inherit;min-height:44px;appearance:none}
+button.mc-mhead .mc-label-block{display:block;flex:1;min-width:0}
+button.mc-mhead .mc-name,button.mc-mhead .mc-msub{display:block}
+button.mc-mhead:focus-visible,.mc-jump a:focus-visible,.mc-qbtn:focus-visible,.epill:focus-visible{outline:3px solid #ffe3a1;outline-offset:-3px}
+.mc-mbody[hidden]{display:none!important}
+.mc-jump{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.mc-jump a{display:inline-flex;box-sizing:border-box;min-height:44px;align-items:center;justify-content:center;padding:10px 12px;border:1px solid #a67a40;border-radius:8px;color:#ffe3ad;background:#24190f;font:700 13px/1.3 system-ui,sans-serif;text-decoration:none}
+.mc-jump a:hover{background:#3a2715}
+.mc-qchoices{display:flex;gap:8px;align-items:center}
+.mc-qbtn{min-height:44px;box-sizing:border-box}
+.dz-check{position:relative;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+.dz-check input{display:block;position:absolute;width:1px;height:1px;opacity:0;clip-path:inset(50%);pointer-events:none}
+.dz-check input:focus-visible+span{outline:3px solid #ffe3a1;outline-offset:3px}
+.erow .epill{display:inline-flex;min-height:44px;box-sizing:border-box;align-items:center;justify-content:center}
+.mc-postid{display:block;font:11px/1.5 system-ui,sans-serif;color:#cdb890;overflow-wrap:anywhere}
+.mc-post-title{display:block;font:12px/1.4 system-ui,sans-serif;color:#cdb890;overflow-wrap:anywhere}
+.mc-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:420px){.mc-jump a{flex:1 1 45%;text-align:center}.mc-qbar{flex-wrap:wrap}.mc-refresh{margin-left:auto}}
