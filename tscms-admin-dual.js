@@ -22,6 +22,7 @@ styles.textContent=".tc-auth{max-width:480px;margin:20px auto;padding:20px;backg
 +"dialog.tc-auth{width:min(95vw,500px);max-height:90vh;overflow:auto;box-shadow:0 10px 45px #000c}"
 +"dialog.tc-auth::backdrop{background:#000c}.tc-owner{max-width:940px;margin:12px auto;padding:16px;background:#1d1710;color:#f3e9d2;border:1px solid #c9a227;border-radius:12px}.tc-owner h2{color:#e8c766;margin:0 0 6px;font-size:21px}.tc-owner p{margin:0 0 8px;line-height:1.5}"
  +".tc-owner-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #5a4a26}.tc-owner-waiting{font-weight:700;color:#ffda8d;padding:10px 0 2px;border-top:1px solid #5a4a26}"
++".tc-owner button.tc-revoke-armed{background:#a9232a!important;border-color:#ffe0d2!important;color:#fff!important;box-shadow:0 0 0 2px #ff7d73}.tc-owner button.tc-revoke-armed:focus-visible{outline:3px solid white;outline-offset:2px}"
 +".tc-signed-in{max-width:940px;margin:14px auto 10px;box-sizing:border-box;padding:14px 20px;border:1px solid #75ad83;border-radius:12px;background:linear-gradient(135deg,#192c21,#152019);color:#e1f5db;font:700 17px/1.4 system-ui,sans-serif;text-align:center;box-shadow:0 4px 18px #0005}"
 +"button.tc-signout{display:block;min-height:44px;margin:10px auto 24px;padding:11px 28px;border:1px solid #d8a957;border-radius:12px;background:linear-gradient(180deg,#56351a,#25170e);color:#fbe7b8;font:700 15px/1.3 system-ui,sans-serif;box-shadow:0 4px 14px #0007;cursor:pointer}"
 +"button.tc-signout:hover,button.tc-signout:focus-visible{background:linear-gradient(180deg,#76481e,#35210e);outline:2px solid #ffd68a;outline-offset:2px}";
@@ -280,7 +281,35 @@ async function showOwnerApprovals(ownerUid){
   const panel=document.createElement("section");panel.id="tc-owner-panel";panel.className="tc-owner";
   panel.innerHTML="<h2>👑 Admin Requests — Your Approval Inbox</h2><p>Your approval inbox — when someone creates a login, their name lands here for your OK. Nobody gets in without you.</p>";
   adminBody.prepend(panel);
+  // Two deliberate taps on this SAME button are required before Firestore changes.
+  // Leave the owner approval and Firebase permission checks untouched.
+  let armedRevoke=null;
+  function disarmRevoke(){
+    if(!armedRevoke)return;
+    const previous=armedRevoke;
+    armedRevoke=null;
+    clearTimeout(previous.timer);
+    if(previous.button.isConnected){
+      previous.button.classList.remove("tc-revoke-armed");
+      previous.button.textContent="Revoke";
+      previous.button.removeAttribute("aria-label");
+    }
+  }
+  // A tap/click anywhere else, a scroll, a tab switch or a re-render cancels.
+  document.addEventListener("pointerdown",ev=>{
+    if(armedRevoke && !armedRevoke.button.contains(ev.target))disarmRevoke();
+  },true);
+  document.addEventListener("click",ev=>{
+    if(armedRevoke && !armedRevoke.button.contains(ev.target))disarmRevoke();
+  },true);
+  document.addEventListener("scroll",disarmRevoke,true);
+  document.addEventListener("keydown",ev=>{
+    if(armedRevoke && (ev.key==="Escape" || ev.key==="Tab"))disarmRevoke();
+  },true);
+  window.addEventListener("blur",disarmRevoke);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)disarmRevoke();});
   async function refresh(){
+    disarmRevoke();
     panel.querySelectorAll(".tc-owner-row").forEach(n=>n.remove());
     const profiles=await getDocs(collection(db,"users")); // Firestore v4 Owner-only list
     const others=profiles.docs.filter(d=>d.id!==ownerUid);
@@ -310,8 +339,41 @@ async function showOwnerApprovals(ownerUid){
           });row.appendChild(button);
         }
       }else if(data.status==="approved"){
-        const revoke=document.createElement("button");revoke.textContent="Revoke";
-        revoke.addEventListener("click",()=>update({status:"revoked",admin:false}));row.appendChild(revoke);
+        const revoke=document.createElement("button");
+        revoke.type="button";
+        revoke.textContent="Revoke";
+        revoke.addEventListener("click",()=>{
+          if(armedRevoke && armedRevoke.button===revoke &&
+              armedRevoke.profileId===profile.id && Date.now()<=armedRevoke.expiresAt){
+            disarmRevoke();
+            revoke.disabled=true;
+            void update({status:"revoked",admin:false});
+            return;
+          }
+          disarmRevoke();
+          const identity=data.fullName||data.username||"this person";
+          revoke.textContent="Tap again to REVOKE "+identity;
+          revoke.setAttribute("aria-label",revoke.textContent);
+          revoke.classList.add("tc-revoke-armed");
+          const expiresAt=Date.now()+5000;
+          const timer=setTimeout(disarmRevoke,5000);
+          armedRevoke={button:revoke,profileId:profile.id,expiresAt,timer};
+        });
+        row.appendChild(revoke);
+      }else if(data.status==="revoked"){
+        const restore=document.createElement("button");
+        restore.type="button";
+        restore.textContent="Restore access";
+        restore.addEventListener("click",()=>{
+          const identity=data.fullName||data.username||"this person";
+          if(window.confirm(
+            "Have you personally contacted and verified "+identity+
+            " and confirmed their email? Restore access only after your own identity check."
+          )){
+            void update({status:"approved",admin:true,approvedAt:serverTimestamp(),approvedBy:ownerUid});
+          }
+        });
+        row.appendChild(restore);
       }
       panel.appendChild(row);
     }
