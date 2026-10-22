@@ -203,6 +203,7 @@ async function endPersonalSession(){
   adminBody.style.display="none";
   adminBody.replaceChildren();
   gate.style.display="block";
+  document.title="TSCMS Admin — Staff Sign In";
   try{await signOut(auth);}catch(_){}
   // Clearing the JS heap by reloading is essential after using a raw v2 key.
   window.location.reload();
@@ -371,6 +372,8 @@ async function showOwnerApprovals(ownerUid){
           ["Reject",{status:"rejected",admin:false}]
         ]){
           const button=document.createElement("button");button.textContent=text;
+          button.type="button";
+          button.setAttribute("aria-label",text+" "+(data.fullName||data.username||"this person"));
           button.addEventListener("click",()=>{
             const identityConfirmed=text!=="Approve" || window.confirm(
               "Have you personally contacted and verified "+(data.fullName||data.username||"this person")+
@@ -396,7 +399,7 @@ async function showOwnerApprovals(ownerUid){
           disarmRevoke();
           const identity=data.fullName||data.username||"this person";
           revoke.textContent="Tap again to REVOKE "+identity;
-          revoke.setAttribute("aria-label",revoke.textContent);
+          revoke.setAttribute("aria-label","Tap again to revoke access for "+identity);
           revoke.classList.add("tc-revoke-armed");
           const expiresAt=Date.now()+5000;
           const timer=setTimeout(disarmRevoke,5000);
@@ -407,6 +410,7 @@ async function showOwnerApprovals(ownerUid){
         const restore=document.createElement("button");
         restore.type="button";
         restore.textContent="Restore access";
+        restore.setAttribute("aria-label","Restore access for "+(data.fullName||data.username||"this person"));
         restore.addEventListener("click",()=>{
           const identity=data.fullName||data.username||"this person";
           if(window.confirm(
