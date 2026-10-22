@@ -1,6 +1,6 @@
 function mcToggle(id){document.getElementById(id).classList.toggle('open');}
 /* DANGER ZONE working queue — personal frontend checklist, 5/10 toggle */
-var ZD=[];var ZS=5;var ZN={};var ZV=[];
+var ZD=[];var ZS=5;var ZN={};var ZV=[];var ZG=null;
 try{ZN=JSON.parse(sessionStorage.getItem('dz_done')||'{}');}catch(e){ZN={};}
 function zs(){try{sessionStorage.setItem('dz_done',JSON.stringify(ZN));}catch(e){}}
 function zq(n){ZS=n;
@@ -8,6 +8,7 @@ document.getElementById('mc-q5').classList.toggle('active',n===5);
 document.getElementById('mc-q10').classList.toggle('active',n===10);
 zFill();zr();}
 function zi(dangerData,generated){
+ZG=typeof generated==='string'?generated:null;
 ZD=(dangerData||[]).slice().sort(function(a,b){return (b.wait_h||0)-(a.wait_h||0);});
 document.getElementById('mc-danger-total').textContent=ZD.length;
 var tsEl=document.getElementById('mc-danger-ts');
@@ -22,6 +23,20 @@ function zFill(){
 // Fill visible batch with oldest eligible (non-done) posts
 var avail=ZD.filter(function(e){return !ZN[e.url];});
 ZV=avail.slice(0,ZS);}
+function zFriendlyAge(waitHours){
+  // wait_h is hours-at-snapshot, NOT a real-time clock or exact post timestamp.
+  var h=Number(waitHours);
+  if(!Number.isFinite(h)||h<0)return {display:'Age unavailable',detail:'No verified post age'};
+  var d=Math.floor(h/24);
+  var label=d>=2?d+' days':d===1?'1 day':h>=1?Math.floor(h)+' hours':Math.round(h*60)+' min';
+  var when='; snapshot time unavailable';
+  if(ZG && Number.isFinite(Date.parse(ZG))){
+    when='; data snapshot '+new Date(ZG).toLocaleString('en-US',{
+      month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/Chicago'
+    })+' CT';
+  }
+  return {display:label,detail:'Approximate post age at snapshot: '+h.toFixed(1)+' hours'+when};
+}
 function zr(){
 var el=document.getElementById('mc-danger-list');if(!el)return;
 var FB='https://facebook.com/groups/1410002804113962/permalink/';
@@ -29,11 +44,12 @@ el.innerHTML=ZV.map(function(e){
 var pid=String(e.url||'#').split('/permalink/').pop().replace(/\/$/,'');
 var tier=Array.isArray(e.tier)?e.tier[0]:e.tier;
 var done=!!ZN[e.url];
+var age=zFriendlyAge(e.wait_h);
 return '<div class="erow'+(done?' done':'')+'">'+
 '<label class="dz-check"><input type="checkbox"'+(done?' checked':'')+' onchange="zt(\''+String(e.url).replace(/'/g,"\\'")+'\',this.checked)"><span>\u2713</span></label>'+
 '<div class="emain"><div class="et">'+escHtml(e.author)+'</div>'+
 '<div class="etier">'+escHtml(tier)+'</div></div>'+
-'<div class="ehrs">'+e.wait_h+'h</div>'+
+'<div class="ehrs" title="'+escHtml(age.detail)+'">'+escHtml(age.display)+'</div>'+
 '<a class="epill" href="'+FB+escHtml(pid)+'" target="_blank">OPEN POST \u2197</a></div>';
 }).join('')||'<div class="mc-empty">All clear — nothing waiting.</div>';
 var msg=document.getElementById('mc-danger-msg');
@@ -141,6 +157,7 @@ d=JSON.parse(new TextDecoder().decode(pt));
 if(!d||!d.stats){gateBack('DATA LOOKS CORRUPT — TRY AGAIN LATER');return;}
 err.textContent='';
 function showAdmin(){
+document.title='TSCMS Admin — Control Room';
 document.getElementById('admingate').style.display='none';
 document.getElementById('adminbody').style.display='block';
 if(typeof zi==='function')zi(d.danger||[],d.generated);
@@ -281,4 +298,58 @@ function mcMarkDataCoverage(generated){
   note('mc-issues','Coverage: flag dates unavailable',stamp+'; not proof of a new scan');
   note('mc-pulse','Coverage: Oct 8–14, 2026','Last updated: not recorded for this historic snapshot');
   note('mc-radar','Coverage: source dates not recorded','Last updated: not recorded');
+}
+
+
+/* Wave 3: Admin DISPLAY ONLY; this reads public Dicey snapshot numbers.
+   No changes to Dicey roll outcomes, counters, FB links or ingestion pipeline.
+   A genuine verified zero remains zero; missing or invalid data is unavailable. */
+function mcLoadDiceyStats(){
+  var fields=[
+    ['mc-dice-rolls','rolls_7d',false],
+    ['mc-dice-taps','tap_through_7d_pct',true],
+    ['mc-dice-comments','attributed_7d',false]
+  ];
+  var status=document.getElementById('mc-dice-data-status');
+  if(!status||fields.some(function(row){return !document.getElementById(row[0]);}))return;
+  function renderUnavailable(){
+    fields.forEach(function(row){
+      var el=document.getElementById(row[0]);
+      el.textContent='Data unavailable';
+      el.style.fontSize='14px';
+      el.style.overflowWrap='anywhere';
+    });
+    status.textContent='Data unavailable — the Dicey statistics feed could not be checked or validated. No zero has been assumed.';
+  }
+  renderUnavailable();
+  fetch('./dice_stats.json',{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw Error('Dicey feed unavailable');
+    return r.json();
+  }).then(function(d){
+    if(!d||typeof d!=='object'||typeof d.generated!=='string')throw Error('Missing snapshot');
+    var time=Date.parse(d.generated);
+    if(!Number.isFinite(time))throw Error('Invalid snapshot time');
+    var required=['rolls_7d','taps_7d','tap_through_7d_pct','attributed_7d'];
+    if(!required.every(function(k){return typeof d[k]==='number' && Number.isFinite(d[k]) && d[k]>=0;}))throw Error('Invalid totals');
+    if(!Number.isInteger(d.rolls_7d)||!Number.isInteger(d.taps_7d)||!Number.isInteger(d.attributed_7d)
+       ||d.tap_through_7d_pct>100)throw Error('Invalid feed values');
+    fields.forEach(function(row){
+      var el=document.getElementById(row[0]);
+      el.textContent=row[2]?d[row[1]].toFixed(1)+'%':String(d[row[1]]);
+      el.style.fontSize='';
+      el.style.overflowWrap='';
+    });
+    var snapshot=new Date(time).toLocaleString('en-US',{
+      month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',
+      timeZone:'America/Chicago'
+    });
+    var hoursOld=(Date.now()-time)/3600000;
+    var freshness=hoursOld>12?'Historical snapshot':'Verified snapshot';
+    status.textContent=freshness+' from Dicey statistics feed · '+snapshot+' CT. Figures reflect the recorded period, not guaranteed live activity.';
+  }).catch(function(){renderUnavailable();});
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',mcLoadDiceyStats);
+}else{
+  mcLoadDiceyStats();
 }
