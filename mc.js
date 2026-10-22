@@ -163,7 +163,17 @@ document.getElementById('adminbody').style.display='block';
 if(typeof zi==='function')zi(d.danger||[],d.generated);
 if(typeof ziIssues==='function')ziIssues(d.flags||[]);}
 if(SIGNON_ENABLED){signonPlay(sstage,showAdmin);}else{showAdmin();}}
-document.getElementById('apw').addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
+// mc.js is parser-loaded before #apw in admin.html. Wait for the DOM so an
+// absent PIN field cannot abort the rest of this script (including Dicey boot).
+function mcBindPinEnter(){
+  var input=document.getElementById('apw');
+  if(input)input.addEventListener('keydown',function(e){if(e.key==='Enter')unlockAdmin();});
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',mcBindPinEnter,{once:true});
+}else{
+  mcBindPinEnter();
+}
 /* Sign-on video: plays after password unlock, before the admin layout */
 var SIGNON_ENABLED=false; /* TEMPORARILY OFF — set true to bring the intro video back */
 var SIGNON_URL='https://q63l42nl0lcqmn6m.public.blob.vercel-storage.com/tscms-control-room-sign-on.mp4?v=2';
