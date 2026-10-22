@@ -40,16 +40,13 @@
         tracked.set(el,old);
       }
       const target=scaledFontSize(old.base,enabled);
-      if(target===old.base && old.base>=12)upcoming.push([el,old,null]);
-      else upcoming.push([el,old,target]);
+      upcoming.push([el,target]);
     }
-    for(const [el,old,target] of upcoming){
-      if(target===null){
-        if(old.inline)el.style.setProperty('font-size',old.inline,old.priority);
-        else el.style.removeProperty('font-size');
-      }else{
-        el.style.setProperty('font-size',target+'px','important');
-      }
+    // Lock the original computed pixel size for already-large text as well.
+    // This prevents em-sized headings from being unintentionally enlarged by a
+    // smaller ancestor that received the accessibility text floor.
+    for(const [el,target] of upcoming){
+      el.style.setProperty('font-size',target+'px','important');
     }
     for(const [el] of tracked)if(!el.isConnected)tracked.delete(el);
   }
