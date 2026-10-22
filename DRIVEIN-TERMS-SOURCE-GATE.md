@@ -1,0 +1,9 @@
+# Drive-In Printable Terms — STAGING ONLY / DO NOT MERGE
+
+Approved content source: **TSCMS_DriveIn_Printable_Terms_DRAFT_20261022.md**, explicitly Version 1 · October 22, 2026. The copy in that exact file is authoritative and MUST be reproduced verbatim: heading, clauses, paragraph order, punctuation, any agreement language. Never substitute the earlier October 21 "NOT FINAL" document.
+
+**SOURCE ACCESS BLOCKER:** The exact approved October 22 markdown file was named in Cherish's October 22 08:56 CT handoff but was NOT present in accessible GitHub `main`, connected Drive search, accessible project Library or Slack message bodies when this staging branch was made. This PR deliberately contains **NO invented contractual words**. This staged page is a visual/print skeleton with a clear "NOT READY TO PUBLISH" warning and a **hidden** link next to the steps on `videos.html`.
+
+Cherish: supply the approved file's text verbatim in the branch; fill `#approved-terms-copy` (using actual semantic headings, paragraphs and lists; do not summarize), remove source warning; enable the print/save button using `window.print()`; and remove `hidden` from `#drivein-submission-terms-link` only after word-for-word comparison. Ensure no page links to a fake/old contract. Check genuine printed 1-page preview on Letter at 100% scale (no clipping, page breaks, or nav); screen base >=18px, high contrast, selectable text, keyboard access, mobile scroll. Then add a permanent protected-feature check for "Drive-In terms page" immediately before production release. Only then ask Fudgie to approve a merge.
+
+**Do not treat the staging CI passing as proof of exact approved terms content or successful one-page print.** This entire PR remains explicitly NOT PUBLISHABLE until the source block is resolved, reviewed, and Fudgie separately taps publish. Search PR #23 and Legibility wave must not be merged as part of this page.
