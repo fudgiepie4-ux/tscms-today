@@ -11,7 +11,7 @@ const cases=[
  ['Real selectable terms text',()=>assert.ok(terms.includes('<article class="terms-copy"')&&!terms.includes('<img'))],
  ['All 25 source lines preserved exactly (no missing contractions)',()=>{
    const lines=approved.split('\n').filter(Boolean);assert.equal(lines.length,25);
-   for(const l of lines)assert.ok(terms.includes(escape(l)),'Missing/rewritten approved line: '+l);
+   for(const l of lines){const phrase=l.startsWith('• ')?'<li>'+escape(l.slice(2))+'</li>':escape(l);assert.ok(terms.includes(phrase),'Missing/rewritten approved line: '+l);}
  }],
  ['Contractions have not been silently expanded',()=>{
    for(const word of ['we’ve','can’t','there’s','doesn’t','What you’re agreeing to','you’re','You’re'])assert.ok(terms.includes(word));
