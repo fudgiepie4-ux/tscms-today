@@ -28,13 +28,17 @@ styles.textContent=".tc-auth{max-width:480px;margin:20px auto;padding:20px;backg
 document.head.appendChild(styles);
 const login=document.createElement("section");
 login.className="tc-auth";
-login.innerHTML='<h2>👤 Personal Admin Login</h2><p>Approved administrators: sign in with your private email and password. Your display username is separate.</p>'
+login.innerHTML='<h2>Personal Admin Sign In</h2><p>Use the email and password you created for your own login.</p>'
 +'<form id="tc-login-form"><label>Email address<input name="email" type="email" autocomplete="username" required></label>'
 +'<label>Personal password<input name="password" type="password" autocomplete="current-password" required></label>'
 +'<button type="submit">Enter Control Room</button><button class="tc-later" id="tc-reset" type="button">Forgot password?</button></form>'
-+'<p>Still using the shared PIN? Enter it in the original panel above. After it unlocks the room, you can create your personal account.</p>'
 +'<div id="tc-login-status" class="tc-auth-status" role="status"></div>';
 gate.appendChild(login);
+const signupSteps=document.createElement("p");
+signupSteps.className="tc-registration-status";
+signupSteps.style.cssText="max-width:500px;margin:16px auto 26px;padding:0 16px;text-align:center;color:#ffda8d;font:13px/1.6 system-ui,sans-serif";
+signupSteps.textContent="How signing up works: create your login → verify your email → wait for Fudgie to approve → sign in. Nobody gets in without Fudgie's OK.";
+gate.appendChild(signupSteps);
 const dialog=document.createElement("dialog");
 dialog.className="tc-auth";
 dialog.setAttribute("aria-label","Create your personal Admin account");
