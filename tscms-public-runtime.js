@@ -261,6 +261,11 @@
   'use strict';
   function addSpotlight() {
     if (document.getElementById('tscms-september-spotlight-2026')) return;
+    // Homepage-only module. Search and My Playlist load this same runtime
+    // without its homepage anchors; skip before creating any DOM or styles.
+    var spotlightWrap=document.querySelector('.wrap');
+    var mostLoved=document.querySelector('.most-loved-autumn');
+    if(!spotlightWrap && !mostLoved)return;
     var css = document.createElement('style');
     css.textContent = [
       '#tscms-september-spotlight-2026{margin:38px auto 26px;max-width:900px;scroll-margin-top:80px}',
@@ -319,11 +324,10 @@
       mobiles.appendChild(a);
     });
     section.appendChild(mobiles);
-    var mostLoved=document.querySelector('.most-loved-autumn');
     var footer=document.querySelector('.wrap > footer')||document.querySelector('footer');
     if(mostLoved && mostLoved.parentNode)mostLoved.insertAdjacentElement('afterend',section);
     else if(footer && footer.parentNode)footer.parentNode.insertBefore(section,footer);
-    else document.querySelector('.wrap').appendChild(section);
+    else if(spotlightWrap)spotlightWrap.appendChild(section);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSpotlight);
   else addSpotlight();
@@ -423,4 +427,29 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', loadPreservedMuseReferral, { once: true });
   } else loadPreservedMuseReferral();
+})();
+
+
+/* STAGING ONLY — site-wide verified station radio (Oct 23).
+ * The six-hour homepage builder already preserves this runtime loader.
+ * Generated Today/Home plus Search/My Playlist inherit one site-wide bar.
+ * Do not merge without Cherish's cross-page QA and Fudgie's approval.
+ */
+(function(){
+  'use strict';
+  function loadSitewideRadio(){
+    if(/(?:^|\/)admin\.html$/i.test(location.pathname))return;
+    if(document.querySelector('script[data-tscms-preserved="sitewide-radio"]'))return;
+    var css=document.createElement('link');css.rel='stylesheet';
+    css.href='./tscms-sitewide-radio.css?v=20261023-lefttab2';
+    css.setAttribute('data-tscms-preserved','sitewide-radio-style');
+    document.head.appendChild(css);
+    var js=document.createElement('script');
+    js.src='./tscms-sitewide-radio.js?v=20261023-lefttab2';js.async=true;
+    js.setAttribute('data-tscms-preserved','sitewide-radio');
+    js.onerror=function(){console.warn('Site-wide radio staging module unavailable.');};
+    document.head.appendChild(js);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadSitewideRadio,{once:true});
+  else loadSitewideRadio();
 })();

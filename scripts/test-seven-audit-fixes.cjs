@@ -97,6 +97,18 @@ test('ADM-05 session-only checkmarks are explicitly explained',()=>{
  assert.match(mc,/sessionStorage\.setItem\('dz_done'/);
  assert.match(admin,/It does not fetch new Facebook data/);
 });
+test('Combined runtime keeps PR33 radio and Spotlight plus PR34 accessible labels',()=>{
+ assert.match(runtime,/function labelSongButton\(button,playing\)/);
+ assert.match(runtime,/tscms-sitewide-radio\.js\?v=20261023-lefttab2/);
+ assert.match(runtime,/css\.setAttribute\('data-tscms-preserved','sitewide-radio-style'\)/);
+ assert.match(runtime,/js\.setAttribute\('data-tscms-preserved','sitewide-radio'\)/);
+ assert.match(runtime,/if\(!spotlightWrap && !mostLoved\)return;/);
+ assert.match(runtime,/else if\(spotlightWrap\)spotlightWrap\.appendChild\(section\)/);
+ assert.match(game,/tscms-sitewide-radio\.js/);
+ assert.match(video,/tscms-sitewide-radio\.js/);
+ assert.match(video,/if\(wanted && audio\.paused\)\{startNight\(\);\}/);
+ assert.match(runtime,/labelSongButton\(active,true\)/);
+});
 test('Protected functionality and real sources remain installed',()=>{
  assert.match(index,/tscms-quick-jump\.js/);
  assert.match(index,/tscms-feedback\.js/);

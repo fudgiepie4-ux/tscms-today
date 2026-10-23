@@ -96,6 +96,44 @@ assert('Dicey outcome-first crypto + distinct doubles retained',
 
 assert('Monthly Spotlight runtime/markup retained',/tscms-september-spotlight-2026/.test(index)||/tscms-september-spotlight-2026/.test(runtime));
 assert('Radio player runtime preserved',/tscms-song-player/.test(runtime)&&/dayPlay/.test(runtime));
+/* Site-wide Radio — owner-approved PR #33, Oct 23.
+   Generator changes must retain the external runtime bootstrap, Spotlight guard
+   and the one shared player. These checks run on generated output BEFORE push. */
+const radioJs=read('tscms-sitewide-radio.js');
+const radioCss=read('tscms-sitewide-radio.css');
+const searchHtml=read('tscms-search.html');
+const playlistHtml=read('my-playlist.html');
+const journalHtml=read('town-journal.html');
+assert('Site-wide TSCMS Radio rebuilt safely — protected loader exactly once',
+  count(runtime,/js\.setAttribute\('data-tscms-preserved','sitewide-radio'\)/g)===1&&
+  count(runtime,/css\.setAttribute\('data-tscms-preserved','sitewide-radio-style'\)/g)===1&&
+  /tscms-sitewide-radio\.js/.test(runtime)&&/tscms-sitewide-radio\.css/.test(runtime));
+assert('Site-wide radio + spotlight survive generated runtime',
+  /if\(!spotlightWrap && !mostLoved\)return;/.test(runtime)&&
+  /else if\(spotlightWrap\)spotlightWrap\.appendChild\(section\)/.test(runtime)&&
+  /tscms-september-spotlight-2026/.test(runtime)&&
+  /data-tscms-preserved/.test(runtime));
+assert('Site-wide Radio tab/Play/Volume + single engine intact',
+  /tc-radio-tab/.test(radioJs)&&/function setOpen\(open\)/.test(radioJs)&&
+  /control\.disabled=!!restoring/.test(radioJs)&&/window\.TSCMSJukebox/.test(radioJs)&&
+  /data-playback/.test(radioJs)&&
+  /visibility:hidden;opacity:0;pointer-events:none/.test(radioCss)&&
+  /position:fixed;left:0/.test(radioCss)&&
+  /min-height:44px/.test(radioCss));
+assert('Site-wide Radio still loads from same shared public runtime on Search + My Playlist',
+  /tscms-public-runtime\.js/.test(searchHtml)&&
+  /tscms-public-runtime\.js/.test(playlistHtml)&&
+  /tscms-public-runtime\.js/.test(index)&&/tscms-public-runtime\.js/.test(today));
+for(const [name,html] of [['Town Journal',journalHtml],['Drive-In',read('videos.html')],['Gamehouse',game]]) {
+  assert(name+' → site-wide radio script exactly once',
+    count(html,/src=["']\.\/tscms-sitewide-radio\.js\?[^"']+["']/g)===1&&
+    /tscms-sitewide-radio\.css/.test(html));
+}
+assert('Site-wide Radio cannot persist private Favorites or create extra audio',
+  /J\.isFavoritesMode\(\)/.test(radioJs)&&
+  !/createElement\('audio'\)/.test(radioJs)&&
+  /restoreStationPosition/.test(radioJs));
+
 assert('Daily song pagination preserved',/song-page-btn/.test(siteJs)&&/window\.showDay/.test(siteJs));
 assert('Shared Feedback widget preserved',/tscms-fb-btn/.test(feedback)&&/openModal/.test(feedback));
 assert('Gamehouse retains Solitaire/Swiper/Jukebox without extra Feedback widget',/swiper-launch-bootstrap\.js/.test(game)&&/gamehouse-jukebox-v7-ui\.js/.test(game)&&count(game,/src=["']tscms-feedback\.js/g)===1);
