@@ -1,0 +1,31 @@
+name: TSCMS Listening Room Gate A — STAGING ONLY
+on:
+  pull_request:
+    branches: [main, 'clara/audit-seven-fixes-staging-20261023']
+    paths:
+      - 'my-playlist.html'
+      - 'tscms-listening-room.css'
+      - 'tscms-favorites.js'
+      - 'scripts/test-listening-room-gate-a.cjs'
+      - '.github/workflows/listening-room-gate-a.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  presentation-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax of protected Favorites module
+        run: |
+          node --check tscms-favorites.js
+          node --check scripts/test-listening-room-gate-a.cjs
+      - name: Listening Room Gate A safeguards
+        run: node scripts/test-listening-room-gate-a.cjs
+      - name: Existing Favorites regression
+        run: node scripts/test-favorites-staging.cjs
+      - name: Existing Larger Text checks
+        run: node scripts/test-public-legibility.cjs
