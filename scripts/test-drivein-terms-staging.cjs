@@ -9,8 +9,8 @@ const cases=[
  ['Correct date/version header',()=>assert.ok(terms.includes('Version 1 · October 22, 2026'))],
  ['Verbatim correct approved title',()=>assert.ok(terms.includes('<h1>🎬 TSCMS Drive-In — Submission Terms</h1>'))],
  ['Real selectable terms text',()=>assert.ok(terms.includes('<article class="terms-copy"')&&!terms.includes('<img'))],
- ['All 25 source lines preserved exactly (no missing contractions)',()=>{
-   const lines=approved.split('\n').filter(Boolean);assert.equal(lines.length,25);
+ ['All 26 source lines preserved exactly (no missing contractions)',()=>{
+   const lines=approved.split('\n').filter(Boolean);assert.equal(lines.length,26);
    for(const l of lines){const phrase=l.startsWith('• ')?'<li>'+escape(l.slice(2))+'</li>':escape(l);assert.ok(terms.includes(phrase),'Missing/rewritten approved line: '+l);}
  }],
  ['Contractions have not been silently expanded',()=>{
