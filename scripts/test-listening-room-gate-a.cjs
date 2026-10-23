@@ -90,7 +90,7 @@ report('Search and sort use saved records, no public archive results',()=>{
  assert.equal(rows().filter(r=>!r.hidden).length,1);
  assert.equal(rows().find(r=>!r.hidden).dataset.title,'Apple Trail');
  input.value='';input.dispatchEvent(new window.Event('input'));
- sort.value='title';sort.dispatchEvent(new window.Event('change'));
+ Object.defineProperty(sort,'value',{value:'title',writable:true,configurable:true});sort.dispatchEvent(new window.Event('change'));
  assert.deepEqual(rows().map(r=>r.dataset.title),['Apple Trail','Barn at Night','Zebra Roads']);
  sort.value='artist';sort.dispatchEvent(new window.Event('change'));
  assert.deepEqual(rows().map(r=>r.dataset.artist),['Alice','Blue Sky','Zane']);
