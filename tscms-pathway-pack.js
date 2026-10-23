@@ -9,6 +9,8 @@
     if(!wrap || !wrap.querySelector('.tscms-site-tabs') ||
        !wrap.querySelector('a.saloon-playnow') || !wrap.querySelector('.tabs') ||
        /(?:^|\/)admin\.html$/i.test(location.pathname))return;
+    if(document.getElementById('tscms-pathway-pack') ||
+       document.getElementById('tscms-group-song-signpost'))return;
     var stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
     stylesheet.href='./tscms-pathway-pack.css?v=20261023-additive-1';
