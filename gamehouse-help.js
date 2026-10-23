@@ -10,6 +10,8 @@
     var style = document.createElement('style');
     style.textContent = [
       '#gamehouse-help-open{display:block;width:100%;min-height:48px;margin-top:18px;text-align:center}',
+      '#gamehouse-help-quick{position:fixed;right:max(12px,env(safe-area-inset-right));top:max(60px,calc(env(safe-area-inset-top) + 52px));z-index:70;min-height:44px;max-width:145px;padding:8px 11px;border:2px solid #d8ae62;border-radius:10px;background:#28170d;color:#fff0cf;font:700 13px/1.25 system-ui;cursor:pointer;box-shadow:0 3px 12px #0009}',
+      '#gamehouse-help-quick:focus-visible{outline:3px solid #fff4bc;outline-offset:3px}',
       '#gamehouse-help-overlay[hidden]{display:none!important}',
       '#gamehouse-help-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(8,5,5,.96);',
       'display:flex;align-items:center;justify-content:center;padding:10px;',
@@ -40,6 +42,14 @@
     button.textContent = '📖 HOW TO PLAY';
     button.setAttribute('aria-haspopup', 'dialog');
     panel.appendChild(button);
+    // A second entrance to the SAME full guide, outside Saloon Settings.
+    // Its visual position is independent of the locked card-board artwork.
+    var quick=document.createElement('button');
+    quick.id='gamehouse-help-quick';quick.type='button';
+    quick.textContent='📖 How to Play';
+    quick.setAttribute('aria-label','Open full Solitaire How to Play guide');
+    quick.setAttribute('aria-haspopup','dialog');
+    document.body.appendChild(quick);
 
     var dialog = document.createElement('div');
     dialog.id = 'gamehouse-help-overlay';
@@ -79,6 +89,7 @@
       if (returnFocus && returnFocus.focus) returnFocus.focus();
     }
     button.addEventListener('click', open);
+    quick.addEventListener('click', open);
     closeButton.addEventListener('click', close);
     dialog.addEventListener('click', function (e) { if (e.target === dialog) close(); });
     zoomButton.addEventListener('click', function () {
