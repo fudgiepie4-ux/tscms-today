@@ -29,6 +29,14 @@ function strip(){
   const list=byId('tc-fav-playlist-list');if(list)list.replaceChildren();
   // Hide old per-user count immediately on staff sign-out or revocation.
   const plaque=byId('tc-fav-crate-count');if(plaque){plaque.hidden=true;plaque.textContent='';}
+  // Hide all personal controls, counts and populated imagery on access loss.
+  const tools=byId('tc-room-tools');if(tools)tools.hidden=true;
+  byId('tc-room-action-holder')?.replaceChildren();
+  const filled=byId('tc-room-art-filled'),empty=byId('tc-room-art-empty');
+  if(filled)filled.hidden=true;
+  if(empty)empty.hidden=false;
+  if(byId('tc-room-search'))byId('tc-room-search').value='';
+  if(byId('tc-room-sort'))byId('tc-room-sort').value='newest';
 }
 function revokeView(){
   subscriptionGeneration++; // invalidate old Firestore snapshot callbacks
@@ -158,31 +166,207 @@ function injectRows(){
     if(!button){button=createHeart(song);box.append(button);}else styleHeart(button,song);
   }
 }
+/* Approved Gate A: all filtering and ordering uses ONLY STATE.items,
+   the authenticated owner's already-loaded Firestore collection.
+   Public station files below supply link enrichment ONLY, not saved-song results. */
+const roomCompare=new Intl.Collator(undefined,{sensitivity:'base',numeric:true});
+let roomMetadata=null,roomMetadataPending=null,roomView='list';
+function normalized(text){
+  return String(text||'').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase().trim();
+}
+function verifiedLink(url,kind){
+  if(typeof url!=='string')return false;
+  try{
+    const parsed=new URL(url);
+    if(parsed.protocol!=='https:')return false;
+    const host=parsed.hostname.toLowerCase();
+    return kind==='post'
+      ? ['facebook.com','www.facebook.com','m.facebook.com'].includes(host)&&parsed.pathname!=='/'
+      : ['suno.com','www.suno.com'].includes(host)&&/^\\/(?:song|s)\\/[^/]+/.test(parsed.pathname);
+  }catch(_){return false;}
+}
+function indexExtras(){
+  if(roomMetadataPending)return roomMetadataPending;
+  // Exact stream matching only. Never synthesize source URLs or change favorites.
+  roomMetadataPending=Promise.allSettled([
+    fetch('./search-index.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('archive unavailable');return r.json();}),
+    fetch('./radio-data.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('catalog unavailable');return r.json();})
+  ]).then(results=>{
+    const entries=new Map();
+    const key=s=>String(s||'').trim();
+    if(results[0].status==='fulfilled'&&Array.isArray(results[0].value?.songs)){
+      for(const item of results[0].value.songs){
+        if(!item?.play_url||!verifiedLink(item.post_url,'post'))continue;
+        const s=key(item.play_url),existing=entries.get(s)||{};
+        entries.set(s,{...existing,post:item.post_url});
+      }
+    }
+    if(results[1].status==='fulfilled'&&Array.isArray(results[1].value?.playlist)){
+      for(const item of results[1].value.playlist){
+        if(!item?.stream||!verifiedLink(item.suno,'suno'))continue;
+        const s=key(item.stream),existing=entries.get(s)||{};
+        entries.set(s,{...existing,suno:item.suno});
+      }
+    }
+    roomMetadata=entries;
+    if(signedIn())updateRoomLinks();
+    return entries;
+  }).catch(()=>{roomMetadata=new Map();return roomMetadata;});
+  return roomMetadataPending;
+}
+function updateRoomLinks(){
+  if(!signedIn()||!roomMetadata)return;
+  const root=byId('tc-fav-playlist-list');if(!root)return;
+  for(const row of root.querySelectorAll('.tc-fav-row')){
+    // Rows exist only for the signed-in owner's saved streams.
+    const extras=roomMetadata.get(row.dataset.stream)||{};
+    for(const [field,kind,caption] of [['post','post','View Post'],['suno','suno','Suno']]){
+      const prior=row.querySelector('.tc-room-'+field);
+      if(!prior)continue;
+      let replacement;
+      if(verifiedLink(extras[field],kind)){
+        replacement=document.createElement('a');
+        replacement.href=extras[field];replacement.target='_blank';
+        replacement.rel='noopener noreferrer';
+        replacement.textContent=caption+' ↗';
+        replacement.setAttribute('aria-label',caption+' for '+row.dataset.title+' by '+row.dataset.artist);
+      }else{
+        replacement=document.createElement('span');
+        replacement.className='tc-room-unavailable';
+        replacement.textContent=caption+' unavailable';
+        replacement.setAttribute('aria-label',caption+' link unavailable for this saved song');
+      }
+      replacement.classList.add('tc-room-'+field);
+      prior.replaceWith(replacement);
+    }
+  }
+}
+function savedDate(song){
+  let timestamp=null;
+  if(song.savedAt && typeof song.savedAt.seconds==='number')timestamp=new Date(song.savedAt.seconds*1000);
+  else if(song.savedAt && typeof song.savedAt.toDate==='function')timestamp=song.savedAt.toDate();
+  if(!timestamp||!Number.isFinite(timestamp.getTime()))return '';
+  return ' · Saved '+timestamp.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'America/Chicago'});
+}
+function applyRoomView(){
+  const root=byId('tc-fav-playlist-list');if(!root||!signedIn())return;
+  root.classList.toggle('tc-room-grid',roomView==='grid');
+  for(const [id,value] of [['tc-room-list-view','list'],['tc-room-grid-view','grid']]){
+    byId(id)?.setAttribute('aria-pressed',String(roomView===value));
+  }
+}
+function applyRoomFilters(){
+  if(!signedIn())return;
+  const root=byId('tc-fav-playlist-list');if(!root)return;
+  const query=normalized(byId('tc-room-search')?.value);
+  const sort=byId('tc-room-sort')?.value||'newest';
+  const rows=[...root.querySelectorAll('.tc-fav-row')];
+  rows.sort((a,b)=>{
+    if(sort==='title')return roomCompare.compare(a.dataset.title,b.dataset.title)||Number(a.dataset.order)-Number(b.dataset.order);
+    if(sort==='artist')return roomCompare.compare(a.dataset.artist,b.dataset.artist)||Number(a.dataset.order)-Number(b.dataset.order);
+    return Number(a.dataset.order)-Number(b.dataset.order);
+  });
+  let visible=0;
+  for(const row of rows){
+    const keep=!query||normalized(row.dataset.title).includes(query)||normalized(row.dataset.artist).includes(query);
+    row.hidden=!keep;if(keep)visible++;
+    root.appendChild(row); // Reorder existing nodes: never replace audio-active song buttons.
+  }
+  root.querySelector('.tc-room-no-results')?.remove();
+  if(rows.length&&!visible){
+    const empty=document.createElement('p');empty.className='tc-room-no-results';empty.textContent='No records in your crate match that search.';
+    root.appendChild(empty);
+  }
+  if(currentCount())notice(query?visible+' of '+currentCount()+' saved records match your search.':currentCount()+' songs saved in your crate.');
+  applyRoomView();
+}
+function shuffleRoomRecord(){
+  if(!signedIn())return;
+  const saved=source();if(!saved.length)return;
+  // Bias-free bounded selection when Web Crypto is available; Math.random fallback.
+  let index=Math.floor(Math.random()*saved.length);
+  if(window.crypto?.getRandomValues){
+    const v=new Uint32Array(1),range=0x100000000,limit=range-(range%saved.length);
+    do{crypto.getRandomValues(v);}while(v[0]>=limit);
+    index=v[0]%saved.length;
+  }
+  const song=saved[index],root=byId('tc-fav-playlist-list');
+  const row=[...(root?.querySelectorAll('.tc-fav-row')||[])].find(el=>el.dataset.stream===song.play_url);
+  let button=row?.querySelector('.tc-fav-row-actions .tc-fav-mode');
+  if(!button){
+    button=byId('tc-room-shuffle-proxy');
+    if(!button){button=document.createElement('button');button.type='button';button.id='tc-room-shuffle-proxy';button.hidden=true;document.body.append(button);}
+    button.dataset.stream=song.play_url;button.dataset.title=song.title;button.dataset.artist=song.artist;
+  }
+  playSong(song,button,row||null); // unchanged per-song playback path
+  announce('Random record: '+song.title+' by '+song.artist);
+}
+function installRoomTools(){
+  const search=byId('tc-room-search'),sort=byId('tc-room-sort');
+  if(search&&!search.dataset.wired){search.dataset.wired='1';search.addEventListener('input',applyRoomFilters);}
+  if(sort&&!sort.dataset.wired){sort.dataset.wired='1';sort.addEventListener('change',applyRoomFilters);}
+  for(const [id,value] of [['tc-room-list-view','list'],['tc-room-grid-view','grid']]){
+    const button=byId(id);
+    if(button&&!button.dataset.wired){button.dataset.wired='1';button.addEventListener('click',()=>{roomView=value;applyRoomView();});}
+  }
+}
 function playlist(){
   const root=byId('tc-fav-playlist-list');if(!root)return;
   root.replaceChildren();
+  const actionHolder=byId('tc-room-action-holder');if(actionHolder)actionHolder.replaceChildren();
   const count=currentCount(),plaque=byId('tc-fav-crate-count');
-  // Only the existing authenticated own-Favorites snapshot supplies this number.
+  const filled=byId('tc-room-art-filled'),emptyArt=byId('tc-room-art-empty');
+  if(filled)filled.hidden=!count;
+  if(emptyArt)emptyArt.hidden=!!count;
   if(plaque){plaque.textContent='Your crate holds '+count+' '+(count===1?'record':'records');plaque.hidden=false;}
+  const toolbar=byId('tc-room-tools');if(toolbar)toolbar.hidden=!count;
+  installRoomTools();
   notice(count?count+' songs saved, newest first.':'No saved songs yet — tap the heart on any song you love and it’ll be waiting for you here.');
   if(!count){
     const empty=document.createElement('section');empty.className='tc-room-empty';
     const record=document.createElement('div');record.className='tc-room-empty-record';record.setAttribute('aria-hidden','true');
     const title=document.createElement('h2');title.textContent='Your first favorite belongs here.';
-    const hint=document.createElement('p');hint.textContent='This crate is waiting for the songs you love. Explore today’s songs and save a favorite to start your collection.';
+    const hint=document.createElement('p');hint.textContent='The crate is ready. Explore today’s songs and save one you love.';
     const door=document.createElement('a');door.href='./';door.className='tc-room-door';door.textContent='Browse Today’s Songs →';
     empty.append(record,title,hint,door);root.append(empty);return;
   }
   const playAll=document.createElement('button');playAll.type='button';playAll.className='tc-fav-mode';playAll.textContent='▶ Play All';playAll.addEventListener('click',()=>playSequence());root.append(playAll);
-  for(const song of source()){
+  // Reposition original button without changing its callback or the sequence player.
+  playAll.textContent='▶ Play My Crate';
+  if(actionHolder)actionHolder.append(playAll);
+  const shuffle=document.createElement('button');shuffle.type='button';shuffle.className='tc-room-shuffle';
+  shuffle.textContent='⇄ Shuffle a Record';shuffle.addEventListener('click',shuffleRoomRecord);
+  if(actionHolder)actionHolder.append(shuffle);
+  for(const [order,song] of source().entries()){
     const row=document.createElement('div');row.className='tc-fav-row';
-    const info=document.createElement('div'),title=document.createElement('strong');title.textContent=song.title;
-    const artist=document.createElement('div');artist.textContent=song.artist;info.append(title,artist);
+    row.dataset.stream=song.play_url;row.dataset.title=song.title;
+    row.dataset.artist=song.artist;row.dataset.order=String(order);
+    const sleeve=document.createElement('div');sleeve.className='tc-room-thumb';
+    sleeve.dataset.style=String(order%4);sleeve.setAttribute('aria-hidden','true');
+    const info=document.createElement('div');info.className='tc-room-song-info';
+    const title=document.createElement('strong');title.textContent=song.title;
+    const artist=document.createElement('div');artist.className='tc-room-meta';
+    artist.textContent=song.artist+savedDate(song);info.append(title,artist);
     const actions=document.createElement('div');actions.className='tc-fav-row-actions';
-    const play=document.createElement('button');play.type='button';play.className='tc-fav-mode';play.dataset.stream=song.play_url;play.dataset.title=song.title;play.textContent='▶ Play';play.addEventListener('click',()=>void playSong(song,play,row));
-    const remove=document.createElement('button');remove.type='button';remove.className='tc-fav-remove';remove.textContent='× Remove';remove.setAttribute('aria-label','Remove '+song.title+' by '+song.artist+' from my playlist');remove.addEventListener('click',()=>void toggle(song,remove));
-    actions.append(play,remove);row.append(info,actions);root.append(row);
+    const play=document.createElement('button');play.type='button';play.className='tc-fav-mode';
+    play.dataset.stream=song.play_url;play.dataset.title=song.title;play.dataset.artist=song.artist;
+    play.textContent='▶ Play';play.setAttribute('aria-label','Play '+song.title+' by '+song.artist);
+    play.addEventListener('click',()=>void playSong(song,play,row));
+    actions.append(play);
+    const more=document.createElement('details');more.className='tc-room-more';
+    const summary=document.createElement('summary');summary.textContent='⋮';
+    summary.setAttribute('aria-label','More options for '+song.title+' by '+song.artist);
+    const menu=document.createElement('div');menu.className='tc-room-menu';
+    for(const [cls,label] of [['post','View Post'],['suno','Suno']]){
+      const unavailable=document.createElement('span');unavailable.className='tc-room-'+cls+' tc-room-unavailable';
+      unavailable.textContent=label+' unavailable';menu.append(unavailable);
+    }
+    const remove=document.createElement('button');remove.type='button';remove.className='tc-fav-remove';
+    remove.textContent='× Remove';remove.setAttribute('aria-label','Remove '+song.title+' by '+song.artist+' from my playlist');
+    remove.addEventListener('click',()=>void toggle(song,remove));
+    menu.append(remove);more.append(summary,menu);row.append(sleeve,info,actions,more);root.append(row);
   }
+  updateRoomLinks();applyRoomFilters();void indexExtras();
 }
 function playSong(song,button,row){
   if(!window.dayPlay){announce('TSCMS player is not ready.');return;}
