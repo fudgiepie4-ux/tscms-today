@@ -15,10 +15,20 @@ FAVORITES_JS = '<script type="module" src="./tscms-favorites.js"></script>'
 OWNER_JS = '<script type="module" src="./tscms-favorites-owner.js"></script>'
 
 def number_of_loaders(page: str, filename: str) -> int:
-    # Count actual tags, including pre-existing querystring / optional ./ variants.
-    name = re.escape(filename)
-    pattern = rf'<(?:link|script)\\b[^>]*\\b(?:href|src)\\s*=\\s*["\\\'](?:\\./)?{name}(?:\\?[^"\\\']*)?["\\\'][^>]*>'
-    return len(re.findall(pattern, page, flags=re.I | re.S))
+    # Real tag scan: preserves optional ./, cache-busting querystrings, and quotes.
+    from html.parser import HTMLParser
+    class Scanner(HTMLParser):
+        count = 0
+        def handle_starttag(self, tag, attrs):
+            if tag not in ('link', 'script'):
+                return
+            for key, val in attrs:
+                if key in ('href', 'src') and val:
+                    if val.split('?', 1)[0].removeprefix('./') == filename:
+                        self.count += 1
+    parser = Scanner()
+    parser.feed(page)
+    return parser.count
 
 def ensure_tag(page: str, filename: str, tag: str) -> str:
     n = number_of_loaders(page, filename)
@@ -42,7 +52,7 @@ def preserve(html_by_name: dict[str, str]) -> dict[str, str]:
         if html.count('</head>') != 1 or html.count('</body>') != 1:
             raise ValueError(f'{name}: missing/duplicate structural HTML boundaries')
         # Do NOT add static hearts or doors. Existing loader is idempotently retained.
-        if re.search(r'class\\s*=\\s*["\\\'][^"\\\']*\\btc-fav-(?:heart|door)\\b', html):
+        if re.search(r"""class\s*=\s*["'][^"']*\btc-fav-(?:heart|door)\b""", html):
             raise ValueError(f'{name}: static Favorites control violates signed-out gate')
         html = ensure_tag(html, 'tscms-favorites.css', FAVORITES_CSS)
         html = ensure_tag(html, 'tscms-favorites.js', FAVORITES_JS)
