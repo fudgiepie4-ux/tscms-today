@@ -7,7 +7,7 @@
 .tscms-pathway-door:focus-visible,.tscms-group-signpost-link:focus-visible{outline:3px solid #fff6c9;outline-offset:3px}
 .tscms-pathway-label{font:700 clamp(15px,1.8vw,20px)/1.25 Georgia,serif;display:block}
 .tscms-pathway-helper{font:500 14px/1.4 system-ui,-apple-system,sans-serif;display:block}
-.tscms-pathway-play{background:linear-gradient(180deg,#704714,#31210e);border-color:#ebbb59}
+.tscms-pathway-video{background:linear-gradient(180deg,#704714,#31210e);border-color:#ebbb59}
 .tscms-pathway-tip{font:400 13px/1.5 system-ui,-apple-system,sans-serif;text-align:center;color:#e9cb92;margin:11px 7px 0}
 .tscms-group-signpost{max-width:1140px;margin:17px auto 25px;padding:21px clamp(16px,4vw,30px);text-align:center;color:#fff1cd;background:linear-gradient(160deg,#392410,#1f120a);border:2px solid #c99c56;border-radius:14px;box-shadow:0 7px 23px #0008}
 .tscms-group-signpost-title{font:700 clamp(23px,3.4vw,31px)/1.25 Georgia,serif!important;color:#ffe4a0!important;margin:0 auto 11px!important}

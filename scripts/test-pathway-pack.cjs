@@ -55,9 +55,9 @@ test('Personal Note runtime text and placement source remain unaltered',()=>{
 test('Exact three door titles and helper copy in order',()=>{
   const {document}=mount();
   assert.deepEqual(Array.from(document.querySelectorAll('#tscms-pathway-pack .tscms-pathway-label'),e=>e.textContent),
-    ["▶ Today's Songs",'Play Now','🔍 Search the Songs']);
+    ["▶ Today's Songs",'🎬 Submit Your Music Video','🔍 Search the Songs']);
   assert.deepEqual(Array.from(document.querySelectorAll('#tscms-pathway-pack .tscms-pathway-helper'),e=>e.textContent),
-    ["Skip straight to today's music.",'Find a song — or a singer.']);
+    ["Skip straight to today's music.",'Send it in for the Monday Night Drive-In.','Find a song — or a singer.']);
   assert.equal(document.querySelector('.tscms-pathway-tip').textContent,
     'Solitaire lives in the Gamehouse. Dicey Discovery is down in the song list.');
 });
@@ -65,11 +65,20 @@ test('Pathway comes directly AFTER existing approved autumn hero',()=>{
   const {document}=mount();
   assert.equal(document.getElementById('tscms-autumn-nav').nextElementSibling.id,'tscms-pathway-pack');
 });
-test('Play Now and Search use existing destination paths',()=>{
+test('Middle door goes to existing Drive-In submissions page, Search stays unchanged',()=>{
   const {document}=mount();
-  assert.equal(document.querySelector('.tscms-pathway-play').getAttribute('href'),
-    document.querySelector('a.saloon-playnow').getAttribute('href'));
+  assert.equal(document.querySelector('.tscms-pathway-video').getAttribute('href'),'./videos.html');
   assert.equal(document.querySelector('.tscms-pathway-search').getAttribute('href'),'tscms-search.html');
+});
+test('Only one Play Now in top view; original Protected Gamehouse bar is untouched',()=>{
+  const {document}=mount();
+  const playLinks=Array.from(document.querySelectorAll('.wrap a'))
+    .filter(a=>/play now/i.test(a.textContent));
+  assert.equal(playLinks.length,1);
+  assert.equal(playLinks[0],document.querySelector('a.saloon-playnow'));
+  assert.equal(playLinks[0].getAttribute('href'),'gamehouse.html');
+  assert.equal(playLinks[0].textContent,'🎮 PLAY NOW — TSCMS GAMEHOUSE');
+  assert.equal(document.querySelector('.tscms-pathway-play'),null);
 });
 test('Today routes through EXISTING Quick Jump day selector',()=>{
   const e=mount();

@@ -16,7 +16,7 @@
     stylesheet.href='./tscms-pathway-pack.css?v=20261023-additive-1';
     stylesheet.setAttribute('data-tscms-preserved','pathway-pack-style');
     if(!document.querySelector('link[data-tscms-preserved="pathway-pack-style"]'))document.head.appendChild(stylesheet);
-    var strip=null,signpost=null,groupLink=null,playLink=null;
+    var strip=null,signpost=null,groupLink=null;
     function element(tag,cls,text){
       var e=document.createElement(tag);
       if(cls)e.className=cls;
@@ -26,10 +26,6 @@
     function groupDestination(){
       var current=document.querySelector('#tscms-autumn-nav .hotspot-group');
       return current&&current.href?current.href:'https://www.facebook.com/share/g/1HhNCD6FSS/';
-    }
-    function playDestination(){
-      var original=wrap.querySelector('a.saloon-playnow');
-      return original?original.getAttribute('href'):'gamehouse.html';
     }
     function makeStrip(){
       strip=element('nav','tscms-pathway');
@@ -57,7 +53,8 @@
           });
         }
       });
-      playLink=link('tscms-pathway-play','Play Now','',playDestination());
+      link('tscms-pathway-video','🎬 Submit Your Music Video',
+        'Send it in for the Monday Night Drive-In.','./videos.html');
       var search=link('tscms-pathway-search','🔍 Search the Songs',
         'Find a song — or a singer.','tscms-search.html');
       search.setAttribute('aria-label','🔍 Search the Songs — Find a song — or a singer.');
@@ -92,8 +89,6 @@
       if(note&&note.nextElementSibling!==signpost)note.insertAdjacentElement('afterend',signpost);
       var expectedGroup=groupDestination();
       if(groupLink.href!==expectedGroup)groupLink.href=expectedGroup;
-      var expectedPlay=playDestination();
-      if(playLink.getAttribute('href')!==expectedPlay)playLink.href=expectedPlay;
     }
     place();
     if(window.MutationObserver){
