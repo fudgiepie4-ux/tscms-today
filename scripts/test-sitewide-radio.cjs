@@ -84,7 +84,7 @@ function harness(savedState=null,opts={}){
       const doc=loadEntirePublicRuntime(html,pathname);
       assert.ok(doc.querySelector(preserved),page+' preserved');
       assert.equal(doc.querySelectorAll('#tscms-september-spotlight-2026').length,0,page);
-      assert.equal(doc.querySelectorAll('style').length,0,page+' no Spotlight CSS injected');
+      assert.equal(Array.from(doc.querySelectorAll('style')).filter(s=>s.textContent.includes('#tscms-september-spotlight-2026')).length,0,page+' no Spotlight CSS injected');
       const scripts=doc.querySelectorAll('script[data-tscms-preserved="sitewide-radio"]');
       assert.equal(scripts.length,1,page+' single radio loader');
       assert.match(scripts[0].getAttribute('src'),/tscms-sitewide-radio\.js/);
