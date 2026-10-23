@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install isolated DOM test dependency
+        run: npm install --no-save --no-package-lock --ignore-scripts linkedom@0.18.12
       - name: Syntax of protected Favorites module
         run: |
           node --check tscms-favorites.js
@@ -29,3 +31,5 @@ jobs:
         run: node scripts/test-favorites-staging.cjs
       - name: Existing Larger Text checks
         run: node scripts/test-public-legibility.cjs
+      - name: Preserve public runtime / six-hour builder guards
+        run: node scripts/verify-public-preservation.mjs
