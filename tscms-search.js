@@ -34,7 +34,7 @@
     meta.textContent=song.artist+' · Week of '+friendlyWeek(song.week);
     const actions=document.createElement('div');actions.className='tscms-search-actions';
     const play=document.createElement('button');play.type='button';play.className='tscms-search-play';
-    play.textContent='▶ PLAY';play.dataset.stream=song.play_url;play.dataset.title=song.title;
+    play.textContent='▶ PLAY';play.dataset.stream=song.play_url;play.dataset.title=song.title;play.dataset.artist=song.artist;play.setAttribute('aria-pressed','false');
     play.setAttribute('aria-label','Play '+song.title+' by '+song.artist);
     play.addEventListener('click',function(){
       if(typeof window.dayPlay==='function'){window.dayPlay(play);}
