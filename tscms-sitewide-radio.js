@@ -11,7 +11,7 @@
   var OWNER_KEY='tscms-sitewide-radio-owner-v1';
   var owner=String(Date.now())+'-'+Math.random().toString(36).slice(2);
   var J=null, ui=null, title=null, status=null, play=null, previous=null, next=null, stop=null, volume=null;
-  var chosen='stopped', wanted=null, loaded=false, restoring=false, needTap=false, seekFailed=false, lastSaved=0, owns=false;
+  var chosen='stopped', wanted=null, loaded=false, restoring=false, needTap=false, seekFailed=false, lastSaved=0, owns=false, yieldingToTab=false;
   function read(){
     try{
       var value=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
@@ -142,7 +142,7 @@
     saved(chosen);display();
   }
   function onMedia(e){
-    if(!loaded || restoring || J.isFavoritesMode())return;
+    if(!loaded || restoring || yieldingToTab || J.isFavoritesMode())return;
     var d=e.detail||{};
     if(d.state==='playing'){
       needTap=false;seekFailed=false;chosen='playing';silenceOtherMedia();take();saved('playing');
@@ -194,9 +194,16 @@
       J.on('trackchange',function(){if(!restoring && loaded && !J.isFavoritesMode()){saved(chosen);display();}});
       J.on('timeupdate',function(){if(!restoring && loaded && J.isPlaying() && Date.now()-lastSaved>2200)saved('playing');});
       document.addEventListener('play',onExternalPlay,true);
+      document.addEventListener('tscms:jukebox:volumechange',function(){
+        if(!restoring && loaded && !J.isFavoritesMode()){saved(chosen);display();}
+      });
       window.addEventListener('storage',function(e){
-        if(e.key===OWNER_KEY && e.newValue!==owner && J && J.isPlaying()){
+        if(e.key===OWNER_KEY && e.newValue!==owner && J &&
+           (J.isPlaying() || J._state().requestedPlaying)){
+          // The previous tab yields WITHOUT re-acquiring ownership in onMedia.
+          yieldingToTab=true;
           J.pauseStation();
+          yieldingToTab=false;
           owns=false;chosen='paused';
           announce('Radio moved to another tab.');display();
         }
