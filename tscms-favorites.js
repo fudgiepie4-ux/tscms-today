@@ -10,9 +10,8 @@ import {tscmsFirebaseConfig} from './firebase-admin-config.js';
 import {approvedTeam,cleanSong,newestFirst,artistFromCard,songKey,MAX_SAVED} from './tscms-favorites-core.mjs';
 const app=getApps().length?getApp():initializeApp(tscmsFirebaseConfig);
 const auth=getAuth(app),db=getFirestore(app),STATE={uid:null,ready:false,items:[],profile:null};
-let unsub=null,generation=0,pending=false,scanning=false,scanScheduled=false,playlistQueue=null,toastTimer=null;
+let unsub=null,generation=0,subscriptionGeneration=0,pending=false,scanning=false,scanScheduled=false,playlistQueue=null,toastTimer=null;
 let lastGameRefresh=null;
-let currentTrackCheck=null;
 const byId=id=>document.getElementById(id);
 const each=(css,fn)=>document.querySelectorAll(css).forEach(fn);
 const source=()=>STATE.items;
@@ -30,6 +29,7 @@ function strip(){
   const list=byId('tc-fav-playlist-list');if(list)list.replaceChildren();
 }
 function revokeView(){
+  subscriptionGeneration++; // invalidate old Firestore snapshot callbacks
   STATE.uid=null;STATE.ready=false;STATE.items=[];STATE.profile=null;
   if(unsub){unsub();unsub=null;} strip();
   playlistQueue=null;event('tscms:favorites-revoked');
@@ -39,20 +39,30 @@ function revokeView(){
   }
 }
 async function confirmUser(user,ticket){
-  revokeView();if(!user)return;
+  const sameApprovedIdentity=Boolean(user?.uid && STATE.uid===user.uid && STATE.ready);
+  // Actual sign-out or switching accounts removes all personal controls
+  // immediately; a periodic privilege refresh for the SAME approved owner
+  // must not reset the audio queue or invalidate the active snapshot listener.
+  if(!sameApprovedIdentity)revokeView();
+  if(!user)return;
   try{
     await reload(user);await getIdToken(user,true);
     const snap=await getDocFromServer(doc(db,'users',user.uid));
     if(ticket!==generation || auth.currentUser?.uid!==user.uid)return;
     const profile=snap.exists()?snap.data():null;
-    if(!approvedTeam(user,profile))return;
+    if(!approvedTeam(user,profile)){revokeView();return;}
+    if(sameApprovedIdentity){
+      STATE.profile=profile; // keep audio, hearts and Firestore listener intact
+      return;
+    }
     STATE.uid=user.uid;STATE.profile=profile;
     // Rule gate: until own collection really loads, NO hearts or playlist door.
+    const mySubscription=subscriptionGeneration;
     unsub=onSnapshot(collection(db,'users',user.uid,'favorites'),snapshot=>{
-      if(ticket!==generation||!STATE.uid)return;
+      if(mySubscription!==subscriptionGeneration||STATE.uid!==user.uid)return;
       STATE.items=newestFirst(snapshot.docs.map(x=>({id:x.id,...x.data()})).filter(x=>cleanSong(x)));
       STATE.ready=true;sync();
-    },()=>{revokeView();notice('Playlist temporarily unavailable. Please try again later.');});
+    },()=>{if(mySubscription===subscriptionGeneration){revokeView();notice('Playlist temporarily unavailable. Please try again later.');}});
   }catch(_){if(ticket===generation)revokeView();}
 }
 onAuthStateChanged(auth,user=>{const ticket=++generation;void confirmUser(user,ticket);});
