@@ -38,7 +38,7 @@ function mount(options={}){
   const dayLink=document.querySelector('#tscms-qj-bar .tscms-qj-link');
   if(dayLink)dayLink.addEventListener('click',e=>{e.preventDefault();clicks++});
   document.querySelector('.tabs').scrollIntoView=()=>{scrolls++};
-  const scriptCtx={document,window,location:{pathname:options.pathname||'/'},console};
+  const scriptCtx={document,window,MutationObserver:window.MutationObserver,location:{pathname:options.pathname||'/'},console};
   vm.runInNewContext(js,scriptCtx,{filename:'tscms-pathway-pack.js'});
   return {document,window,wrap,counts:()=>({clicks,scrolls}),runAgain:()=>vm.runInNewContext(js,scriptCtx)};
 }
