@@ -105,7 +105,7 @@
       panel.setAttribute('aria-hidden',open?'false':'true');
       tab.setAttribute('aria-expanded',open?'true':'false');
       tab.setAttribute('aria-label',(open?'Close':'Open')+' TSCMS Radio player');
-      if(open && loaded)display();
+      if(loaded)display();
     }
     tab.addEventListener('click',function(){setOpen(root.getAttribute('data-open')!=='true');});
     // Do not wake the separate Drive-In ambient audio on a radio tap.
@@ -125,7 +125,7 @@
     take();silenceOtherMedia();
     chosen='playing';needTap=false;seekFailed=false;
     var started=J.toggle();
-    if(!started){needTap=true;announce('Tap to keep listening; the browser did not start sound.');}
+    if(!started || needTap){needTap=true;announce('Tap to keep listening to '+(J.currentTrack()?J.currentTrack().title:'the saved song')+' — your browser did not start sound.');}
     else announce('Starting the saved station track…');
     display();
   }
