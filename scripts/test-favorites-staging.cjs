@@ -18,6 +18,25 @@ check('Jukebox still has one audio creator and dedicated Favorites API',()=>{ass
 check('Radio stays linked to original playlist for restore',()=>{assert.match(jukebox,/masterTracks = list\.filter/);assert.match(jukebox,/stationTrackBeforeFavorites/);assert.match(jukebox,/Station shuffle preference saved for later/);});
 check('Rules fragment explicitly is not deployed or production root',()=>{assert.match(rules,/DO NOT DEPLOY/);assert.match(rules,/match \/users\/\{uid\}\/favorites\/\{songId\}/);assert.ok(!fs.existsSync('firestore.rules'));});
 check('Staging never adds hearts to Dicey',()=>{assert.doesNotMatch(src,/\.dicey|dice-card|\.dice-card/);});
+const backend=fs.readFileSync('favorites-pilot/backend/team-favorites-aggregate.cjs','utf8');
+const owner=fs.readFileSync('tscms-favorites-owner.js','utf8');
+const admin=fs.readFileSync('admin.html','utf8');
+check('Owner pilot counts are server-only, with owner Auth+profile check',()=>{
+  assert.match(backend,/request\.auth\?\.uid/);
+  assert.match(backend,/profile\.owner!==true/);
+  assert.match(backend,/profile\.status!=='approved'/);
+  assert.match(backend,/\.collection\('favorites'\)\.count\(\)/);
+  assert.match(backend,/return \{totalHearts,activeMembers,countedAt:/);
+  assert.doesNotMatch(owner,/collection\(db,'users'/);
+  assert.match(owner,/httpsCallable\(getFunctions\(app,'us-central1'\)/);
+  assert.match(owner,/p\?\.owner!==true/);
+  assert.equal((admin.match(/src="\.\/tscms-favorites-owner\.js"/g)||[]).length,1);
+  assert.doesNotMatch(admin,/class="tc-owner-favorites-aggregate/);
+});
+check('Backend proposal cannot run without separately provisioned Firebase Functions',()=>{
+  assert.match(backend,/STAGING SOURCE ONLY/);
+  assert.ok(!fs.existsSync('firebase.json'));
+});
 (async()=>{
   let audioCount=0,playCalls=0;
   class AudioMock{constructor(){this.paused=true;this.volume=1;this.currentTime=0;this.duration=NaN;this.seekable={length:0};this.events={};}
