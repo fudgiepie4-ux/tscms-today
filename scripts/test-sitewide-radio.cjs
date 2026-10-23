@@ -110,6 +110,7 @@ function harness(savedState=null,opts={}){
   }
   {
     const h=harness(snapshot('paused'));await h.flush();
+    console.log('DEBUG PAUSED',JSON.stringify(h.inspect()),JSON.stringify(h.store()),h.document.querySelector('.tc-radio-status')?.textContent);
     test('Saved paused track and 47.5 seconds restored without autoplay',()=>{
       assert.equal(h.inspect().playCalls,0);
       assert.equal(h.inspect().restoreCalls[0][1],47.5);
