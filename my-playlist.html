@@ -1,3 +1,36 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Playlist — TSCMS</title><link rel="stylesheet" href="./tscms-favorites.css"><link rel="stylesheet" href="./tscms-legibility.css?v=wave-20261022"><style>body{margin:0;background:linear-gradient(#2e1a0b,#100b07);color:#ffe8ba;font:16px/1.5 system-ui,sans-serif}main{max-width:930px;margin:22px auto;padding:15px}a{color:#ffdfa6}h1{font-family:Georgia,serif}button{cursor:pointer}button:focus-visible{outline:3px solid #fff0b8}</style></head>
-<body><main id="tc-fav-playlist-root"><a href="./">← Back to TSCMS</a><h1>My Playlist</h1><p id="tc-fav-playlist-message" role="status" aria-live="polite">Checking your sign-in…</p><div id="tc-fav-playlist-list"></div></main><script src="./tscms-public-runtime.js" defer></script><script src="./tscms-legibility.js?v=wave-20261022" defer></script><script type="module" src="./tscms-favorites.js"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Listening Room — My Playlist — TSCMS</title>
+<link rel="stylesheet" href="./tscms-favorites.css">
+<link rel="stylesheet" href="./tscms-legibility.css?v=wave-20261022">
+<link rel="stylesheet" href="./tscms-listening-room.css">
+</head>
+<body class="tc-listening-room">
+<main id="tc-fav-playlist-root" class="tc-room">
+  <nav class="tc-room-topline" aria-label="Listening Room navigation">
+    <a class="tc-room-back" href="./">← Back to TSCMS</a>
+    <span class="tc-room-tag">TSCMS · My Playlist</span>
+  </nav>
+  <header class="tc-room-masthead">
+    <p class="tc-room-kicker">Your own corner of the station</p>
+    <h1 class="tc-room-title">The Listening Room</h1>
+    <p class="tc-room-subtitle">Pull up a chair. Your favorite songs have a place here.</p>
+    <p id="tc-fav-crate-count" class="tc-room-plaque" hidden></p>
+  </header>
+  <section class="tc-room-crate" aria-label="My saved song crate">
+    <div class="tc-room-crate-heading">
+      <h2>My Record Crate</h2>
+      <p>Saved songs · Ready when you are</p>
+    </div>
+    <p id="tc-fav-playlist-message" role="status" aria-live="polite">Checking your sign-in…</p>
+    <div id="tc-fav-playlist-list"></div>
+  </section>
+</main>
+<script src="./tscms-public-runtime.js" defer></script>
+<script src="./tscms-legibility.js?v=wave-20261022" defer></script>
+<script type="module" src="./tscms-favorites.js"></script>
+</body>
+</html>
