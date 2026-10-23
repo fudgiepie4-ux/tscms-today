@@ -124,7 +124,7 @@ assert('Site-wide Radio still loads from same shared public runtime on Search + 
   /tscms-public-runtime\.js/.test(searchHtml)&&
   /tscms-public-runtime\.js/.test(playlistHtml)&&
   /tscms-public-runtime\.js/.test(index)&&/tscms-public-runtime\.js/.test(today));
-for(const [name,html] of [['Town Journal',journalHtml],['Drive-In',driveIn],['Gamehouse',game]]) {
+for(const [name,html] of [['Town Journal',journalHtml],['Drive-In',read('videos.html')],['Gamehouse',game]]) {
   assert(name+' → site-wide radio script exactly once',
     count(html,/src=["']\.\/tscms-sitewide-radio\.js\?[^"']+["']/g)===1&&
     /tscms-sitewide-radio\.css/.test(html));
