@@ -11,6 +11,8 @@ on:
       - 'tscms-today.html'
       - 'tscms-search.html'
       - 'gamehouse.html'
+      - 'admin.html'
+      - 'tscms-favorites-owner.js'
       - 'solitaire-phase1-staging/js/gamehouse-jukebox.js'
       - 'favorites-pilot/**'
       - 'scripts/test-favorites-staging.cjs'
@@ -29,5 +31,9 @@ jobs:
           node --check tscms-favorites.js
           node --check tscms-favorites-core.mjs
           node --check solitaire-phase1-staging/js/gamehouse-jukebox.js
+      - name: Owner widget and backend JavaScript syntax
+        run: |
+          node --check tscms-favorites-owner.js
+          node --check favorites-pilot/backend/team-favorites-aggregate.cjs
       - name: Signed-out contract and single-player unit checks
         run: node scripts/test-favorites-staging.cjs
