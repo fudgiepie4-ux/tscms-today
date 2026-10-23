@@ -354,3 +354,25 @@ else mountAutumnNavigation();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadHomeDubby,{once:true});
   else loadHomeDubby();
 })();
+
+/* Owner-approved Oct 23 additive Pathway Pack.
+ * Preserve through the six-hour homepage generator: load from a
+ * NON-GENERATED, existing Quick Jump source; never inline in index.html.
+ * No Quick Jump regrouping, art/tiles relabeling, or Dubby moves. */
+(function(){
+  'use strict';
+  function loadPathway(){
+    var wrap=document.querySelector('body > .wrap');
+    if(!wrap||!wrap.querySelector('.tscms-site-tabs')||
+       !wrap.querySelector('a.saloon-playnow')||!wrap.querySelector('.tabs'))return;
+    if(document.querySelector('script[data-tscms-preserved="pathway-pack"]'))return;
+    var script=document.createElement('script');
+    script.src='./tscms-pathway-pack.js?v=20261023-additive-1';
+    script.async=true;
+    script.setAttribute('data-tscms-preserved','pathway-pack');
+    script.onerror=function(){console.warn('TSCMS Pathway links unavailable; original homepage navigation is unchanged.');};
+    document.head.appendChild(script);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadPathway,{once:true});
+  else loadPathway();
+})();
