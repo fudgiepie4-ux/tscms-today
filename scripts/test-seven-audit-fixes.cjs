@@ -11,7 +11,8 @@ const dual=read('tscms-admin-dual.js'),searchPage=read('tscms-search.html'),play
 test('VID-02 starts Night Sounds ONLY via explicit control, not page load',()=>{
  const tail=video.slice(video.indexOf("const toggle=document.getElementById('sound-toggle');"));
  assert.match(tail,/toggle\.addEventListener\('click',/);
- assert.match(tail,/if\(wanted\)startNight\(\);else stopNight\(\)/);
+ assert.match(tail,/if\(wanted && audio\.paused\)\{startNight\(\);\}/);
+ assert.match(tail,/toggle\.textContent=!wanted\?'Switch ON':playing\?'Switch OFF':'▶ Start Night Sounds'/);
  assert.doesNotMatch(tail,/document\.addEventListener\('pointerdown'/);
  assert.doesNotMatch(tail,/document\.addEventListener\('keydown'/);
  assert.doesNotMatch(tail,/startNight\(\);\s*\/\/ Browsers/);
