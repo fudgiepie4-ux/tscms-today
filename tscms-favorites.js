@@ -172,7 +172,7 @@ function injectRows(){
 const roomCompare=new Intl.Collator(undefined,{sensitivity:'base',numeric:true});
 let roomMetadata=null,roomMetadataPending=null,roomView='list';
 function normalized(text){
-  return String(text||'').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase().trim();
+  return String(text||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().trim();
 }
 function verifiedLink(url,kind){
   if(typeof url!=='string')return false;
@@ -182,7 +182,7 @@ function verifiedLink(url,kind){
     const host=parsed.hostname.toLowerCase();
     return kind==='post'
       ? ['facebook.com','www.facebook.com','m.facebook.com'].includes(host)&&parsed.pathname!=='/'
-      : ['suno.com','www.suno.com'].includes(host)&&/^\\/(?:song|s)\\/[^/]+/.test(parsed.pathname);
+      : ['suno.com','www.suno.com'].includes(host)&&(parsed.pathname.startsWith('/song/')||parsed.pathname.startsWith('/s/'))&&parsed.pathname.split('/').filter(Boolean).length>=2;
   }catch(_){return false;}
 }
 function indexExtras(){
