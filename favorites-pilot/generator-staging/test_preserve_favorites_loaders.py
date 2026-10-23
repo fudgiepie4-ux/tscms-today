@@ -77,5 +77,18 @@ class PreservationTests(unittest.TestCase):
         self.assertNotIn(OWNER_JS,out['tscms-today.html'])
         self.assertIn(FAVORITES_CSS,out['index.html'])
 
+    def test_actual_pr28_generated_pages_have_exact_loader_parity(self):
+        # Real staged page artifacts, not invented HTML fixture strings.
+        repo_root = Path(__file__).resolve().parents[2]
+        original = {
+            name: (repo_root / name).read_text(encoding='utf8')
+            for name in ('index.html', 'tscms-today.html', 'admin.html')
+        }
+        self.assertEqual(preserve(original), original,
+                         'Current PR #28 page artifacts must already pass without edits')
+        self.assertEqual(number_of_loaders(original['index.html'],'tscms-favorites.js'),1)
+        self.assertEqual(number_of_loaders(original['tscms-today.html'],'tscms-favorites.js'),1)
+        self.assertEqual(number_of_loaders(original['admin.html'],'tscms-favorites-owner.js'),1)
+
 if __name__=='__main__':
     unittest.main(verbosity=2)
