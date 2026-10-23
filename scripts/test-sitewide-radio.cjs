@@ -59,6 +59,58 @@ function harness(savedState=null,opts={}){
   };
 }
 (async()=>{
+  function loadEntirePublicRuntime(html,pathname){
+    const {document,window}=parseHTML(html);
+    const context={
+      window,document,location:{pathname},
+      localStorage:{getItem:()=>null,setItem:()=>{}},
+      Promise,console,Math,Number,Date,Set,Array,
+      setTimeout,clearTimeout
+    };
+    // Runtime uses the same deferred asset on both standalone pages. Emulate
+    // the completed HTML parse as well as the DOMContentLoaded fallback.
+    vm.runInNewContext(runtime,context,{filename:'tscms-public-runtime.js'});
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+    return document;
+  }
+  test('Search + My Playlist finish the ENTIRE shared runtime with radio loader mounted',()=>{
+    for(const [page,pathname,preserved] of [
+      ['tscms-search.html','/tscms-search.html','#tscms-search-form'],
+      ['my-playlist.html','/my-playlist.html','#tc-fav-playlist-root']
+    ]){
+      const html=fs.readFileSync(page,'utf8');
+      assert.doesNotMatch(html,/class=["']wrap["']/);
+      assert.doesNotMatch(html,/most-loved-autumn/);
+      const doc=loadEntirePublicRuntime(html,pathname);
+      assert.ok(doc.querySelector(preserved),page+' preserved');
+      assert.equal(doc.querySelectorAll('#tscms-september-spotlight-2026').length,0,page);
+      assert.equal(doc.querySelectorAll('style').length,0,page+' no Spotlight CSS injected');
+      const scripts=doc.querySelectorAll('script[data-tscms-preserved="sitewide-radio"]');
+      assert.equal(scripts.length,1,page+' single radio loader');
+      assert.match(scripts[0].getAttribute('src'),/tscms-sitewide-radio\.js/);
+      assert.equal(doc.querySelectorAll('link[data-tscms-preserved="sitewide-radio-style"]').length,1,page);
+    }
+  });
+  test('Homepage Spotlight retains identical anchor placement and original artwork',()=>{
+    const doc=loadEntirePublicRuntime(
+      '<html><head></head><body><main class="wrap"><div class="most-loved-autumn"></div><footer class="mono">TSCMS</footer></main></body></html>','/'
+    );
+    const anchor=doc.querySelector('.most-loved-autumn');
+    const spotlight=doc.querySelector('#tscms-september-spotlight-2026');
+    assert.ok(spotlight,'original Spotlight retained');
+    assert.equal(anchor.nextElementSibling,spotlight,'original after-most-loved position');
+    assert.equal(spotlight.querySelector('img').getAttribute('src'),'assets/spotlight-september-2026.webp');
+    assert.equal(spotlight.querySelectorAll('a.tscms-spotlight-hotspot').length,2);
+    assert.ok(doc.querySelector('style').textContent.includes('.tscms-spotlight-frame'));
+    assert.equal(doc.querySelectorAll('script[data-tscms-preserved="sitewide-radio"]').length,1);
+  });
+  test('Homepage fallback remains null-safe and does not create a non-homepage Spotlight',()=>{
+    const homepage=loadEntirePublicRuntime('<html><head></head><body><main class="wrap"><footer class="mono">Foot</footer></main></body></html>','/');
+    assert.equal(homepage.querySelector('.wrap').firstElementChild.id,'tscms-september-spotlight-2026');
+    const withFooter=loadEntirePublicRuntime('<html><head></head><body><main><footer>Other page footer</footer></main></body></html>','/subpage.html');
+    assert.equal(withFooter.querySelector('#tscms-september-spotlight-2026'),null);
+    assert.equal(withFooter.querySelectorAll('script[data-tscms-preserved="sitewide-radio"]').length,1);
+  });
   test('One shared UI, not a second audio engine',()=>{
     assert.equal((shared.match(/createElement\('audio'\)/g)||[]).length,0);
     assert.equal((engine.match(/audio=document\.createElement\('audio'\)/g)||[]).length,1);
