@@ -74,6 +74,7 @@ vm.runInContext('STATE.uid="approved-owner"; STATE.ready=true; STATE.items='+JSO
 const rows=()=>[...document.querySelectorAll('#tc-fav-playlist-list .tc-fav-row')];
 report('3 real owner records / count / mockup actions and controls',()=>{
  assert.equal(rows().length,3);
+ assert.equal(document.querySelectorAll('.tc-room-masthead .tc-fav-toolbar').length,0,'no redundant self-link distorts approved header');
  assert.equal(document.getElementById('tc-fav-crate-count').textContent,'Your crate holds 3 records');
  assert.equal(document.getElementById('tc-room-art-filled').hidden,false);
  assert.equal(document.getElementById('tc-room-art-empty').hidden,true);
