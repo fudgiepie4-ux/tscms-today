@@ -32,7 +32,8 @@ report('Auth, data keys, existing player and official station untouched',()=>{
  assert.match(src,/setDoc\(doc\(db,'users',STATE.uid,'favorites',id\)/);
  assert.match(src,/deleteDoc\(doc\(db,'users',STATE.uid,'favorites',found.id\)\)/);
 });
-const {window,document}=parseHTML(html);
+const {window:domWindow,document}=parseHTML(html);
+const window={Event:domWindow.Event,CustomEvent:domWindow.CustomEvent,addEventListener:()=>{},innerHeight:800};
 let played=[],authCallback;
 const fakeSongs=[
  {id:'z',title:'Zebra Roads',artist:'Blue Sky',play_url:'https://cdn1.suno.ai/z.mp4',savedAt:{seconds:1792780000}},
