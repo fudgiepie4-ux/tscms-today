@@ -471,6 +471,8 @@ function mcLoadCommunityPulse(){
       var c=document.createElement('span');c.className='mstat';c.textContent=day.comments+' comments';
       row.append(date,p,c);rows.appendChild(row);
     });
+    var coverageLabel=section.querySelector('.mc-card-dates');
+    if(coverageLabel)coverageLabel.textContent='Coverage: '+start+' to '+end+' (CT) · verified dated daily records';
     status.textContent='Verified daily post records · snapshot '+new Date(data.generated).toLocaleString('en-US',{
       timeZone:'America/Chicago',month:'short',day:'numeric',year:'numeric',
       hour:'numeric',minute:'2-digit'
