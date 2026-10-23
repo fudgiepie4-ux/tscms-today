@@ -235,7 +235,7 @@ email.addEventListener('click',()=>{
  function paint(){
    const playing=!audio.paused;
    toggle.setAttribute('aria-pressed',String(wanted));
-   toggle.textContent=wanted?'Switch OFF':'Switch ON';
+   toggle.textContent=!wanted?'Switch ON':playing?'Switch OFF':'▶ Start Night Sounds';
    choice.textContent=!wanted?'OFF':playing?'ON · playing':'ON · awaiting tap';
    desc.textContent=!wanted?'Nighttime recording muted · choice remembered':playing?'Your nighttime recording · 20-minute gentle loop':'Your 20-minute nighttime recording · use Switch ON to hear the night';
  }
@@ -260,8 +260,10 @@ email.addEventListener('click',()=>{
    paint();
  }
  toggle.addEventListener('click',()=>{
-   wanted=!wanted;setPreference();
-   if(wanted)startNight();else stopNight();
+   // Remembered ON is a preference, not permission to autoplay. The first
+   // deliberate tap must START the sound rather than turn it OFF.
+   if(wanted && audio.paused){startNight();}
+   else {wanted=!wanted;setPreference();if(wanted)startNight();else stopNight();}
    paint();
  });
  audio.addEventListener('ended',paint);
