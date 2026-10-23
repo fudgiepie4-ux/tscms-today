@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'town-journal.html'
+      - 'tscms-quick-jump.js'
       - 'town-journal-assets/**'
       - 'town-journal-sources/**'
       - 'town-journal-content-source.json'
