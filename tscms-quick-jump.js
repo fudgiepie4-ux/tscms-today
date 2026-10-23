@@ -12,6 +12,7 @@
       {key:'admin', icon:'🔐', label:'Admin Sign In', href:'admin.html'},
       {key:'home', icon:'⌂', label:'Home'},
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
+      {key:'journal', icon:'📖', label:'Town Journal — Heard & Built', href:'town-journal.html'},
       {key:'videos', icon:'🎬', label:'Submit Your Music Video — Now Open', href:'videos.html'},
       {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
@@ -80,7 +81,7 @@
         var box=sections.dicey;
         return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' && getComputedStyle(box).display!=='none');
       }
-      if (key==='admin' || key==='gamehouse' || key==='home' || key==='videos') return true;
+      if (key==='admin' || key==='gamehouse' || key==='home' || key==='videos' || key==='journal') return true;
       if (key==='halloween') return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
       return !!sections[key];
     }
@@ -188,7 +189,7 @@
       var link=e.target.closest('.tscms-qj-link');
       if(!link)return;
       var key=link.dataset.target;
-      if(key==='admin'||key==='gamehouse'||key==='videos'){closeMenu(false);return;} // Separate site pages use normal navigation.
+      if(key==='admin'||key==='gamehouse'||key==='videos'||key==='journal'){closeMenu(false);return;} // Separate site pages use normal navigation.
       e.preventDefault();
       if(!isReady(key))return;
       closeMenu(false);
