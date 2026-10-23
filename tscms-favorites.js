@@ -142,6 +142,8 @@ function announce(msg,withLink=false){
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.remove(),6500);
 }
 function addDoor(){
+  // This page IS My Playlist: do not prepend a redundant self-link into its approved illustrated masthead.
+  if(byId('tc-fav-playlist-root'))return;
   const host=document.querySelector('header,.tc-signed-in,.tscms-search-wrap,.main,#tc-fav-playlist-root');
   if(host&&!host.querySelector('.tc-fav-door')){
     const row=document.createElement('div');row.className='tc-fav-toolbar';
