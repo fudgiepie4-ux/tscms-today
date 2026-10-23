@@ -10,17 +10,17 @@ const led=source.split("## THE TOWN'S CONSTRUCTION JOURNAL")[1].split("## KEEPER
 const titles=[...led.matchAll(/^### (.+)$/gm)].map(x=>x[1]);
 const qj=fs.readFileSync('tscms-quick-jump.js','utf8');
 const tests=[
-  ['Source manuscript is complete',()=>assert.equal(Buffer.byteLength(source),15606)],
+  ['Source manuscript is complete',()=>assert.equal(Buffer.byteLength(source),17200)],
   ['Brenda always opens',()=>assert.ok(html.includes('const sheets=[founding,...journalPages'))],
   ['Founding words use official source, not sample copy',()=>{
     assert.equal(data.founding_markdown,found);
     assert.ok(data.founding_markdown.includes("Absolutely love and I don't know why I had so much fun with the dice. Thank you, I've got a lot to learn."));
     assert.ok(!html.includes('Layout sample only'));
   }],
-  ['Exact 15 entries in correct source order',()=>{
-    assert.equal(titles.length,15);assert.equal(data.entries.length,15);
+  ['Exact 16 entries in correct source order',()=>{
+    assert.equal(titles.length,16);assert.equal(data.entries.length,16);
     assert.deepEqual(data.entries.map(x=>x.date+' — '+x.title),titles);
-    assert.equal(data.entries[0].title,'Words Big Enough to Read');
+    assert.equal(data.entries[0].title,'The Terms Got a Page of Their Own');
     assert.equal(data.entries.at(-1).title,'Halloween at the Front of the List');
   }],
   ['Every journal body comes directly from Cherish',()=>{
@@ -50,7 +50,7 @@ const tests=[
   }],
   ['No independent audio or local music upload',()=>{
     assert.ok(!/<audio\b/i.test(html));assert.ok(!/id="audioFile"/.test(html));
-    assert.ok(html.includes('href="./" aria-label="Open TSCMS Radio'));
+    assert.ok(!html.includes('aria-label="Open TSCMS Radio')); // v1 radio link removed on Fudgie's order (Oct 22) until the real in-page radio exists
   }],
   ['One page at a time with dynamic count and keyboard buttons',()=>{
     assert.ok(html.includes('Page '+"'"+'+')); // checked via actual source in next assertion

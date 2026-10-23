@@ -48,6 +48,18 @@ That is why this page stands first, and why it always will. This journal exists 
 
 ## THE TOWN'S CONSTRUCTION JOURNAL
 
+### October 22, 2026 — The Terms Got a Page of Their Own
+
+When the Drive-In opened, its rules lived where they could fit — a stretch of writing on the Videos page, doing its job, but easy to miss and hard for a member to keep.
+
+Tonight those rules got a page of their own. The Drive-In submission terms now stand on one clean page that a member can print or save: what to send, where to send it, what happens after you send it, and what you are agreeing to — Version 1, dated October 22, 2026, in big readable type. The door to it stands on the Drive-In page itself: Read the submission terms — print or save a copy.
+
+One rule on that page is newer than the Drive-In. Our first video was too big for an email attachment, so it arrived as a Google Drive link — and Fudgie ruled that a Drive link to the actual video file counts, so long as we can download it and check it is a real video file. That ruling is written into the terms now, where anyone can read it before they send. Suno and YouTube links still never count.
+
+*Built by: Clara · Finished and verified by: Cherish · Published on Fudgie's word (Oct 22)*
+
+---
+
 ### October 22, 2026 — Words Big Enough to Read
 
 Some of the smallest writing on the station's pages was very small indeed — little labels and buttons down at nine or ten letters tall, the kind you squint at. For a town with plenty of readers who'd rather not squint, that was worth fixing proper.
@@ -215,5 +227,6 @@ Give them a listen while they're riding up front.
 1. **Same-day rule (Fudgie, Oct 22):** every shipped wave owes this journal an entry the same day, written from the Change Log record — real dates, real credits, misses included. Append new Construction Journal entries at the TOP of that section (newest first); featured-member stories get their own page in the featured section.
 2. **Exact words rule:** member quotes are verbatim or not printed; consent first (words-consent ≠ photo-consent; no member photos ever).
 3. **Credits are facts, not courtesies:** builder, verifier, and whoever raised the thing get named as the record shows. Concept art never sets credits.
-4. **Favorites, the Drive-In terms page, and the Homepage Pathway** still owe entries when they ship — draft them from their Change Log lines on the day, don't reconstruct later. (Wave 4's, Search's, and Legibility's entries were written Oct 22, the day they shipped.)
+4. **Favorites and the Homepage Pathway** still owe entries when they ship — draft them from their Change Log lines on the day, don't reconstruct later. (Wave 4's, Search's, Legibility's, and the Drive-In terms page's entries were written Oct 22, the day they shipped.)
 5. **Nov 1 (One-Gate launch)** gets its entry on the day: one gate on the homepage, the PIN's retirement, and what it means for the team — written when it lands, from the record.
+6. **No-promises rule (Fudgie, Oct 22, 22:33 CT):** an entry is written ONLY when the thing is shipped, live, AND reachable by members through the site itself — a real door exists. A hidden direct link does not count as available. Ideas, plans, and in-progress builds never get entries, however good they look on paper; the Journal records what the town HAS, never what it hopes to build — no member gets promised something we might not be able to deliver.
