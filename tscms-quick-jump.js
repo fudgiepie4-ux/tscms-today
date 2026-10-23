@@ -213,6 +213,39 @@
       sections.daily.parentNode.insertBefore(halloweenButton,sections.daily);
       halloweenButton.addEventListener('click',function(){jump('halloween');});
     }
+    // Search door (Fudgie's order, Oct 22): a plain, tappable way into Song
+    // Search sitting right above the playlist, so the feature the Town
+    // Journal announces is one a visitor can actually reach.
+    var playlistTabs=document.querySelector('.tabs');
+    if(playlistTabs && !document.getElementById('tscms-search-door')){
+      if(!document.getElementById('tscms-search-door-style')){
+        var searchStyle=document.createElement('style');
+        searchStyle.id='tscms-search-door-style';
+        searchStyle.textContent=
+          '.tscms-search-door{display:flex;align-items:center;gap:12px;margin:14px auto 12px;padding:14px 18px;'+
+          'background:linear-gradient(180deg,#2b1a0c,#1d1106);border:2px solid #c9a227;border-radius:14px;'+
+          'color:#f7e8c3;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.35)}'+
+          '.tscms-search-door:hover{border-color:#e6c34a}'+
+          '.tscms-search-door:focus-visible{outline:3px solid #e6c34a;outline-offset:2px}'+
+          '.tscms-search-door .sd-icon{font-size:26px;line-height:1}'+
+          '.tscms-search-door .sd-words{display:flex;flex-direction:column;gap:2px;text-align:left}'+
+          '.tscms-search-door .sd-main{font-size:19px;font-weight:700;letter-spacing:.2px}'+
+          '.tscms-search-door .sd-sub{font-size:14px;opacity:.88}'+
+          '.tscms-search-door .sd-go{margin-left:auto;font-size:22px;color:#e6c34a}'+
+          '@media (max-width:600px){.tscms-search-door{padding:12px 14px}.tscms-search-door .sd-main{font-size:17px}}';
+        document.head.appendChild(searchStyle);
+      }
+      var searchDoor=document.createElement('a');
+      searchDoor.id='tscms-search-door';
+      searchDoor.className='tscms-search-door';
+      searchDoor.href='tscms-search.html';
+      searchDoor.setAttribute('aria-label','Song Search — search for a musician or song');
+      searchDoor.innerHTML='<span class="sd-icon" aria-hidden="true">🔎</span>'+
+        '<span class="sd-words"><span class="sd-main">Search for a musician or song</span>'+
+        '<span class="sd-sub">Search the station\u2019s verified songs — every one plays.</span></span>'+
+        '<span class="sd-go" aria-hidden="true">›</span>';
+      playlistTabs.parentNode.insertBefore(searchDoor,playlistTabs);
+    }
     syncAvailable();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);
