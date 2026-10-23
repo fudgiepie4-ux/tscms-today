@@ -94,7 +94,7 @@ async function toggle(song,button){
 function announce(msg,withLink=false){
   document.querySelector('.tc-fav-toast')?.remove();const box=document.createElement('div');box.className='tc-fav-toast';box.setAttribute('role','status');box.setAttribute('aria-live','polite');
   const t=document.createElement('span');t.textContent=msg;box.append(t);
-  if(withLink){const a=document.createElement('a');a.href='./my-playlist.html';a.textContent='View my playlist';a.className='tc-fav-toast-link';box.append(' ',a);}
+  if(withLink){const a=document.createElement('a');a.href='./my-playlist.html';a.target='_self';a.textContent='View my playlist';a.className='tc-fav-toast-link';box.append(' ',a);}
   const close=document.createElement('button');close.type='button';close.setAttribute('aria-label','Dismiss playlist notification');close.textContent='×';close.addEventListener('click',()=>box.remove());box.append(close);document.body.append(box);
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.remove(),6500);
 }
@@ -103,7 +103,7 @@ function addDoor(){
   if(host&&!host.querySelector('.tc-fav-door')){
     const row=document.createElement('div');row.className='tc-fav-toolbar';
     const name=document.createElement('span');name.textContent=String(STATE.profile?.fullName||STATE.profile?.username||'Team member');
-    const a=document.createElement('a');a.href='./my-playlist.html';a.className='tc-fav-door';a.textContent='♥ My Playlist ('+currentCount()+')';row.append(name,a);host.prepend(row);
+    const a=document.createElement('a');a.href='./my-playlist.html';a.target='_self';a.className='tc-fav-door';a.textContent='♥ My Playlist ('+currentCount()+')';row.append(name,a);host.prepend(row);
   }
   each('.tc-fav-door',a=>a.textContent='♥ My Playlist ('+currentCount()+')');
   // Quick Jump itself has no static item: zero signed-out playlist doors in DOM.
