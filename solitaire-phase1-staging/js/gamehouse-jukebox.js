@@ -212,10 +212,10 @@
         if (generation === playGeneration && requestedPlaying) {
           announce('playing');
         }
-      }, function () {
+      }, function (error) {
         if (generation === playGeneration && requestedPlaying) {
           requestedPlaying = false;
-          if(audio && audio.crossOrigin==='anonymous') {
+          if(audio && audio.crossOrigin==='anonymous' && (!error || error.name!=='NotAllowedError')) {
             eqApproved[sourceKey(tracks[index].stream)]=false;
             createPlayer(false);audio.src=tracks[index].stream;
             eqLastReason='STREAM CORS REFUSED — NATIVE RADIO READY';
@@ -305,6 +305,66 @@
     },
     isPlaying: function () { return !!(audio && ready && requestedPlaying && !audio.paused); },
     currentTrack: function () { return tracks.length ? tracks[index] : null; },
+    // Site-wide radio handoff: accept only tracks actually present in the
+    // canonical VERIFIED station feed. Never use arbitrary saved URLs.
+    // Resolve only after a nonzero saved position has really been restored.
+    // A seek failure MUST NOT quietly fall back to playing from zero.
+    restoreStationPosition: function (stream, seconds) {
+      if (!ready || favoritesMode || typeof stream !== 'string') return Promise.resolve(false);
+      seconds = Number(seconds);
+      if (!isFinite(seconds) || seconds < 0) return Promise.resolve(false);
+      var target = masterTracks.findIndex(function (t) { return t.stream === stream; });
+      if (target < 0) return Promise.resolve(false);
+      var inOrder = tracks.findIndex(function (t) { return t.stream === stream; });
+      if (inOrder < 0) { tracks = masterTracks.slice(); inOrder = target; }
+      // No call to play(): autoplay policy is handled by the outer shared UI.
+      requestedPlaying = false; ++playGeneration;
+      if (audio) audio.pause();
+      if (index !== inOrder || !audio || audio.src !== stream) {
+        loadTrack(inOrder);
+        fireTrackChange();
+      }
+      if (seconds <= 0.5) return Promise.resolve(true);
+      var player = audio, wanted = seconds;
+      player.preload = 'metadata';
+      return new Promise(function (resolve) {
+        var settled = false, seekIssued = false, timer;
+        function finish(ok) {
+          if(settled)return;
+          settled = true; clearTimeout(timer);
+          ['loadedmetadata','loadeddata','canplay','progress','seeked','timeupdate','error']
+            .forEach(function(ev){player.removeEventListener(ev,attempt);});
+          resolve(!!ok);
+        }
+        function attempt() {
+          if (player !== audio || favoritesMode || !ready || player.error) return finish(false);
+          if (player.readyState < 1) return;
+          if (!seekIssued) {
+            seekIssued = true;
+            // Native media seeking can succeed even before TimeRanges fills.
+            try { player.currentTime = wanted; } catch(e) { seekIssued = false; return; }
+          }
+          var now = Number(player.currentTime);
+          if (isFinite(now) && Math.abs(now-wanted) <= 1.5 && !player.seeking)
+            return finish(true);
+        }
+        ['loadedmetadata','loadeddata','canplay','progress','seeked','timeupdate','error']
+          .forEach(function(ev){player.addEventListener(ev,attempt);});
+        timer=setTimeout(function(){finish(false);},12000);
+        try {player.load();}catch(e){}
+        attempt();
+      });
+    },
+    pauseStation: function () {
+      if (!ready || favoritesMode || !audio) return false;
+      requestedPlaying = false; ++playGeneration; audio.pause(); announce('paused');return true;
+    },
+    stopStation: function () {
+      if (!ready || favoritesMode || !audio) return false;
+      requestedPlaying = false; ++playGeneration; audio.pause();
+      try{audio.currentTime=0;}catch(e){}
+      announce('stopped');return true;
+    },
     isFavoritesMode: function () { return favoritesMode; },
     // NO new <audio>, no automatic activation. Caller must be an approved,
     // authenticated team user and act on a deliberate button click.
