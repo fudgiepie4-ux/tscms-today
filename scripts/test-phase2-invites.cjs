@@ -95,7 +95,7 @@ async function main(){
   ['17 All recipient operations are bound to recipient Auth, not Owner Firestore',()=>{
     assert.ok(app.includes('const recipientDb=getFirestore(recipientApp);'));
     assert.ok(app.includes('const recipientAuth=getAuth(recipientApp);'));
-    assert.equal((app.match(/getDocFromServer\\(doc\\(recipientDb,'invitations',token\\)\\)/g)||[]).length,2);
+    assert.equal(app.split("getDocFromServer(doc(recipientDb,'invitations',token))").length-1,2);
     assert.ok(app.includes('const batch=writeBatch(recipientDb);'));
     assert.ok(app.includes("batch.set(doc(recipientDb,'users',user.uid)"));
     assert.ok(app.includes("batch.set(doc(recipientDb,'usernames',profile.username)"));
@@ -116,7 +116,7 @@ async function main(){
     assert.equal(proposedInviteExpiryMs(1000000),1000000+TTL_MS-EXPIRY_CLOCK_BUFFER_MS);
     assert.ok(proposedInviteExpiryMs(1000000)<1000000+TTL_MS);
     assert.ok(app.includes('proposedInviteExpiryMs(Date.now())'));
-    assert.match(rules,/expiresAt <= request.time \\+ duration.value\\(7,'d'\\)/);
+    assert.ok(rules.includes("expiresAt <= request.time + duration.value(7,'d')"));
     assert.throws(()=>proposedInviteExpiryMs(Number.NaN));
   }],
   ['20 Password set AFTER one-time link verification, BEFORE pending commit',()=>{
