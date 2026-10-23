@@ -46,6 +46,8 @@ function harness(savedState=null,opts={}){
     next:()=>{track={title:'Next',artist:'Member',stream:'https://cdn1.suno.ai/next.mp4'};pos=0;},
     on:()=>()=>{}
   };
+  // linkedom window proxies can inherit test-global properties across mounts.
+  delete window.TSCMSSitewideRadio;
   window.TSCMSJukebox=J;window.localStorage=storage;
   const ctx={window,document,localStorage:storage,Promise,Number,Math,Date,console,setTimeout,clearTimeout,CustomEvent:window.CustomEvent};
   vm.runInNewContext(shared,ctx,{filename:'tscms-sitewide-radio.js'});
@@ -110,7 +112,6 @@ function harness(savedState=null,opts={}){
   }
   {
     const h=harness(snapshot('paused'));await h.flush();
-    console.log('DEBUG PAUSED',JSON.stringify(h.inspect()),JSON.stringify(h.store()),h.document.querySelector('.tc-radio-status')?.textContent);
     test('Saved paused track and 47.5 seconds restored without autoplay',()=>{
       assert.equal(h.inspect().playCalls,0);
       assert.equal(h.inspect().restoreCalls[0][1],47.5);
