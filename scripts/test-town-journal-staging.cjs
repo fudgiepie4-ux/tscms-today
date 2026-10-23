@@ -8,6 +8,7 @@ const data=JSON.parse(fs.readFileSync('town-journal-content-source.json','utf8')
 const found=source.split('## PAGE 1 — THE FOUNDING PAGE')[1].split('## FEATURED-MEMBER PAGES')[0].trim();
 const led=source.split("## THE TOWN'S CONSTRUCTION JOURNAL")[1].split("## KEEPER'S NOTES")[0];
 const titles=[...led.matchAll(/^### (.+)$/gm)].map(x=>x[1]);
+const qj=fs.readFileSync('tscms-quick-jump.js','utf8');
 const tests=[
   ['Source manuscript is complete',()=>assert.equal(Buffer.byteLength(source),15606)],
   ['Brenda always opens',()=>assert.ok(html.includes('const sheets=[founding,...journalPages'))],
@@ -56,6 +57,17 @@ const tests=[
     assert.ok(html.includes("q('previous').addEventListener('click'"));
     assert.ok(html.includes("q('next').addEventListener('click'"));
     assert.ok(html.includes('function packEntries(items)'));
+  }],
+  ['Quick Jump visibly exposes Town Journal in both desktop and drawer',()=>{
+    assert.match(qj,/key:'journal', icon:'📖', label:'Town Journal — Heard & Built', href:'town-journal\.html'/);
+    assert.match(qj,/items\.forEach\(function\(item\)\{createLink\(item,desktop\);createLink\(item,drawerNav\);\}\)/);
+    assert.match(qj,/item\.href \|\| '#tscms-qj-'/);
+  }],
+  ['Quick Jump Journal link remains real navigation, never an in-page jump',()=>{
+    assert.match(qj,/key==='videos' \|\| key==='journal'\) return true/);
+    assert.match(qj,/key==='videos'\|\|key==='journal'\)\{closeMenu\(false\);return;\}/);
+    assert.match(qj,/if\(item\.href\)\{link\.target='_self';\}/);
+    assert.ok(!qj.includes("if(key==='journal'){e.preventDefault"));
   }],
   ['No site-wide deploy changes in staging PR',()=>{assert.ok(!html.includes('firebaseConfig'));assert.ok(!html.includes('admin-data.enc.json'));}],
 ];
