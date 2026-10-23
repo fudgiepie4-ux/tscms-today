@@ -16,24 +16,49 @@ const fixture=[
   {uid:'pending-test',status:'pending',owner:false,admin:true,hearts:7},
 ];
 let reads=0,writes=0;
-const firestore={
- doc(p) {
-   assert.ok(p.startsWith('users/'));
-   return {get:async()=>{reads++;const found=fixture.find(x=>x.uid===p.slice(6));return {exists:!!found,data:()=>found};}};
- },
- collection(p) {
-   assert.equal(p,'users');
-   return {where(field,op,value){
-     assert.deepEqual([field,op,value],['status','==','approved']);
-     return {get:async()=>({docs:fixture.filter(x=>x.status==='approved').map(x=>({
-       data:()=>x,
-       ref:{collection(name){
-         assert.equal(name,'favorites');
-         return {count(){return {get:async()=>{reads++;return {data:()=>({count:x.hearts})};}}};}};
-       }}
-     }))})};
-   }};
- }
+const firestore = {
+  doc(docPath) {
+    assert.ok(docPath.startsWith('users/'));
+    return {
+      async get() {
+        reads++;
+        const found = fixture.find(row => row.uid === docPath.slice(6));
+        return {exists: Boolean(found), data: () => found};
+      }
+    };
+  },
+  collection(name) {
+    assert.equal(name, 'users');
+    return {
+      where(field, operator, value) {
+        assert.deepEqual([field, operator, value], ['status', '==', 'approved']);
+        return {
+          async get() {
+            return {
+              docs: fixture.filter(row => row.status === 'approved').map(row => ({
+                data: () => row,
+                ref: {
+                  collection(subcollection) {
+                    assert.equal(subcollection, 'favorites');
+                    return {
+                      count() {
+                        return {
+                          async get() {
+                            reads++;
+                            return {data: () => ({count: row.hearts})};
+                          }
+                        };
+                      }
+                    };
+                  }
+                }
+              }))
+            };
+          }
+        };
+      }
+    };
+  }
 };
 class HttpsError extends Error{constructor(code,message){super(message);this.code=code;}}
 const sandbox={exports:{},require(module){
