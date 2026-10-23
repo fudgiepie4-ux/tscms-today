@@ -1,0 +1,24 @@
+name: TSCMS Favorites Generator + Owner Count — TEST ONLY
+on:
+  push:
+    branches:
+      - clara/favorites-generator-check6-staging-20261023
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-tests:
+    name: Loader preservation + mock owner aggregate (no Firebase deploy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Scratch-only generator preservation tests
+        run: python -m unittest -v favorites-pilot/generator-staging/test_preserve_favorites_loaders.py
+      - name: Owner aggregate source with synthetic data (NOT emulator proof)
+        run: node favorites-pilot/generator-staging/test_owner_count_mock.cjs
