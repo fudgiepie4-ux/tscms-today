@@ -17,6 +17,9 @@
   'use strict';
   var audio = null, tracks = [], masterTracks = [], index = 0, ready = false, initPromise = null;
   var requestedPlaying = false, playGeneration = 0, streamFailures = 0;
+  // Pilot only: selected favorites reuse the ONE radio audio element.
+  // The official station playlist stays in masterTracks, never overwritten.
+  var favoritesMode = false, stationTrackBeforeFavorites = null;
   // EQ PROTECTION: never put an ordinary no-CORS Suno player through WebAudio.
   var eqRequested = false, eqContext = null, eqAnalyser = null, eqData = null;
   var eqAttachedAudio = null, eqApproved = Object.create(null), eqProbes = Object.create(null);
@@ -302,6 +305,48 @@
     },
     isPlaying: function () { return !!(audio && ready && requestedPlaying && !audio.paused); },
     currentTrack: function () { return tracks.length ? tracks[index] : null; },
+    isFavoritesMode: function () { return favoritesMode; },
+    // NO new <audio>, no automatic activation. Caller must be an approved,
+    // authenticated team user and act on a deliberate button click.
+    setFavoritesPlaylist: function (list, opts) {
+      opts = opts || {};
+      if (!ready || !Array.isArray(list) || !list.length || list.length > 500) return false;
+      var favorites = [];
+      for(var k=0;k<list.length;k++){
+        var item=list[k];
+        if(!item || typeof item.title!=='string'||!item.title.trim()||
+           typeof item.artist!=='string'||!item.artist.trim()||
+           typeof item.stream!=='string'||!/^https:\/\/[a-z0-9.-]+\/\S+$/i.test(item.stream))return false;
+        favorites.push({title:item.title,artist:item.artist,stream:item.stream,suno:''});
+      }
+      var current = tracks[index];
+      if (!favoritesMode) stationTrackBeforeFavorites=current?.stream||null;
+      favoritesMode=true;
+      var keep=favorites.findIndex(function(t){return current && t.stream===current.stream;});
+      // Server snapshot added/removed a different song: no reset of an audible
+      // favorite that is still in the list.
+      if(keep>=0 && opts.preserve===true){tracks=favorites;index=keep;fireTrackChange();return true;}
+      requestedPlaying=false;++playGeneration;
+      if(audio)try{audio.pause();}catch(e){}
+      tracks=favorites;index=0;loadTrack(0);fireTrackChange();announce('favorites','Your saved playlist is ready');
+      // Start ONLY from an actual user tap (explicit opts.play true).
+      if(opts.play===true)return requestPlay();
+      return true;
+    },
+    restoreStationPlaylist: function (opts) {
+      opts=opts||{};
+      if(!favoritesMode)return false;
+      favoritesMode=false;
+      requestedPlaying=false;++playGeneration;
+      if(audio)try{audio.pause();}catch(e){}
+      tracks=shuffleEnabled?shuffledCopy(masterTracks):masterTracks.slice();
+      index=Math.max(0,tracks.findIndex(function(t){return t.stream===stationTrackBeforeFavorites;}));
+      stationTrackBeforeFavorites=null;
+      if(!tracks.length)return false;
+      loadTrack(index);fireTrackChange();announce('ready','TSCMS Radio restored');
+      if(opts.play===true)return requestPlay();
+      return true;
+    },
     isShuffleEnabled: function () { return shuffleEnabled; },
     // Change the play order without stopping or restarting the current song.
     // Turning Shuffle ON preserves the song currently playing, while randomizing
@@ -309,6 +354,10 @@
     setShuffle: function (enabled) {
       shuffleEnabled = !!enabled;
       saveSetting(SHUFFLE_PREF, shuffleEnabled ? 'on' : 'off');
+      if (favoritesMode) {
+        announce('shuffle', 'Station shuffle preference saved for later');
+        return shuffleEnabled; // Do not replace someone's private queue with the station.
+      }
       if (ready && masterTracks.length) {
         var current = tracks[index];
         if (shuffleEnabled) {
@@ -414,7 +463,7 @@
     },
 
     _state: function () {
-      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying, shuffle: shuffleEnabled };
+      return { ready: ready, index: index, count: tracks.length, requestedPlaying: requestedPlaying, shuffle: shuffleEnabled, favoritesMode: favoritesMode };
     }
   };
 
