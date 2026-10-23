@@ -352,7 +352,7 @@ function mcMarkDataCoverage(generated){
   }
   note('mc-danger','Coverage: eligible no-comment posts; post-date range unavailable',stamp);
   note('mc-issues','Coverage: flag dates unavailable',stamp+'; not proof of a new scan');
-  note('mc-pulse','Coverage: Oct 8–14, 2026','Last updated: not recorded for this historic snapshot');
+  note('mc-pulse','Coverage: current seven completed Central-time days','Awaiting verified dated Community Pulse feed');
   note('mc-radar','Coverage: source dates not recorded','Last updated: not recorded');
 }
 
@@ -409,3 +409,75 @@ if(document.readyState==='loading'){
 }else{
   mcLoadDiceyStats();
 }
+
+
+/* AUDIT FIX WAVE · Community Pulse: CURRENT truthful reporting window.
+ * Source contract: community-pulse-current.json generated from VERIFIED post
+ * records, not from Dicey-only/no-comment subsets or client-side estimates.
+ * Absent, old, mismatched or malformed feed MUST show Data unavailable.
+ */
+function mcLoadCommunityPulse(){
+  var section=document.getElementById('mc-pulse');
+  if(!section)return;
+  var range=document.getElementById('mc-pulse-range');
+  var posts=document.getElementById('mc-pulse-posts');
+  var comments=document.getElementById('mc-pulse-comments');
+  var rows=document.getElementById('mc-pulse-days');
+  var status=document.getElementById('mc-pulse-status');
+  if(!range||!posts||!comments||!rows||!status)return;
+  var parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit'
+  }).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,Number(p.value)]));
+  var today=Date.UTC(parts.year,parts.month-1,parts.day);
+  var iso=ms=>new Date(ms).toISOString().slice(0,10);
+  var end=iso(today-86400000),start=iso(today-7*86400000);
+  range.textContent=start+' to '+end+' · latest 7 completed days (CT)';
+  function unavailable(message){
+    posts.textContent='Data unavailable';comments.textContent='Data unavailable';
+    rows.replaceChildren();
+    var note=document.createElement('div');note.className='mc-empty';
+    note.textContent='No verified daily post/comment records available for '+start+' to '+end+'.';
+    rows.appendChild(note);
+    status.textContent=message||'Current-period figures unavailable. Historical totals are not current data.';
+  }
+  unavailable('Checking for current verified post and comment records…');
+  fetch('./community-pulse-current.json',{cache:'no-store'}).then(r=>{
+    if(!r.ok)throw Error('Current source unavailable');return r.json();
+  }).then(data=>{
+    if(!data||typeof data.generated!=='string'||!Number.isFinite(Date.parse(data.generated))||
+       !data.window||data.window.start!==start||data.window.end!==end||
+       !Array.isArray(data.days)||data.days.length!==7)
+      throw Error('Stale or incomplete reporting window');
+    if(Date.parse(data.generated)>Date.now()+300000||
+       Date.now()-Date.parse(data.generated)>48*3600000)
+      throw Error('Snapshot not fresh');
+    var expected=new Set(Array.from({length:7},(_,i)=>iso(today-(7-i)*86400000)));
+    var seen=new Set(),postTotal=0,commentTotal=0;
+    data.days.forEach(day=>{
+      if(!day||!expected.has(day.date)||seen.has(day.date)||
+         !Number.isSafeInteger(day.posts)||day.posts<0||
+         !Number.isSafeInteger(day.comments)||day.comments<0)
+        throw Error('Unverified daily counts');
+      seen.add(day.date);postTotal+=day.posts;commentTotal+=day.comments;
+    });
+    if(seen.size!==7||!Number.isSafeInteger(postTotal)||!Number.isSafeInteger(commentTotal))
+      throw Error('Invalid totals');
+    posts.textContent=String(postTotal);comments.textContent=String(commentTotal);
+    rows.replaceChildren();
+    data.days.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(day=>{
+      var row=document.createElement('div');row.className='mrow';
+      var date=document.createElement('span');date.className='mday';date.textContent=day.date;
+      var p=document.createElement('span');p.className='mstat';p.textContent=day.posts+' posts';
+      var c=document.createElement('span');c.className='mstat';c.textContent=day.comments+' comments';
+      row.append(date,p,c);rows.appendChild(row);
+    });
+    status.textContent='Verified daily post records · snapshot '+new Date(data.generated).toLocaleString('en-US',{
+      timeZone:'America/Chicago',month:'short',day:'numeric',year:'numeric',
+      hour:'numeric',minute:'2-digit'
+    })+' CT. No estimated or historical totals substituted.';
+  }).catch(function(){
+    unavailable('Current-period figures unavailable: a fresh, complete verified feed is required. No historical totals or fabricated zeros are shown.');
+  });
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mcLoadCommunityPulse,{once:true});
+else mcLoadCommunityPulse();
