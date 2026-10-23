@@ -177,5 +177,67 @@ function harness(savedState=null,opts={}){
   test('Browser autoplay NotAllowedError keeps same EQ audio / sought position',()=>{
     assert.match(engine,/error\.name!=='NotAllowedError'/);
   });
+
+  // Exercise the actual Gamehouse jukebox source-selection/seek code, not
+  // merely the shared visual mock. Real browser seek support remains a gate.
+  {
+    let created=0,playCalls=0;
+    class AudioMock {
+      constructor(){
+        created++;this.paused=true;this.volume=1;this.preload='none';
+        this.readyState=0;this.src='';this.seeking=false;this._current=0;
+        this.duration=180;this.seekable={length:1,start:()=>0,end:()=>180};
+        this.events=Object.create(null);
+      }
+      get currentTime(){return this._current;}
+      set currentTime(x){
+        this.seeking=true;this._current=Number(x);this.seeking=false;
+        this.emit('seeked');
+      }
+      addEventListener(k,fn){(this.events[k]||(this.events[k]=new Set())).add(fn);}
+      removeEventListener(k,fn){this.events[k]?.delete(fn);}
+      emit(k){for(const fn of Array.from(this.events[k]||[]))fn();}
+      load(){this.readyState=1;this.emit('loadedmetadata');}
+      pause(){this.paused=true;}
+      play(){playCalls++;this.paused=false;return Promise.resolve();}
+    }
+    const context={
+      module:{exports:{}},Promise,Number,Date,Math,URL,isFinite,Uint8Array,
+      console,setTimeout,clearTimeout,
+      CustomEvent:class{constructor(type,opts){this.type=type;this.detail=opts?.detail;}},
+      window:{localStorage:{getItem:()=>null,setItem:()=>{}}},
+      document:{createElement:(tag)=>{assert.equal(tag,'audio');return new AudioMock();},dispatchEvent:()=>{}},
+      fetch:async()=>({ok:true,json:async()=>({playlist:[
+        {title:'Track Alpha',artist:'A',stream:'https://cdn1.suno.ai/alpha.mp4'},
+        {title:'Track Bravo',artist:'B',stream:'https://cdn1.suno.ai/bravo.mp4'}
+      ]})})
+    };
+    vm.runInNewContext(engine,context,{filename:'gamehouse-jukebox.js'});
+    const radio=context.window.TSCMSJukebox;
+    assert.equal(await radio.init({playlistUrl:'radio-data.json',enableEq:false}),true);
+    const restored=await radio.restoreStationPosition('https://cdn1.suno.ai/bravo.mp4',63.75);
+    test('Actual jukebox restores canonical song at 63.75 seconds without autoplay',()=>{
+      assert.equal(restored,true);
+      assert.equal(radio.currentTrack().title,'Track Bravo');
+      assert.ok(Math.abs(radio.getPosition().currentTime-63.75)<.02);
+      assert.equal(playCalls,0);
+      assert.equal(created,1);
+    });
+    const bad=await radio.restoreStationPosition('https://unverified.example/mystery.mp3',54);
+    test('Actual jukebox rejects unverified stream without replacing track',()=>{
+      assert.equal(bad,false);assert.equal(radio.currentTrack().title,'Track Bravo');
+      assert.equal(playCalls,0);
+    });
+    radio.pauseStation();
+    test('Actual jukebox supports explicit pause without resetting timestamp',()=>{
+      assert.ok(Math.abs(radio.getPosition().currentTime-63.75)<.02);
+      assert.equal(playCalls,0);
+    });
+    radio.stopStation();
+    test('Actual jukebox Stop sets time zero without audible replay',()=>{
+      assert.equal(radio.getPosition().currentTime,0);
+      assert.equal(playCalls,0);
+    });
+  }
   console.log('Site-wide radio staging preflight '+passed+'/'+passed+' PASS — real browsers / authentic audio seek still need Cherish verification.');
 })().catch(err=>{console.error(err);process.exitCode=1;});
