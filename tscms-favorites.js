@@ -27,6 +27,8 @@ function strip(){
   // may remain queued in the shared jukebox after sign-out or revocation.
   if(window.TSCMSJukebox?.isFavoritesMode?.()) window.TSCMSJukebox.restoreStationPlaylist?.({play:false});
   const list=byId('tc-fav-playlist-list');if(list)list.replaceChildren();
+  // Hide old per-user count immediately on staff sign-out or revocation.
+  const plaque=byId('tc-fav-crate-count');if(plaque){plaque.hidden=true;plaque.textContent='';}
 }
 function revokeView(){
   subscriptionGeneration++; // invalidate old Firestore snapshot callbacks
@@ -158,8 +160,19 @@ function injectRows(){
 }
 function playlist(){
   const root=byId('tc-fav-playlist-list');if(!root)return;
-  root.replaceChildren();notice(currentCount()?currentCount()+' songs saved, newest first.':'No saved songs yet — tap the heart on any song you love and it’ll be waiting for you here.');
-  if(!currentCount())return;
+  root.replaceChildren();
+  const count=currentCount(),plaque=byId('tc-fav-crate-count');
+  // Only the existing authenticated own-Favorites snapshot supplies this number.
+  if(plaque){plaque.textContent='Your crate holds '+count+' '+(count===1?'record':'records');plaque.hidden=false;}
+  notice(count?count+' songs saved, newest first.':'No saved songs yet — tap the heart on any song you love and it’ll be waiting for you here.');
+  if(!count){
+    const empty=document.createElement('section');empty.className='tc-room-empty';
+    const record=document.createElement('div');record.className='tc-room-empty-record';record.setAttribute('aria-hidden','true');
+    const title=document.createElement('h2');title.textContent='Your first favorite belongs here.';
+    const hint=document.createElement('p');hint.textContent='This crate is waiting for the songs you love. Explore today’s songs and save a favorite to start your collection.';
+    const door=document.createElement('a');door.href='./';door.className='tc-room-door';door.textContent='Browse Today’s Songs →';
+    empty.append(record,title,hint,door);root.append(empty);return;
+  }
   const playAll=document.createElement('button');playAll.type='button';playAll.className='tc-fav-mode';playAll.textContent='▶ Play All';playAll.addEventListener('click',()=>playSequence());root.append(playAll);
   for(const song of source()){
     const row=document.createElement('div');row.className='tc-fav-row';
