@@ -330,7 +330,7 @@
         loadTrack(inOrder);
         fireTrackChange();
       }
-      if (seconds <= 0.5) return Promise.resolve(true);
+      if (seconds === 0) return Promise.resolve(true);
       var player = audio, wanted = seconds;
       player.preload = 'metadata';
       return new Promise(function (resolve) {
