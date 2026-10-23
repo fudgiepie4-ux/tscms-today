@@ -52,10 +52,11 @@ check('Backend proposal cannot run without separately provisioned Firebase Funct
   const J=ctx.window.TSCMSJukebox;
   assert.equal(await J.init({playlistUrl:'radio-data.json',enableEq:false}),true);
   check('Station init does not autoplay',()=>{assert.equal(playCalls,0);assert.equal(J.isFavoritesMode(),false);assert.equal(audioCount,1);});
+  const officialTrackBeforeFavorites=J.currentTrack().stream;
   const favorite=[{title:'Original Full Song Title',artist:'Exact Artist',stream:'https://example.com/saved.mp3'}];
   check('Private Favorites queue swaps into same audio without autoplay',()=>{assert.equal(J.setFavoritesPlaylist(favorite,{play:false}),true);assert.equal(J.currentTrack().title,'Original Full Song Title');assert.equal(audioCount,1);assert.equal(playCalls,0);});
   check('Shuffle does not replace favorites with station tracks',()=>{J.setShuffle(true);assert.equal(J.currentTrack().stream,favorite[0].stream);assert.equal(J.isFavoritesMode(),true);});
-  check('Returning to station preserves the official song and stays paused',()=>{assert.equal(J.restoreStationPlaylist({play:false}),true);assert.equal(J.currentTrack().stream,'https://example.com/a.mp3');assert.equal(playCalls,0);assert.equal(J.isFavoritesMode(),false);});
+  check('Returning to station preserves the official song and stays paused',()=>{assert.equal(J.restoreStationPlaylist({play:false}),true);assert.equal(J.currentTrack().stream,officialTrackBeforeFavorites);assert.equal(playCalls,0);assert.equal(J.isFavoritesMode(),false);});
   check('Explicit user Favorites tap can start playback',()=>{assert.equal(J.setFavoritesPlaylist(favorite,{play:true}),true);assert.equal(playCalls,1);});
   check('Revocation restores station without private playback resuming',()=>{assert.equal(J.restoreStationPlaylist({play:false}),true);assert.equal(playCalls,1);assert.equal(J.isFavoritesMode(),false);});
   console.log('Favorites staging safety preflight PASS. Server Rules emulator / live signed-out DOM / two-device / owner UI remain NOT TESTED.');
