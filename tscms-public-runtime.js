@@ -247,6 +247,11 @@
   'use strict';
   function addSpotlight() {
     if (document.getElementById('tscms-september-spotlight-2026')) return;
+    // Homepage-only module. Search and My Playlist load this same runtime
+    // without its homepage anchors; skip before creating any DOM or styles.
+    var spotlightWrap=document.querySelector('.wrap');
+    var mostLoved=document.querySelector('.most-loved-autumn');
+    if(!spotlightWrap && !mostLoved)return;
     var css = document.createElement('style');
     css.textContent = [
       '#tscms-september-spotlight-2026{margin:38px auto 26px;max-width:900px;scroll-margin-top:80px}',
@@ -305,11 +310,10 @@
       mobiles.appendChild(a);
     });
     section.appendChild(mobiles);
-    var mostLoved=document.querySelector('.most-loved-autumn');
     var footer=document.querySelector('.wrap > footer')||document.querySelector('footer');
     if(mostLoved && mostLoved.parentNode)mostLoved.insertAdjacentElement('afterend',section);
     else if(footer && footer.parentNode)footer.parentNode.insertBefore(section,footer);
-    else document.querySelector('.wrap').appendChild(section);
+    else if(spotlightWrap)spotlightWrap.appendChild(section);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSpotlight);
   else addSpotlight();
