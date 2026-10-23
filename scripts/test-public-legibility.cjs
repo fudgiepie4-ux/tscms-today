@@ -45,6 +45,58 @@ const tests=[
 ['no document zoom or transformation',()=>{assert.ok(!js.includes('document.body.style.zoom'));assert.ok(!js.includes('style.transform='));assert.ok(!css.includes('zoom:'));}],
 ['persistent preference and dynamic labels',()=>{assert.ok(js.includes("localStorage.getItem(KEY)"));assert.ok(js.includes("localStorage.setItem(KEY"));assert.ok(js.includes('MutationObserver'));}],
 ['non-decorative only, no text rewrites',()=>{assert.ok(js.includes('directWords(el)'));assert.ok(js.includes('[aria-hidden="true"]'));assert.ok(!js.includes('.innerHTML='));}],
+['Fixed-layout Gamehouse art is excluded from OFF minimums and ON increases',()=>{
+  const game=fs.readFileSync('gamehouse.html','utf8');
+  assert.ok(game.includes('class="stage" id="stage" data-tscms-legibility-fixed="game-board"'));
+  assert.ok(game.includes('tscms-legibility.js?v=gamehouse-locked-stage-20261023'));
+  const begin=js.indexOf('  function directWords(el){');
+  const end=js.indexOf('  function scaledFontSize(',begin);
+  assert.ok(begin>=0&&end>begin,'Test shipped directWords predicate');
+  const sandbox={skipTags:new Set(['SCRIPT','STYLE','NOSCRIPT','SVG','PATH','CANVAS','IFRAME','VIDEO','AUDIO','OPTION','TEXTAREA','SELECT'])};
+  vm.runInNewContext(js.slice(begin,end)+'this.directWordsUnderTest=directWords;',sandbox);
+  const el=(locked,word)=>({tagName:'SPAN',id:'radio-face-title',
+    closest:selector=>locked&&selector.includes('[data-tscms-legibility-fixed]')?{dataset:{tscmsLegibilityFixed:'game-board'}}:null,
+    childNodes:[{nodeType:3,nodeValue:word}]});
+  for(const label of ['TSCMS RADIO','Here Comes Madonna','JUKEBOX REMOTE','00:00','Feedback','♥']){
+    assert.equal(sandbox.directWordsUnderTest(el(true,label)),false,'stage '+label+' never receives inline sizing or shadow');
+  }
+  assert.equal(sandbox.directWordsUnderTest(el(false,'Ordinary menu instructions')),true,'normal page/menu text still participates');
+}],
+['Real font-writing routine leaves locked art alone when OFF and ON',()=>{
+  const from=js.indexOf('  function directWords(el){');
+  const to=js.indexOf('  function schedule(){',from);
+  assert.ok(from>=0&&to>from);
+  const makeEl=(isFixed,words,base)=>{
+    const props=new Map();
+    return {tagName:'SPAN',id:'label',isConnected:true,base,
+      childNodes:[{nodeType:3,nodeValue:words}],
+      closest:s=>isFixed&&s.includes('[data-tscms-legibility-fixed]')?{dataset:{tscmsLegibilityFixed:'game-board'}}:null,
+      style:{setProperty:(k,v)=>props.set(k,v),removeProperty:k=>props.delete(k),
+        getPropertyValue:k=>props.get(k)||'',getPropertyPriority:()=>''}};
+  };
+  const overlay=makeEl(true,'JUKEBOX REMOTE',7);
+  const outside=makeEl(false,'Menu instructions',9);
+  const sandbox={
+    skipTags:new Set(['SCRIPT','STYLE','NOSCRIPT','SVG','PATH','CANVAS','IFRAME','VIDEO','AUDIO','OPTION','TEXTAREA','SELECT']),
+    tracked:new Map(),enabled:false,
+    document:{body:{querySelectorAll:()=>[overlay,outside]}},
+    window:{getComputedStyle:el=>({display:'block',visibility:'visible',fontSize:el.base+'px',textShadow:'none'})}
+  };
+  vm.runInNewContext(js.slice(from,to)+'this.actualApply=collectAndApply;',sandbox);
+  sandbox.actualApply();
+  assert.equal(overlay.style.getPropertyValue('font-size'),'','OFF must preserve original locked-art CSS sizing');
+  assert.equal(outside.style.getPropertyValue('font-size'),'12px','OFF still floors ordinary tiny text');
+  sandbox.enabled=true;
+  sandbox.actualApply();
+  assert.equal(overlay.style.getPropertyValue('font-size'),'','ON must not inject important font sizes into fixed artwork');
+  assert.equal(overlay.style.getPropertyValue('text-shadow'),'','ON must not bold/shadow fixed artwork');
+  assert.equal(outside.style.getPropertyValue('font-size'),'15px','ON still enlarges regular page text');
+}],
+['Gamehouse photo, card slots, jukebox module and remote are still wired',()=>{
+  const game=fs.readFileSync('gamehouse.html','utf8');
+  for(const asset of ['TSCMS_APPROVED_MASTER_DOWNLOAD.png','gamehouse-radio-table-remote.css','gamehouse-jukebox-v7-ui.js','locked-visual-overlay.css','tscms-feedback.js'])assert.ok(game.includes(asset),asset);
+  assert.ok(!js.includes('window.TSCMSJukebox.toggle'));
+}],
 ['public control remains focusable',()=>{assert.ok(css.includes('min-height:44px'));assert.ok(css.includes(':focus-visible'));}],
 ['both real homeviews load text enhancement',()=>{for(const x of ['index.html','tscms-today.html']){let t=fs.readFileSync(x,'utf8');assert.ok(t.includes('tscms-legibility.css'));assert.ok(t.includes('tscms-legibility.js'));}}],
 ['Gamehouse and Drive-In also include it',()=>{for(const x of ['gamehouse.html','videos.html','public-redesign.html']){let t=fs.readFileSync(x,'utf8');assert.ok(t.includes('tscms-legibility.css'));assert.ok(t.includes('tscms-legibility.js'));}}],
