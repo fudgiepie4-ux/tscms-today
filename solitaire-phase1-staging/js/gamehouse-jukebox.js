@@ -93,6 +93,12 @@
     wireMedia(audio);
   }
   function wireMedia(player) {
+    player.addEventListener('volumechange', function () {
+      if(player!==audio || !canDispatch())return;
+      document.dispatchEvent(new CustomEvent('tscms:jukebox:volumechange', {
+        detail:{volume:audio.volume}
+      }));
+    });
     player.addEventListener('ended', function () {
       if(player!==audio || !requestedPlaying || !tracks.length)return;
       loadTrack(index+1); fireTrackChange(); requestPlay();
