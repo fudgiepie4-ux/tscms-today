@@ -62,6 +62,36 @@ const tests=[
   }
   assert.equal(sandbox.directWordsUnderTest(el(false,'Ordinary menu instructions')),true,'normal page/menu text still participates');
 }],
+['Real font-writing routine leaves locked art alone when OFF and ON',()=>{
+  const from=js.indexOf('  function directWords(el){');
+  const to=js.indexOf('  function schedule(){',from);
+  assert.ok(from>=0&&to>from);
+  const makeEl=(isFixed,words,base)=>{
+    const props=new Map();
+    return {tagName:'SPAN',id:'label',isConnected:true,base,
+      childNodes:[{nodeType:3,nodeValue:words}],
+      closest:s=>isFixed&&s.includes('[data-tscms-legibility-fixed]')?{dataset:{tscmsLegibilityFixed:'game-board'}}:null,
+      style:{setProperty:(k,v)=>props.set(k,v),removeProperty:k=>props.delete(k),
+        getPropertyValue:k=>props.get(k)||'',getPropertyPriority:()=>''}};
+  };
+  const overlay=makeEl(true,'JUKEBOX REMOTE',7);
+  const outside=makeEl(false,'Menu instructions',9);
+  const sandbox={
+    skipTags:new Set(['SCRIPT','STYLE','NOSCRIPT','SVG','PATH','CANVAS','IFRAME','VIDEO','AUDIO','OPTION','TEXTAREA','SELECT']),
+    tracked:new Map(),enabled:false,
+    document:{body:{querySelectorAll:()=>[overlay,outside]}},
+    window:{getComputedStyle:el=>({display:'block',visibility:'visible',fontSize:el.base+'px',textShadow:'none'})}
+  };
+  vm.runInNewContext(js.slice(from,to)+'this.actualApply=collectAndApply;',sandbox);
+  sandbox.actualApply();
+  assert.equal(overlay.style.getPropertyValue('font-size'),'','OFF must preserve original locked-art CSS sizing');
+  assert.equal(outside.style.getPropertyValue('font-size'),'12px','OFF still floors ordinary tiny text');
+  sandbox.enabled=true;
+  sandbox.actualApply();
+  assert.equal(overlay.style.getPropertyValue('font-size'),'','ON must not inject important font sizes into fixed artwork');
+  assert.equal(overlay.style.getPropertyValue('text-shadow'),'','ON must not bold/shadow fixed artwork');
+  assert.equal(outside.style.getPropertyValue('font-size'),'15px','ON still enlarges regular page text');
+}],
 ['Gamehouse photo, card slots, jukebox module and remote are still wired',()=>{
   const game=fs.readFileSync('gamehouse.html','utf8');
   for(const asset of ['TSCMS_APPROVED_MASTER_DOWNLOAD.png','gamehouse-radio-table-remote.css','gamehouse-jukebox-v7-ui.js','locked-visual-overlay.css','tscms-feedback.js'])assert.ok(game.includes(asset),asset);
