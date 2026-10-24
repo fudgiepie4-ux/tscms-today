@@ -10,12 +10,20 @@ const report=(label,fn)=>{fn();console.log('PASS '+label);};
 report('Approved photo-art layout, real text, radio untouched, Larger Text retained',()=>{
  for(const needle of ['tc-room-art','tc-fav-playlist-root','tc-fav-playlist-list','tc-fav-playlist-message','tc-fav-crate-count','tc-room-search','tc-room-sort','tc-room-action-holder',
    'tscms-public-runtime.js','tscms-legibility.js?v=wave-20261022','tscms-favorites.js'])assert.ok(html.includes(needle),needle);
- assert.match(html,/src=".\/assets\/listening-room-crate-filled.svg"/);
- assert.match(html,/src=".\/assets\/listening-room-crate-empty.svg"/);
+ assert.equal((html.match(/src="\.\/assets\/listening-room-phone-approved-20261023\.png"/g)||[]).length,2);
+ assert.doesNotMatch(html,/listening-room-crate-(?:filled|empty)\.svg/);
+ assert.match(html,/tc-room-plaque-mask/);
  assert.match(html,/id="tc-fav-crate-count" class="tc-room-plaque" hidden/);
  assert.doesNotMatch(html,/class="tc-fav-row|class="tc-fav-heart|class="tc-fav-door|<audio|bottom.console/i);
- assert.ok(read('assets/listening-room-crate-filled.svg').includes('upright-vinyl'));
- assert.ok(!read('assets/listening-room-crate-empty.svg').includes('upright-vinyl'));
+ const {createHash}=require('node:crypto');
+ assert.equal(createHash('sha256').update(fs.readFileSync('assets/listening-room-phone-approved-20261023.png')).digest('hex'),
+  '03f3e35a16e36abb8927b5d199b7017c58efffecb455cd68c37ae3ce9e927b8a',
+  'exact approved photo must be shipped; no substitution');
+ assert.match(css,/aspect-ratio:795\/555/);
+ assert.match(css,/width:118\.365%/);
+ assert.match(css,/height:auto/);
+ assert.doesNotMatch(css,/object-fit:fill[;}]/);
+ assert.doesNotMatch(css,/repeating-linear-gradient\(90deg/);
  assert.match(css,/\.tc-room-plaque\[hidden\]\{display:none\}/);
  assert.match(css,/@media\(max-width:560px\)/);
  assert.match(css,/@media\(max-width:380px\)/);
