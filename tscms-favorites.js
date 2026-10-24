@@ -153,10 +153,19 @@ function addDoor(){
   }
   each('.tc-fav-door',a=>a.textContent='♥ My Playlist ('+currentCount()+')');
   // Quick Jump itself has no static item: zero signed-out playlist doors in DOM.
+  // Listening Room door (Fudgie-approved mockup Oct 24): label + caption, count in caption.
   for(const container of document.querySelectorAll('.tscms-qj-desktop,.tscms-qj-drawer-links')){
     let a=container.querySelector('.tc-fav-qj-link');
-    if(!a){a=document.createElement('a');a.className='tc-fav-qj-link';a.href='./my-playlist.html';a.target='_self';container.append(a);}
-    a.textContent='♥ My Playlist ('+currentCount()+')';
+    if(!a){
+      a=document.createElement('a');a.className='tc-fav-qj-link';a.href='./my-playlist.html';a.target='_self';
+      a.style.border='2px solid #c9a227';a.style.background='rgba(255,209,126,.10)';a.style.borderRadius='12px';a.style.padding='12px 14px';
+      const lab=document.createElement('span');lab.className='tc-fav-qj-label';lab.textContent='🎧 Listening Room';
+      const cap=document.createElement('span');cap.className='tc-fav-qj-caption';cap.style.display='block';cap.style.fontSize='13px';cap.style.color='#f7e8c3';cap.style.marginTop='3px';
+      a.append(lab,cap);container.append(a);
+    }
+    let cap=a.querySelector('.tc-fav-qj-caption');
+    if(!cap){a.textContent='';const lab=document.createElement('span');lab.className='tc-fav-qj-label';lab.textContent='🎧 Listening Room';cap=document.createElement('span');cap.className='tc-fav-qj-caption';cap.style.display='block';cap.style.fontSize='13px';cap.style.color='#f7e8c3';cap.style.marginTop='3px';a.append(lab,cap);}
+    cap.textContent='Your playlist lives here · '+currentCount()+' songs';
   }
 }
 function injectRows(){
