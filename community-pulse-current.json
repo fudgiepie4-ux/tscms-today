@@ -1,0 +1,44 @@
+{
+  "generated": "2026-10-24T22:54:52Z",
+  "window": {
+    "start": "2026-10-17",
+    "end": "2026-10-23"
+  },
+  "days": [
+    {
+      "date": "2026-10-17",
+      "posts": 66,
+      "comments": 263
+    },
+    {
+      "date": "2026-10-18",
+      "posts": 90,
+      "comments": 262
+    },
+    {
+      "date": "2026-10-19",
+      "posts": 78,
+      "comments": 357
+    },
+    {
+      "date": "2026-10-20",
+      "posts": 52,
+      "comments": 188
+    },
+    {
+      "date": "2026-10-21",
+      "posts": 67,
+      "comments": 202
+    },
+    {
+      "date": "2026-10-22",
+      "posts": 69,
+      "comments": 240
+    },
+    {
+      "date": "2026-10-23",
+      "posts": 64,
+      "comments": 186
+    }
+  ]
+}
