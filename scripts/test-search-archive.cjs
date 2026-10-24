@@ -121,4 +121,20 @@ test('17 real matching helper returns all 21 tracks for an artist',()=>{
   assert.equal(songs.filter(s=>context.helpers.matchesQuery(s,context.helpers.searchKey('BETTY'))).length,21);
 });
 
+test('18 preserves valid Suno links from fresh source and archived records',()=>{
+  const archived={...make('2026-10-07','Archive Artist','Older Song','archive'),
+    suno_url:'https://suno.com/song/533991ff-f3c3-4dcb-adaf-e59d99bc9e77'};
+  const source={...make('2026-10-21','Fresh Artist','New Song','fresh'),
+    suno_url:'https://suno.com/s/3qAmWwewdZXc48QP'};
+  const merged=mergeIndex({songs:[archived]},[source],date);
+  assert.equal(merged.count,2);
+  assert.equal(merged.songs.find(s=>s.title==='Older Song').suno_url,archived.suno_url);
+  assert.equal(merged.songs.find(s=>s.title==='New Song').suno_url,source.suno_url);
+  const rebuilt=mergeIndex(merged,[source],date);
+  assert.equal(rebuilt.songs.find(s=>s.title==='Older Song').suno_url,archived.suno_url);
+  assert.equal(rebuilt.songs.find(s=>s.title==='New Song').suno_url,source.suno_url);
+  assert.equal(normalize({...source,suno_url:'https://suno.com.evil.example/s/fake'}).suno_url,undefined);
+  assert.equal(normalize({...source,suno_url:'javascript:alert(1)'}).suno_url,undefined);
+});
+
 console.log('TSCMS Search seed + grow: '+passes.length+'/'+passes.length+' PASS');
