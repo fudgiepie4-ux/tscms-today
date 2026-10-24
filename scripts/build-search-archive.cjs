@@ -20,7 +20,7 @@ function safeStream(v){
 }
 function safeSuno(v){
   return typeof v==='string'&&v.length<=2048&&
-    /^https:\/\/(?:www\.)?suno\.com\/(?:s\/[A-Za-z0-9]+|song\/[0-9a-f-]{36})(?:[?#][^\\s<>"'\x60]*)?$/i.test(v.trim());
+    /^https:\/\/(?:www\.)?suno\.com\/(?:s\/[A-Za-z0-9]+|song\/[0-9a-f-]{36})(?:[?#][^\s<>"'\x60]*)?$/i.test(v.trim());
 }
 function validText(v){
   return typeof v==='string'&&v.trim().length>0&&v.trim().length<=500&&
