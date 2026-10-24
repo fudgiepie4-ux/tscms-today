@@ -20,7 +20,7 @@ The real refresh_tscms_site.py, make_public.py, posts_14d.json and production sc
 
 In the isolated staging copy of the existing refresh sequence, insert this command AFTER successful 14-day post collection plus collector proof creation, and BEFORE any publish/upload steps:
 
-    python3 scripts/build_community_pulse.py --posts /trusted-pipeline/posts_14d.json --coverage /trusted-pipeline/posts_14d_coverage.json --stage-dir /isolated-pipeline/pulse-stage
+    python3 scripts/build_community_pulse.py --posts /trusted-pipeline/posts_14d.json --coverage /trusted-pipeline/posts_14d_coverage.json --stage-dir /isolated-pipeline/stage-pulse
 
 Caller must enforce set -e (shell) or subprocess.run(..., check=True) (Python). On failure, BLOCK publication; do not publish a stale or partial replacement. No live feed is present in this draft PR. No auto-production step is included. Once the real source and completeness proof are available, run against it and validate the emitted window, seven daily totals and timestamp against mc.js, then seek owner approval to publish the exact file community-pulse-current.json.
 
