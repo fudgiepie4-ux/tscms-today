@@ -139,4 +139,12 @@ test('20 unsafe Suno links cannot enter the archive',()=>{
   const row=make('2026-10-14');row.suno_url='https://evil.example/song/hijack';
   assert.throws(()=>mergeIndex({songs:[]},[row],date),/No verified/);
 });
+test('21 staged Search index keeps every verified Suno link',()=>{
+  const index=JSON.parse(fs.readFileSync('search-index.json','utf8'));
+  assert.equal(index.schema_version,1);
+  assert.ok(Array.isArray(index.songs)&&index.songs.length>0);
+  assert.equal(index.count,index.songs.length);
+  assert.ok(index.songs.every(row=>row && safeSuno(row.suno_url)));
+  assert.ok(index.songs.every(row=>safeStream(row.play_url) && typeof row.title==='string' && typeof row.artist==='string'));
+});
 console.log('TSCMS Search seed + grow: '+passes.length+'/'+passes.length+' PASS');
