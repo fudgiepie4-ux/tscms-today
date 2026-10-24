@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Rye&family=Roboto+Slab:wght@500;600;700;800&display=swap');
+
 /* TSCMS Listening Room — Oct 23 approved phone reference.
    All lettering, count, songs, labels, and controls are real accessible HTML.
    Artwork: exact Fudgie-approved 941×1672 phone PNG (sha256 03f3e35a16e36abb8927b5d199b7017c58efffecb455cd68c37ae3ce9e927b8a). No regenerated or stretched SVG.
@@ -239,3 +241,116 @@ body.tc-listening-room {
   text-shadow:0 1px 2px rgba(0,0,0,.65)}
 .tc-console{margin:0;line-height:0;border:1px solid #542c19;border-top:0}
 .tc-console img{display:block;width:100%;height:auto}
+
+/* ROOM PLAYER FIX (Oct 24 2026, Fudgie's morning notes):
+   The console is now the control. Real buttons sit over the painted
+   transport circles; the equalizer dances while music plays; the
+   buttons glow warm while the radio is on. The shared dayPlay white
+   bar can never paint on this page (last rule), because the room
+   never calls dayPlay anymore. */
+.tc-listening-room .tc-console{position:relative}
+.tc-listening-room .tc-console img{position:relative;z-index:1}
+.tc-eq-overlay{position:absolute;z-index:2;left:21.5%;top:15%;width:41%;height:40%;
+  display:flex;align-items:flex-end;gap:2.5%;pointer-events:none}
+.tc-eq-overlay i{flex:1 1 0;display:block;height:85%;border-radius:2px 2px 0 0;
+  background:linear-gradient(180deg,#ffe9a0,#ffb347 60%,#ff7a3c);opacity:.75;
+  transform-origin:bottom;animation:tc-eq-bounce 1.1s ease-in-out infinite;
+  animation-play-state:paused}
+.tc-eq-overlay i:nth-child(2n){animation-duration:.9s;animation-delay:.12s}
+.tc-eq-overlay i:nth-child(3n){animation-duration:1.3s;animation-delay:.24s}
+.tc-eq-overlay i:nth-child(4n){animation-duration:.8s;animation-delay:.05s}
+.tc-eq-overlay i:nth-child(5n){animation-duration:1.5s;animation-delay:.3s}
+@keyframes tc-eq-bounce{0%,100%{transform:scaleY(.35)}30%{transform:scaleY(1)}55%{transform:scaleY(.6)}80%{transform:scaleY(.9)}}
+.tc-transport{position:absolute;z-index:3;left:0;top:0;width:100%;height:100%;pointer-events:none}
+.tc-console-btn{position:absolute;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:0;border-radius:50%;color:transparent;cursor:pointer;
+  pointer-events:auto;padding:0}
+.tc-console-btn:focus-visible{outline:3px solid #ffdc88;outline-offset:2px}
+.tc-console-prev{left:63.5%;top:22.3%;width:11.5%;height:59.3%}
+.tc-console-next{left:86.5%;top:22.3%;width:11.5%;height:59.3%}
+.tc-console-play{left:74%;top:13.3%;width:15%;height:77.3%}
+.tc-console-play span{display:flex;align-items:center;justify-content:center;
+  width:86%;height:86%;border-radius:50%;color:#fff6dd;
+  background:radial-gradient(circle at 50% 42%,#1d1d1d,#000 72%);
+  font-size:clamp(18px,6.5vw,40px);line-height:1;
+  text-shadow:0 0 8px rgba(255,220,140,.6)}
+/* Powered on: warm light around the buttons, equalizer bright + dancing. */
+.tc-console-on .tc-console-btn{box-shadow:0 0 10px 2px rgba(255,196,92,.85),0 0 26px 8px rgba(255,170,60,.45)}
+.tc-console-on .tc-console-play span{color:transparent;background:transparent;text-shadow:none}
+.tc-console-on .tc-eq-overlay i{opacity:1;animation-play-state:running;
+  filter:drop-shadow(0 0 4px rgba(255,190,90,.9))}
+/* Safety net: the shared dayPlay bar must never paint on this page. */
+.tc-listening-room #tscms-song-player{display:none!important}
+.tc-fav-row-playing{outline:2px solid rgba(255,210,120,.65);box-shadow:0 0 14px rgba(255,190,90,.35)}
+
+/* THREE NOTES (Oct 24 2026, Fudgie's morning screenshots):
+   (1) The painted red plaque at the scene's top right was blank — it
+   now carries a live ON AIR / OFF AIR sign tied to playback.
+   (3) The paused center console button was a solid black disc — it
+   now has a warm brass face like its neighbors. */
+.tc-fill-onair{position:absolute;left:84.1%;top:2.2%;width:12.3%;height:15.2%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:#ffe9b0;font:700 clamp(9px,2.6vw,13px) Georgia,serif;text-align:center;
+  text-shadow:0 1px 3px #000;pointer-events:none;z-index:4}
+.tc-onair-dot{width:8px;height:8px;border-radius:50%;background:#7a4a44;box-shadow:none}
+.tc-fill-onair .tc-onair-on{display:none}
+.tc-room-playing .tc-fill-onair .tc-onair-on{display:inline}
+.tc-room-playing .tc-fill-onair .tc-onair-off{display:none}
+.tc-room-playing .tc-onair-dot{background:#ff5a4e;box-shadow:0 0 8px 2px rgba(255,90,78,.9);
+  animation:tc-onair-pulse 1.4s ease-in-out infinite}
+@keyframes tc-onair-pulse{0%,100%{box-shadow:0 0 6px 1px rgba(255,90,78,.7)}50%{box-shadow:0 0 12px 4px rgba(255,90,78,.95)}}
+.tc-console-play span{background:radial-gradient(circle at 50% 38%,#8a5a24,#4a2c12 55%,#241407);
+  border:1px solid #d6a85e}
+
+/* NOTE 4 (Oct 24 2026, Fudgie's video): only ONE equalizer may show —
+   the working one. A dark backdrop hides the painted bars completely;
+   the animated bars dance on top of it. */
+.tc-eq-backdrop{position:absolute;z-index:2;left:20.5%;top:13.5%;width:43%;height:43%;
+  border-radius:8px;pointer-events:none;
+  background:linear-gradient(180deg,#221305,#170b03 60%,#120801)}
+.tc-eq-overlay{z-index:3}
+.tc-transport{z-index:4}
+
+/* EQ bars must read as a real equalizer: tall bars while playing, low
+   flat bars while idle (never the frozen mid-bounce frame). */
+.tc-console:not(.tc-console-on) .tc-eq-overlay i{animation:none;transform:scaleY(.22)}
+
+/* Listening Room type polish — TEST STAGE ONLY, 2026-10-24.
+   Typography on REAL scene text only. No geometry, player,
+   console, equalizer, radar control or shared-site styles. */
+.tc-listening-room .tc-fill-title{
+  font-family:'Rye','Rockwell','Bookman Old Style',Georgia,serif;
+  font-weight:400;
+  font-size:clamp(1.42rem,6.35vw,2.38rem);
+  letter-spacing:.006em;
+  text-shadow:0 2px 1px #1d0d05,0 0 9px rgba(21,8,3,.48);
+}
+.tc-listening-room .tc-fill-title span{
+  font-family:'Roboto Slab','Rockwell',Georgia,serif;
+  font-weight:800;
+  letter-spacing:.15em;
+  text-shadow:0 1px 2px #210b04;
+}
+.tc-listening-room .tc-fill-count{
+  font-family:'Roboto Slab','Rockwell','Bookman Old Style',Georgia,serif;
+  font-weight:800;
+  letter-spacing:.01em;
+  text-shadow:0 1px 0 rgba(255,243,197,.7),0 -1px 1px rgba(36,16,2,.36);
+}
+.tc-listening-room .tc-fill-actions button{
+  font-family:'Roboto Slab','Rockwell','Bookman Old Style',Georgia,serif;
+  font-weight:800;
+  letter-spacing:0;
+  text-shadow:0 1px 2px rgba(0,0,0,.65),0 0 2px rgba(255,212,142,.28);
+}
+.tc-listening-room .tc-fill-tools .tc-room-search input{
+  font-family:'Roboto Slab','Rockwell',Georgia,serif;
+  font-style:italic;
+  font-weight:600;
+  letter-spacing:.005em;
+}
+.tc-listening-room .tc-fill-tools .tc-room-sortbar select{
+  font-family:'Roboto Slab','Rockwell',Georgia,serif;
+  font-weight:700;
+  letter-spacing:.005em;
+}
