@@ -3,6 +3,7 @@
 import copy
 from datetime import datetime, timedelta, timezone
 import json
+import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -24,6 +25,11 @@ def fixture(now=NOW):
         {'id': 'p3', 'created_time': datetime.combine(days[6], datetime.min.time(), CT).astimezone(UTC).isoformat(), 'comment_count': 4},
     ]
     manifest = {
+        'schema_version': 1,
+        'collector': {'name': 'synthetic-fixture-collector', 'version': 'test-v1'},
+        'collection_id': 'test-run-'+now.date().isoformat(),
+        'source_sha256': '0' * 64,
+        'pagination': {'posts_exhausted': True, 'pages_fetched': 3},
         'verified_at': now.isoformat(),
         'source_generated': source_at.isoformat(),
         'days': []
@@ -141,11 +147,48 @@ class CommunityPulseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='stage-pulse-test-') as tmp:
             d=Path(tmp)
             src=d/'posts_14d.json'; ver=d/'coverage.json'; out=d/'community-pulse-current.json'
-            src.write_text(json.dumps(source));ver.write_text(json.dumps(proof));out.write_text('DO NOT OVERWRITE')
+            raw = json.dumps(source).encode('utf-8')
+            proof['source_sha256'] = hashlib.sha256(raw).hexdigest()
+            src.write_bytes(raw);ver.write_text(json.dumps(proof));out.write_text('DO NOT OVERWRITE')
             with self.assertRaises(CoverageError):
                 stage(src, ver, d)
             self.assertEqual(out.read_text(),'DO NOT OVERWRITE')
 
+
+    def test_real_creation_time_with_distinct_numeric_id_and_url(self):
+        source, proof = fixture()
+        post = source['posts'][0]
+        post['creation_time'] = post.pop('created_time')
+        post['id'] = 99881
+        post['post_url'] = 'https://facebook.com/groups/example/permalink/99881/'
+        feed = build_feed(source, proof, now=NOW)
+        self.assertEqual(sum(d['posts'] for d in feed['days']), 3)
+        self.assertEqual(sum(d['comments'] for d in feed['days']), 6)
+
+    def test_manifest_must_attest_pagination(self):
+        source, proof = fixture()
+        del proof['pagination']
+        with self.assertRaisesRegex(CoverageError, 'pagination'):
+            build_feed(source, proof, now=NOW)
+
+    def test_manifest_must_have_collector_identity(self):
+        source, proof = fixture()
+        del proof['collector']
+        with self.assertRaisesRegex(CoverageError, 'collector name'):
+            build_feed(source, proof, now=NOW)
+
+    def test_source_file_hash_prevents_stale_or_wrong_snapshot(self):
+        source, proof = fixture()
+        actual = json.dumps(source).encode('utf-8')
+        proof['source_sha256'] = hashlib.sha256(actual).hexdigest()
+        with self.assertRaisesRegex(CoverageError, 'SHA-256 mismatch'):
+            build_feed(source, proof, now=NOW, source_bytes=actual+b' ')
+
+    def test_attested_source_timestamp_without_embedded_timestamp(self):
+        source, proof = fixture()
+        del source['generated']
+        feed = build_feed(source, proof, now=NOW)
+        self.assertEqual(feed['window']['end'], '2026-10-23')
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
