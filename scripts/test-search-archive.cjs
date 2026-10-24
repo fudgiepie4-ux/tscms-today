@@ -2,9 +2,9 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const {normalize,mergeIndex,isValidDate,safeStream}=require('./build-search-archive.cjs');
+const {normalize,mergeIndex,isValidDate,safeStream,safeSuno}=require('./build-search-archive.cjs');
 const make=(week,artist='Ronish Studios',title='A Verified Song',suffix='a')=>
-  ({week,artist,title,stream:'https://cdn1.suno.ai/'+suffix+'.mp4'});
+  ({week,artist,title,stream:'https://cdn1.suno.ai/'+suffix+'.mp4',suno_url:'https://suno.com/s/verified'+suffix});
 const date='2026-10-22T16:00:00Z';
 const passes=[];
 const test=(name,fn)=>{fn();passes.push(name);};
@@ -121,4 +121,22 @@ test('17 real matching helper returns all 21 tracks for an artist',()=>{
   assert.equal(songs.filter(s=>context.helpers.matchesQuery(s,context.helpers.searchKey('BETTY'))).length,21);
 });
 
+test('18 archive keeps the exact Suno URL across rebuilds',()=>{
+  const original=make('2026-10-14');
+  const initial=mergeIndex({songs:[]},[original],date);
+  const reextract={...original};delete reextract.suno_url;
+  const refreshed=mergeIndex(initial,[reextract],date);
+  assert.equal(refreshed.songs[0].suno_url,original.suno_url);
+});
+test('19 missing Suno source blocks a new archive from publishing',()=>{
+  const row=make('2026-10-14');delete row.suno_url;
+  assert.throws(()=>mergeIndex({songs:[]},[row],date),/Suno coverage incomplete/);
+});
+test('20 unsafe Suno links cannot enter the archive',()=>{
+  assert.equal(safeSuno('javascript:alert(1)'),false);
+  assert.equal(safeSuno('https://evil.example/song/123'),false);
+  assert.equal(safeSuno('https://suno.com/s/A1b2c3'),true);
+  const row=make('2026-10-14');row.suno_url='https://evil.example/song/hijack';
+  assert.throws(()=>mergeIndex({songs:[]},[row],date),/No verified/);
+});
 console.log('TSCMS Search seed + grow: '+passes.length+'/'+passes.length+' PASS');
