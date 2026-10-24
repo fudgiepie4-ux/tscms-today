@@ -18,6 +18,10 @@ function safeStream(v){
     !/\/\//.test(v.slice(8,16)) && v.length<=2048 &&
     /\.(?:mp3|m4a|mp4|wav|ogg)(?:[?#]|$)/i.test(v);
 }
+function safeSuno(v){
+  return typeof v==='string'&&v.length<=2048&&
+    /^https:\/\/(?:www\.)?suno\.com\/(?:s\/[A-Za-z0-9]+|song\/[0-9a-f-]{36})(?:[?#][^\\s<>"'\x60]*)?$/i.test(v.trim());
+}
 function validText(v){
   return typeof v==='string'&&v.trim().length>0&&v.trim().length<=500&&
     !/^https?:\/\//i.test(v.trim())&&!/^(?:unknown|n\/a|untitled|no title)$/i.test(v.trim());
@@ -29,6 +33,9 @@ function normalize(row){
   const week=row.week; // authoritative station week from playlist extraction
   if(!validText(artist)||!validText(title)||!safeStream(play_url)||!isValidDate(week))return null;
   const out={artist:artist.trim(),title:title.trim(),play_url:play_url.trim(),week};
+  const suno=row.suno_url||row.suno||row.suno_link;
+  if(suno!==undefined&&suno!==null&&suno!==''&&!safeSuno(suno))return null;
+  if(safeSuno(suno))out.suno_url=suno.trim();
   if(typeof row.post_url==='string'&&/^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com)\/\S+$/i.test(row.post_url)){
     out.post_url=row.post_url;
   }
@@ -43,11 +50,20 @@ function mergeIndex(previous,incoming,generated){
   if(!accepted.length)throw new Error('No verified artist + title + stream + week records; refuse empty publication.');
   const byKey=new Map();
   for(const raw of old){const row=normalize(raw);if(row)byKey.set(row.week+'|'+row.play_url,row);}
-  for(const row of accepted)byKey.set(row.week+'|'+row.play_url,row);
+  for(const row of accepted){
+    const key=row.week+'|'+row.play_url;
+    const prior=byKey.get(key);
+    // Weekly re-extractions can omit a previously verified Suno link; retain it.
+    if(prior?.suno_url&&!row.suno_url)row.suno_url=prior.suno_url;
+    byKey.set(key,row);
+  }
   const weeks=[...new Set([...byKey.values()].map(r=>r.week))].sort().reverse().slice(0,MAX_WEEKS);
   const keep=new Set(weeks);
   const songs=[...byKey.values()].filter(r=>keep.has(r.week))
     .sort((a,b)=>b.week.localeCompare(a.week)||a.artist.localeCompare(b.artist)||a.title.localeCompare(b.title));
+  const missing=songs.filter(row=>!safeSuno(row.suno_url));
+  if(missing.length)throw new Error('Suno coverage incomplete: '+missing.length+' of '+songs.length+
+    ' records lack verified suno_url. Refusing archive/index publication.');
   return {
     schema_version:1,
     generated,
@@ -89,5 +105,5 @@ function main(argv){
   writeAtomic(opts.output,publicIndex);
   console.log(JSON.stringify({count:merged.count,coverage:merged.coverage,audit}));
 }
-module.exports={normalize,mergeIndex,isValidDate,safeStream,parseArgs};
+module.exports={normalize,mergeIndex,isValidDate,safeStream,safeSuno,parseArgs};
 if(require.main===module)main(process.argv.slice(2));
