@@ -105,6 +105,7 @@ class CommunityPulseTest(unittest.TestCase):
     def test_stale_source_even_if_output_would_be_fresh_blocks(self):
         source, proof = fixture()
         source['generated']=(NOW - timedelta(hours=49)).isoformat()
+        proof['source_generated']=source['generated']
         with self.assertRaisesRegex(CoverageError, 'older than 48'):
             build_feed(source, proof, now=NOW)
 
