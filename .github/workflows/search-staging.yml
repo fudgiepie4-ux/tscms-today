@@ -2,6 +2,7 @@ name: TSCMS Search Archive Staging
 on:
   pull_request:
     paths:
+      - 'search-index.json'
       - 'scripts/build-search-archive.cjs'
       - 'scripts/test-search-archive.cjs'
       - 'tscms-search.js'
