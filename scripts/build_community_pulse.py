@@ -7,6 +7,8 @@ Central-time date. Missing days are NOT interpreted as zero activity.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import re
 from datetime import date, datetime, time, timedelta, timezone
 import json
 import os
@@ -85,7 +87,7 @@ def fresh(value, now: datetime, where: str):
     return ts
 
 
-def build_feed(posts_json, coverage_json=None, *, now: datetime | None = None):
+def build_feed(posts_json, coverage_json=None, *, now: datetime | None = None, source_bytes: bytes | None = None):
     now = now or datetime.now(UTC)
     if now.tzinfo is None or now.utcoffset() is None:
         raise CoverageError('now must be timezone-aware')
@@ -103,11 +105,34 @@ def build_feed(posts_json, coverage_json=None, *, now: datetime | None = None):
     coverage = coverage_json if coverage_json is not None else source.get('coverage')
     if not isinstance(coverage, dict):
         raise CoverageError('verified collector coverage manifest required (no inferred zero days)')
-    source_time = field(source, ('generated', 'collected_at', 'fetched_at'), 'source') if not isinstance(posts_json, list) else None
+    # Real collector snapshots can lack a source timestamp. In that case the
+    # collector MUST attest its original collection time in the manifest.
+    source_time = field(source, ('generated', 'collected_at', 'fetched_at'), 'source') if any(k in source for k in ('generated', 'collected_at', 'fetched_at')) else None
+    attested_source_time = coverage.get('source_generated')
     if source_time is None:
-        source_time = coverage.get('source_generated')
+        source_time = attested_source_time
+    elif attested_source_time is not None and stamp(source_time, 'source.time') != stamp(attested_source_time, 'coverage.source_generated'):
+        raise CoverageError('manifest source collection timestamp disagrees with source')
     if source_time is None:
         raise CoverageError('missing original source collection timestamp')
+    # Attestation is issued by the actual collector; boolean completeness flags
+    # without a run ID, pagination evidence and exact source hash are insufficient.
+    if coverage.get('schema_version') != 1:
+        raise CoverageError('manifest: schema_version 1 required')
+    collector = coverage.get('collector')
+    if not isinstance(collector, dict) or not all(isinstance(collector.get(k), str) and collector[k].strip() for k in ('name', 'version')):
+        raise CoverageError('manifest: collector name and version required')
+    run_id = coverage.get('collection_id')
+    if not isinstance(run_id, str) or not run_id.strip():
+        raise CoverageError('manifest: genuine collector collection_id required')
+    pagination = coverage.get('pagination')
+    if not isinstance(pagination, dict) or pagination.get('posts_exhausted') is not True or type(pagination.get('pages_fetched')) is not int or pagination['pages_fetched'] < 1:
+        raise CoverageError('manifest: exhausted post pagination and pages_fetched proof required')
+    digest = coverage.get('source_sha256')
+    if not isinstance(digest, str) or not re.fullmatch(r'[0-9a-f]{64}', digest):
+        raise CoverageError('manifest: SHA-256 of exact source file required')
+    if source_bytes is not None and hashlib.sha256(source_bytes).hexdigest() != digest:
+        raise CoverageError('manifest: source SHA-256 mismatch (wrong or changed snapshot)')
     source_at = fresh(source_time, now, 'source.collection')
     verified_at = fresh(field(coverage, ('generated', 'verified_at'), 'coverage'), now, 'coverage.verified_at')
     if verified_at < source_at - SKEW:
@@ -139,13 +164,17 @@ def build_feed(posts_json, coverage_json=None, *, now: datetime | None = None):
     for i, row in enumerate(posts):
         if not isinstance(row, dict):
             raise CoverageError(f'posts[{i}]: expected object')
-        when = stamp(field(row, ('created_time', 'created_at', 'timestamp', 'published_at'), f'posts[{i}]'), f'posts[{i}].created')
+        when = stamp(field(row, ('creation_time', 'created_time', 'created_at', 'timestamp', 'published_at'), f'posts[{i}]'), f'posts[{i}].created')
         if when > now + SKEW:
             raise CoverageError(f'posts[{i}]: future post timestamp')
         day = when.astimezone(CT).date().isoformat()
         if day not in counts:
             continue
-        ident = field(row, ('id', 'post_id', 'post_url'), f'posts[{i}]')
+        # A numeric post id and its Facebook permalink are distinct legitimate
+        # fields. Prefer the stable id; use URL only when identifiers are absent.
+        if 'id' in row and 'post_id' in row and str(row['id']).strip() != str(row['post_id']).strip():
+            raise CoverageError(f'posts[{i}]: conflicting stable post ids')
+        ident = next((row[k] for k in ('id', 'post_id', 'post_url') if k in row), None)
         if not isinstance(ident, (str, int)) or isinstance(ident, bool) or not str(ident).strip():
             raise CoverageError(f'posts[{i}]: missing stable post identifier')
         ident = str(ident).strip()
@@ -181,9 +210,10 @@ def build_feed(posts_json, coverage_json=None, *, now: datetime | None = None):
 def stage(source: Path, coverage: Path | None, stage_dir: Path) -> Path:
     if not source.is_file():
         raise CoverageError(f'missing source file: {source}')
-    obj = json.loads(source.read_text(encoding='utf-8'))
+    source_bytes = source.read_bytes()
+    obj = json.loads(source_bytes.decode('utf-8'))
     proof = json.loads(coverage.read_text(encoding='utf-8')) if coverage else None
-    payload = build_feed(obj, proof)
+    payload = build_feed(obj, proof, source_bytes=source_bytes)
     output = stage_dir / 'community-pulse-current.json'
     stage_dir.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix='.pulse-', suffix='.json', dir=stage_dir)
