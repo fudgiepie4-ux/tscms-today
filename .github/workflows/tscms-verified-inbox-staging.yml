@@ -1,0 +1,30 @@
+name: Verification Status Inbox — TEST ONLY
+on:
+  pull_request:
+    branches:
+      - clara/audit-seven-fixes-staging-20261023
+    paths:
+      - tscms-admin-dual.js
+      - scripts/test-verified-inbox.cjs
+      - .github/workflows/tscms-verified-inbox-staging.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-inbox-test-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Module syntax
+        run: node --check tscms-admin-dual.js
+      - name: Verification logic and inbox label harness
+        run: node scripts/test-verified-inbox.cjs
+      - name: Existing seven-item audit checks
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts linkedom@0.18.12
+          node scripts/test-seven-audit-fixes.cjs
+      - name: Protected feature gate
+        run: node scripts/verify-public-preservation.mjs

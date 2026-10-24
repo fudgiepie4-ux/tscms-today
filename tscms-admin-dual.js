@@ -2,7 +2,7 @@
    NO production deployment without Owner approval, verified rules and v2 bundle QA. */
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,
-  sendEmailVerification,sendPasswordResetEmail,reload,signOut,getIdToken,setPersistence,inMemoryPersistence,deleteUser} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+  sendEmailVerification,sendPasswordResetEmail,reload,signOut,getIdToken,getIdTokenResult,onAuthStateChanged,setPersistence,inMemoryPersistence,deleteUser} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import {getFirestore,doc,collection,writeBatch,serverTimestamp,
   getDocFromServer,getDocs,updateDoc} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 import {tscmsFirebaseConfig} from "./firebase-admin-config.js";
@@ -61,6 +61,34 @@ document.body.appendChild(dialog);
 const loginMsg=document.getElementById("tc-login-status"),signupMsg=document.getElementById("tc-upgrade-status");
 const updateStatus=(node,message)=>node.textContent=message;
 let pinPrompted=false,firebaseApproved=false,orphanSignupUid=null,registeredUser=null;
+
+/* STAGING: only freshly refreshed Auth email_verified may inform a stamp.
+   The rules for the narrowly scoped two-field self-write ship separately. */
+async function stampEmailVerification(user,sessionAuth,sessionDb){
+  if(!user?.uid || sessionAuth.currentUser?.uid!==user.uid)return null;
+  await reload(user);
+  const token=await getIdTokenResult(user,true);
+  const claim=token?.claims?.email_verified;
+  if(typeof claim!=="boolean")return null;
+  try{
+    const self=doc(sessionDb,"users",user.uid);
+    const snapshot=await getDocFromServer(self);
+    if(snapshot.exists() && snapshot.data().emailVerified!==claim){
+      await updateDoc(self,{emailVerified:claim,emailVerifiedAt:serverTimestamp()});
+    }
+  }catch(_){
+    // Old production rules correctly deny this until Cherish publishes the
+    // exactly-two-fields self-update clause. No privilege fallback allowed.
+    console.warn("Email verification status stamp unavailable.");
+  }
+  return claim;
+}
+function ownerVerificationLabel(data){
+  if(data?.emailVerified===true)return "Verified ✓";
+  if(data?.emailVerified===false)return "Not verified";
+  return "No sign-in since update";
+}
+
 function offerPersonalSetupAfterPin(){
   // Observe normal PIN success AND detect a PIN unlock that happened while
   // the Firebase module was still loading. Do not change mc.js or PIN logic.
@@ -114,6 +142,8 @@ document.getElementById("tc-upgrade-form").addEventListener("submit",async(event
     });
     await batch.commit();
     profileSaved=true;orphanSignupUid=null;registeredUser=user;
+    // The user is signed into the separate, in-memory registration context.
+    try{await stampEmailVerification(user,signupAuth,signupDb);}catch(_){}
     document.getElementById("tc-resend-verify").hidden=false;
     submit.hidden=true;
     try{
@@ -231,9 +261,9 @@ window.addEventListener("focus",()=>{void validateOpenPersonalSession();});
 setInterval(()=>{void validateOpenPersonalSession();},60000);
 
 async function personalLogin(user){
-  await reload(user);
-  await getIdToken(user,true); // Refresh the email_verified security-rules claim.
-  if(!user.emailVerified){updateStatus(loginMsg,"Check your email verification link first. Then sign in again.");return;}
+  // Claim refresh and self-stamp precede the existing Owner approval checks.
+  const claim=await stampEmailVerification(user,auth,db);
+  if(claim!==true || !user.emailVerified){updateStatus(loginMsg,"Check your email verification link first. Then sign in again.");return;}
   const ref=await getDocFromServer(doc(db,"users",user.uid));
   if(!ref.exists()){updateStatus(loginMsg,"Account registration incomplete. Contact Fudgie.");return;}
   const profile=ref.data();
@@ -275,16 +305,30 @@ async function personalLogin(user){
   signedIn.textContent="✅ Signed in as "+friendlyName+" · "+(profile.owner===true?"Owner":"Admin")+" — this room is yours";
   adminBody.prepend(signedIn);
 }
+
+/* On Firebase session restoration after a page refresh, run the SAME
+   personalLogin validation and decryption chain. Never persist room data. */
+let initialAuthStateHandled=false,manualLoginSubmitting=false;
+onAuthStateChanged(auth,user=>{
+  if(initialAuthStateHandled)return;
+  initialAuthStateHandled=true;
+  if(!user||manualLoginSubmitting||firebaseApproved||personalSessionEnding)return;
+  void personalLogin(user).catch(err=>{
+    gate.style.display="block";
+    adminBody.style.display="none";
+    updateStatus(loginMsg,readableError(err));
+  });
+});
 document.getElementById("tc-login-form").addEventListener("submit",async(ev)=>{
   ev.preventDefault();
   const form=ev.currentTarget,button=form.querySelector('button[type="submit"]');
-  button.disabled=true;updateStatus(loginMsg,"Signing in…");
+  button.disabled=true;manualLoginSubmitting=true;updateStatus(loginMsg,"Signing in…");
   try{
     const loginResult=await signInWithEmailAndPassword(auth,form.elements.email.value.trim(),form.elements.password.value);
     form.elements.password.value="";
     await personalLogin(loginResult.user);
   }catch(err){updateStatus(loginMsg,readableError(err));form.elements.password.value="";}
-  finally{button.disabled=false;}
+  finally{button.disabled=false;manualLoginSubmitting=false;}
 });
 async function showOwnerApprovals(ownerUid){
   const panel=document.createElement("section");panel.id="tc-owner-panel";panel.className="tc-owner";
@@ -376,6 +420,11 @@ async function showOwnerApprovals(ownerUid){
       const label=document.createElement("span");
       label.textContent=[data.fullName,data.username,data.email,"Status: "+data.status].filter(Boolean).join(" · ");
       row.appendChild(label);
+      const verified=document.createElement("span");
+      verified.className="tc-owner-email-verified";
+      verified.textContent=ownerVerificationLabel(data);
+      verified.setAttribute("aria-label","Email verification: "+verified.textContent);
+      row.appendChild(verified);
       async function update(changes){
         try{await updateDoc(doc(db,"users",profile.id),changes);await refresh();}
         catch(err){updateStatus(loginMsg,"Account review action failed. No change was confirmed.");}
