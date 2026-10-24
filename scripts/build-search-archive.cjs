@@ -32,6 +32,9 @@ function normalize(row){
   if(typeof row.post_url==='string'&&/^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com)\/\S+$/i.test(row.post_url)){
     out.post_url=row.post_url;
   }
+  if(typeof row.suno_url==='string'&&/^https:\/\/(?:www\.)?suno\.com\/(?:s\/|song\/)\S+$/i.test(row.suno_url)){
+    out.suno_url=row.suno_url;
+  }
   return out;
 }
 function mergeIndex(previous,incoming,generated){
