@@ -41,6 +41,13 @@
       else status.textContent='The audio player is unavailable. Please try again later.';
     });
     actions.appendChild(play);
+    if(goodUrl(song.suno_url)&&/^https:\/\/(?:www\.)?suno\.com\/(?:s\/|song\/)/i.test(song.suno_url)){
+      const suno=document.createElement('a');suno.href=song.suno_url;
+      suno.target='_blank';suno.rel='noopener noreferrer';
+      suno.textContent='SUNO ↗';
+      suno.setAttribute('aria-label','Open Suno song for '+song.title+' by '+song.artist);
+      actions.appendChild(suno);
+    }
     if(goodUrl(song.post_url)&&/^https:\/\/(?:www\.)?(?:facebook\.com|m\.facebook\.com)\//i.test(song.post_url)){
       const post=document.createElement('a');post.href=song.post_url;
       post.target='_blank';post.rel='noopener noreferrer';
