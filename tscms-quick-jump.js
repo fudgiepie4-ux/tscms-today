@@ -14,6 +14,7 @@
       {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
       {key:'journal', icon:'📖', label:'Town Journal — Heard & Built', href:'town-journal.html'},
       {key:'videos', icon:'🎬', label:'Submit Your Music Video — Now Open', href:'videos.html'},
+      {key:'reddirt', icon:'⛪', label:'Red Dirt & Redemption', href:'red-dirt-redemption.html'},
       {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
       {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
       {key:'daily', icon:'♫', label:'Daily Songs'},
