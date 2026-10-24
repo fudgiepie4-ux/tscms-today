@@ -322,7 +322,17 @@ async function showOwnerApprovals(ownerUid){
     disarmRevoke();
     panel.querySelectorAll(".tc-owner-entry-list").forEach(n=>n.remove());
     const profiles=await getDocs(collection(db,"users")); // Firestore v4 Owner-only list
-    const others=profiles.docs.filter(d=>d.id!==ownerUid);
+    // Sort by actual profile creation time; missing timestamps go last.
+    // Stable tie-break by document ID so the order does not jump on refresh.
+    const creationMs=profile=>{
+      const timestamp=profile.data().createdAt;
+      if(!timestamp)return Number.POSITIVE_INFINITY;
+      if(typeof timestamp.toMillis==='function')return timestamp.toMillis();
+      const parsed=timestamp instanceof Date?timestamp.getTime():Date.parse(timestamp);
+      return Number.isFinite(parsed)?parsed:Number.POSITIVE_INFINITY;
+    };
+    const others=profiles.docs.filter(d=>d.id!==ownerUid).sort((a,b)=>
+      creationMs(a)-creationMs(b) || a.id.localeCompare(b.id));
     const waiting=others.filter(d=>d.data().status==="pending").length;
     const approved=others.filter(d=>d.data().status==="approved").length;
     const pendingZone=document.createElement("div");
@@ -379,11 +389,11 @@ async function showOwnerApprovals(ownerUid){
           button.type="button";
           button.setAttribute("aria-label",text+" "+(data.fullName||data.username||"this person"));
           button.addEventListener("click",()=>{
-            const identityConfirmed=text!=="Approve" || window.confirm(
-              "Have you personally contacted and verified "+(data.fullName||data.username||"this person")+
-              " and confirmed their email? Approve only after your own identity check."
-            );
-            if(identityConfirmed)update(changes);
+            const identity=data.fullName||data.username||"this person";
+            const consequences=text==="Approve"
+              ? "APPROVE "+identity+"?\n\nThis changes status to APPROVED, sets admin=true, and records your approval identity and time. Once their email is verified and normal authentication checks pass, they may enter the Admin Control Room and use approved team access. Verify their identity and email personally before proceeding."
+              : "REJECT "+identity+"?\n\nThis changes status to REJECTED and admin=false. They will NOT receive approved Admin Control Room access. Their account record is kept; rejection does NOT delete their account or send them a notice. You may review their request separately later.";
+            if(window.confirm(consequences))void update(changes);
           });row.appendChild(button);
         }
       }else if(data.status==="approved"){

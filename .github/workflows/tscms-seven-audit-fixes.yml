@@ -1,0 +1,45 @@
+name: TSCMS Seven Audit Fixes — STAGING ONLY
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'videos.html'
+      - 'tscms-public-runtime.js'
+      - 'tscms-search.js'
+      - 'admin.html'
+      - 'mc.js'
+      - 'gamehouse.html'
+      - 'gamehouse-help.js'
+      - 'tscms-admin-dual.js'
+      - 'tscms-search.html'
+      - 'my-playlist.html'
+      - 'scripts/test-seven-audit-fixes.cjs'
+      - '.github/workflows/tscms-seven-audit-fixes.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --no-package-lock --ignore-scripts linkedom@0.18.12
+      - name: Syntax check touched JavaScript
+        run: |
+          node --check tscms-public-runtime.js
+          node --check tscms-search.js
+          node --check gamehouse-help.js
+          node --check mc.js
+          node --check tscms-admin-dual.js
+          node --check scripts/test-seven-audit-fixes.cjs
+      - name: Seven item regression preflight
+        run: node scripts/test-seven-audit-fixes.cjs
+      - name: Protected public features stay intact
+        run: node scripts/verify-public-preservation.mjs
+      - name: Legibility baseline
+        run: node scripts/test-public-legibility.cjs
+      - name: Drive-In approved terms
+        run: node scripts/test-drivein-terms-staging.cjs

@@ -13,8 +13,8 @@
     player.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:78px;width:min(94vw,500px);height:50px;z-index:9000;border:2px solid #c9a227;border-radius:26px;background:#130f0a;box-shadow:0 5px 25px #000a';
     document.body.appendChild(player);
     player.addEventListener('ended', resetPlayer);
-    player.addEventListener('pause', function () { if (active) active.textContent = '▶ PLAY'; });
-    player.addEventListener('play', function () { if (active) active.textContent = '⏸ PAUSE'; });
+    player.addEventListener('pause', function () { if (active) { active.textContent = '▶ PLAY'; active.setAttribute('aria-pressed','false'); labelSongButton(active,false); } });
+    player.addEventListener('play', function () { if (active) { active.textContent = '⏸ PAUSE'; active.setAttribute('aria-pressed','true'); labelSongButton(active,true); } });
     player.addEventListener('error', function () { resetPlayer(); say('This track could not play here. Please use its SUNO link.'); });
     return player;
   }
@@ -32,8 +32,21 @@
     clearTimeout(el._hideTimer);
     el._hideTimer = setTimeout(function () { el.hidden = true; }, 6500);
   }
+  function labelSongButton(button,playing) {
+    if(!button || !button.getAttribute)return;
+    var row=button.closest('.song,.feat,.tscms-search-result');
+    var title=(button.dataset.title || (row && row.querySelector('.s-title,.feat-title,.tscms-search-result > strong')?.textContent) || 'this song').trim();
+    var by=row && row.querySelector('.s-by,.tscms-search-meta');
+    var artist=button.dataset.artist || (by && (by.textContent||'').replace(/^\s*by\s+/i,'').split(' · ')[0]) || '';
+    button.setAttribute('aria-label',(playing?'Pause ':'Play ')+title+(artist?' by '+artist:''));
+  }
+  function labelHomeSongs() {
+    document.querySelectorAll('.song .btn.play,.feat .btn.play').forEach(function(button){labelSongButton(button,false);});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',labelHomeSongs,{once:true});
+  else labelHomeSongs();
   function resetPlayer() {
-    if (active) { active.textContent = '▶ PLAY'; active.setAttribute('aria-pressed','false'); }
+    if (active) { active.textContent = '▶ PLAY'; active.setAttribute('aria-pressed','false'); labelSongButton(active,false); }
     active = null;
   }
   window.dayPlay = function (button) {
@@ -52,6 +65,7 @@
     resetPlayer();
     active = button;
     active.setAttribute('aria-pressed','true');
+    labelSongButton(active,true);
     a.src = url;
     a.hidden = false;
     a.play().catch(function () {

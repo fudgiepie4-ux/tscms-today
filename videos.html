@@ -121,7 +121,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
     <div class="signal" aria-hidden="true"><span class="hat">★ ♫ ★</span><strong>TSCMS</strong><small>COUNTRY MUSIC</small></div>
   </header>
   <div class="sound-dock" role="group" aria-label="Nighttime ambience preview">
-    <div><b>🌙 Night Sounds: <span id="sound-choice">ON · awaiting tap</span></b><span id="sound-description">Your 20-minute night recording · tap anywhere to start on mobile</span></div>
+    <div><b>🌙 Night Sounds: <span id="sound-choice">ON · awaiting tap</span></b><span id="sound-description">Your 20-minute night recording · use the Night Sounds control to start</span></div>
     <button id="sound-toggle" type="button" aria-pressed="true">Switch OFF</button>
   </div>
   <div class="mobile-submit-title">Submit Your Music Video — Now Open</div>
@@ -235,9 +235,9 @@ email.addEventListener('click',()=>{
  function paint(){
    const playing=!audio.paused;
    toggle.setAttribute('aria-pressed',String(wanted));
-   toggle.textContent=wanted?'Switch OFF':'Switch ON';
+   toggle.textContent=!wanted?'Switch ON':playing?'Switch OFF':'▶ Start Night Sounds';
    choice.textContent=!wanted?'OFF':playing?'ON · playing':'ON · awaiting tap';
-   desc.textContent=!wanted?'Nighttime recording muted · choice remembered':playing?'Your nighttime recording · 20-minute gentle loop':'Your 20-minute nighttime recording · tap the page to hear the night';
+   desc.textContent=!wanted?'Nighttime recording muted · choice remembered':playing?'Your nighttime recording · 20-minute gentle loop':'Your 20-minute nighttime recording · use Switch ON to hear the night';
  }
  function fadeTo(target,ms,done){
    cancelAnimationFrame(fadeFrame);
@@ -260,16 +260,11 @@ email.addEventListener('click',()=>{
    paint();
  }
  toggle.addEventListener('click',()=>{
-   wanted=!wanted;setPreference();
-   if(wanted)startNight();else stopNight();
+   // Remembered ON is a preference, not permission to autoplay. The first
+   // deliberate tap must START the sound rather than turn it OFF.
+   if(wanted && audio.paused){startNight();}
+   else {wanted=!wanted;setPreference();if(wanted)startNight();else stopNight();}
    paint();
- });
- document.addEventListener('pointerdown',e=>{
-   if(e.target===toggle||toggle.contains(e.target))return;
-   if(wanted)startNight();
- },{passive:true});
- document.addEventListener('keydown',e=>{
-   if((e.key==='Enter'||e.key===' ') && !e.target.closest('#sound-toggle') && wanted)startNight();
  });
  audio.addEventListener('ended',paint);
  audio.addEventListener('error',()=>{desc.textContent='Recording could not play in this browser.'});
@@ -282,7 +277,7 @@ email.addEventListener('click',()=>{
    if(event.target!==audio && event.target instanceof HTMLMediaElement){audio.pause();cancelAnimationFrame(fadeFrame);paint()}
  },true);
  paint();
- startNight(); // Browsers that permit autoplay will start quietly; phones wait for a tap.
+ // No page-wide key/tap trigger and no load-time autoplay: only Switch ON starts sound.
 })();
 </script>
 <script src="./tscms-legibility.js?v=wave-20261022" defer></script><link rel="stylesheet" href="./tscms-sitewide-radio.css?v=20261023-lefttab2">
