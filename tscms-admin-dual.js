@@ -49,7 +49,7 @@ dialog.setAttribute("aria-label","Create your personal Admin account");
 dialog.innerHTML='<h2>👑 Create Your Personal Admin Account</h2>'
 +'<p>Your PIN has unlocked the Admin Control Room. You may continue using it through October 31. Set up your personal login now for November 1 and later. New accounts require email verification and Fudgie’s approval.</p>'
 +'<form id="tc-upgrade-form"><label>Real full name<input name="fullName" autocomplete="name" required maxlength="100"></label>'
-+'<label>Choose a display username<input name="username" autocomplete="nickname" pattern="[a-zA-Z0-9_]{3,30}" minlength="3" maxlength="30" required></label>'
++'<label>Choose a display username<input name="username" autocomplete="nickname" pattern="[a-zA-Z0-9_]{3,30}" minlength="3" maxlength="30" required><span style="display:block;font-size:13px;color:#ffda8d;margin-top:4px">Letters, numbers, and underscores only — no spaces.</span></label>'
 +'<label>Private login email<input name="email" type="email" autocomplete="email" required></label>'
 +'<label>Personal password<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>'
 +'<label>Confirm personal password<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>'
