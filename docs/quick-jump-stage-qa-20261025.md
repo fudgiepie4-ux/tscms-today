@@ -68,3 +68,24 @@ Do not mark draft PR ready for review or merge until Fudgie approves the art and
 - **Actual rendered review picture created at 390px phone width:** `quick-jump-painted-phone-390.png` in the ChatGPT delivery. That local preview reproduces the staged art slots and uses a crop of the unchanged Swiper preview at its top; the branch preview itself references the original canonical hero file. This is a local rendered screenshot, **not a production or protected-test-origin capture**.
 - Local browser check (Chromium/Playwright) with widths 320/360/390/430: all three headers 82px high. At 390px: AROUND TOWN expands, COMMUNITY expansion closes it, MUSIC never disappears, Escape closes the drawer. Browser visual QA of the deployed branch and phone touch testing still outstanding; no PR merge authorized.
 - **Standing delivery rule:** any future visual/design handoff must include a rendered phone-width screenshot. GitHub branch/code link or text-only checks are not adequate as visual review.
+
+## OWNER-APPROVED PAINTED HEADER SOURCE BUILD — 2026-10-25
+**This section supersedes all earlier vector and preliminary painted-header notes.** Owner approved the complete reference image at
+https://drive.google.com/file/d/1LCqvGP3cOf_O8nX75a70_mUPPBPz14Vp/view?usp=drivesdk
+- Canonical source: `TSCMS-Quick-Jump-Painted-APPROVED-2026-10-25.png` (952×1653, 1,901,498 bytes), SHA-256 `4b18ac5484ffdfb924783ea8dda201c7ee6cf336556e9199ba1aeecb8280b828`; source left **unchanged** in Google Drive.
+- Three **literal crops** of approved painting (no regenerated/vector art) committed to this draft branch, copied as binary blobs identical to verified local crop files:
+  - MUSIC `assets/tscms-qj-approved-music-20261025.webp`; image crop rect (295,416,855,570); 560×154; 44,934 bytes; blob `ce60e7edfba38b317773d8da2cacbc908edbaa2b`.
+  - AROUND TOWN `assets/tscms-qj-approved-town-20261025.webp`; crop rect (416,1154,799,1306); 383×152; 25,136 bytes; blob `db012a6c8e15e61912c1297f8f04b01d8adea4e1`.
+  - COMMUNITY `assets/tscms-qj-approved-community-20261025.webp`; crop rect (392,1339,799,1489); 407×150; 30,518 bytes; blob `4d51fcf229dc8c80f6bff498887f2155ca21c3b6`.
+- The three preliminary `assets/tscms-qj-painted-*-20261025.webp` assets were **removed**; the previously rejected data-URI vector motifs are absent from the current CSS and preview. The original Swiper hero `assets/tscms-quick-jump-hero.jpg` is reused unchanged, and is not reconstructed from the approved full-layout composite.
+- Both production-bound `tscms-quick-jump.css` and `quick-jump-stage/index.html` now reference only approved crops. Header height 82px; same warm gold base, fall-only palette, label | painted art | chevron in distinct flex slots. MUSIC has **no chevron**.
+- `tscms-quick-jump.js` remains unchanged from the verified grouped-drawer implementation: 6 MUSIC items always visible, AROUND TOWN 5, COMMUNITY 4; accordion one-of-two, closed drawer by default with social row; Radio in MUSIC; listener-only playlist not added; Admin Sign In last.
+- The only change to generated homepage `index.html` is CSS and JS cache URLs `?v=20261025-approved-drive`; the 411 `data-suno` fields remain intact.
+- Chromium-based visual/behavior tests at **320, 360, 390, 430px** using the staging layout/approved-image assets checked: drawer initial closed, MUSIC always visible, AROUND TOWN/COMMUNITY mutually exclusive, Escape closes, 82px header height, exact three art assets, no label/art/chevron box overlaps.
+- **390px browser-rendered stage-mirror screenshots** (not production, and not a live protected-test-site capture):
+  - MUSIC default: https://drive.google.com/file/d/1Jt1qMSCEU3yaWos1y3YG99hjJoIrfvMc/view?usp=drivesdk
+  - AROUND TOWN open: https://drive.google.com/file/d/1RsZLi8I9rLUXoqEGzvxLbtBX1Su4-Ys4/view?usp=drivesdk
+  - COMMUNITY open: https://drive.google.com/file/d/1JF2Xro62baP7TbQXXZUiR0MPzCPb1arZ/view?usp=drivesdk
+  - All three: https://drive.google.com/file/d/1dJo-hj5qwpoby3U6T26FHPbUnl0BM5Up/view?usp=drivesdk
+- Archived derivative crops: https://drive.google.com/drive/folders/1ZUtp_6EgA2nqbJGouCpfMAfFzpaiMfU5
+- PR #39 **must stay DRAFT**, no merge, no production publish, until Fudgie's separate approval. Pending phone owner review and live-origin browser smoke test.
