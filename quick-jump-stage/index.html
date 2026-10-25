@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSCMS Quick Jump — Autumn Art Review (STAGED, not live)</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #120a04; color: #f7e8c3; font-family: Georgia, 'Times New Roman', serif; }
+  .phone { max-width: 430px; margin: 0 auto; padding: 12px; }
+  .draft-banner { background: #3a2a00; border: 2px solid #c9a227; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.45; }
+  .draft-banner strong { color: #e6c34a; }
+  details.spec { background: #1d1106; border: 1px solid #c9a227; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.5; }
+  details.spec summary { cursor: pointer; font-weight: bold; color: #e6c34a; }
+  details.spec ul { margin: 8px 0 0 18px; padding: 0; }
+  /* Slim bar (drawer closed state) */
+  .qj-bar { background: linear-gradient(180deg,#2b1a0c,#1d1106); border: 2px solid #c9a227; border-radius: 14px; padding: 12px; text-align: center; }
+  .qj-trigger { width: 100%; background: none; border: 2px solid #c9a227; border-radius: 10px; color: #f7e8c3; font-family: inherit; font-size: 20px; font-weight: bold; letter-spacing: 1px; padding: 12px; cursor: pointer; }
+  .qj-trigger:focus-visible, .qj-link:focus-visible, .qj-section-head:focus-visible, .qj-close:focus-visible { outline: 3px solid #e6c34a; outline-offset: 2px; }
+  .qj-social { display: flex; justify-content: center; gap: 18px; margin-top: 10px; font-size: 14px; }
+  .qj-social a { color: #f7e8c3; text-decoration: none; }
+  /* Drawer */
+  .qj-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 50; }
+  .qj-drawer { position: fixed; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: 100%; max-width: 430px; background: #1d1106; border-left: 2px solid #c9a227; border-right: 2px solid #c9a227; z-index: 51; overflow-y: auto; padding: 12px 12px 24px; }
+  .qj-close { float: right; background: none; border: 2px solid #c9a227; border-radius: 8px; color: #f7e8c3; font-size: 22px; line-height: 1; padding: 4px 10px; cursor: pointer; }
+  .qj-hero-placeholder { clear: both; border: 2px dashed #e6c34a; border-radius: 12px; padding: 16px 12px; text-align: center; margin: 12px 0 16px; background: #2b1a0c; }
+  .qj-hero-placeholder .ph-label { font-size: 12px; letter-spacing: 1px; color: #e6c34a; font-weight: bold; }
+  .qj-hero-placeholder .ph-brand { font-size: 15px; margin-top: 8px; }
+  .qj-hero-placeholder h2 { margin: 6px 0 2px; font-size: 26px; }
+  .qj-hero-placeholder p { margin: 0; font-size: 14px; opacity: .9; }
+  .qj-section { margin-bottom: 14px; }
+  .qj-section-head { width: 100%; display: flex; align-items: center; gap: 8px; background: linear-gradient(180deg,#2b1a0c,#1d1106); border: 2px solid #c9a227; border-radius: 10px; color: #e6c34a; font-family: inherit; font-size: 17px; font-weight: bold; letter-spacing: 1px; padding: 11px 12px; cursor: pointer; text-align: left; }
+  .qj-section-head .chev { margin-left: auto; font-size: 18px; }
+  .qj-section-head.static { cursor: default; }
+  .qj-links { list-style: none; margin: 6px 0 0; padding: 0; }
+  .qj-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; color: #f7e8c3; text-decoration: none; border-bottom: 1px solid #3a2a00; font-size: 17px; }
+  .qj-link:last-child { border-bottom: none; }
+  .qj-link .ic { width: 22px; text-align: center; }
+  .qj-link .go { margin-left: auto; color: #e6c34a; }
+  .qj-footer { text-align: center; font-size: 13px; letter-spacing: 1px; opacity: .85; margin-top: 18px; }
+  .page-note { background: #1d1106; border: 1px solid #3a2a00; border-radius: 10px; padding: 12px; margin-top: 16px; font-size: 14px; line-height: 1.5; }
+  [hidden] { display: none !important; }
+</style>
+<style>
+  /* Autumn art pass — reuse the original committed Swiper image byte-for-byte. */
+  :root{color-scheme:dark;--brass:#d7aa60;--cream:#ffebc4;--ember:#f0c27a;--wood:#251409}
+  body{background:radial-gradient(ellipse at 50% 0%,#402714 0%,#1c1009 46%,#100904 100%);color:var(--cream)}
+  .phone{max-width:460px;padding:16px 12px}
+  .draft-banner{border:1px solid #95723c;background:#211509;color:#f6dfae;font:13px/1.5 system-ui,sans-serif;padding:10px 13px}
+  details.spec{border:1px solid #654821;background:#1b1009;color:#d8c098;font:12px/1.45 system-ui,sans-serif}
+  details.spec summary{font-weight:700;color:#ebca8d}
+  .qj-bar{position:relative;padding:8px 12px 9px;border:2px solid var(--brass);border-radius:13px;background:linear-gradient(90deg,#170e07,#3e2818 17%,#27160d 54%,#4a2e18 85%,#190f08);box-shadow:0 8px 19px #0008,inset 0 1px #ffe1aa66,inset 0 -3px #0e0905}
+  .qj-trigger{display:flex;justify-content:center;align-items:center;gap:12px;min-height:48px;border:1px solid #bc8f4b;border-radius:8px;background:linear-gradient(180deg,#5b371b,#352011 48%,#26150a);color:#ffe5b0;box-shadow:inset 0 1px #ffecbf55,0 3px 6px #0007;text-shadow:0 2px #100906;font-size:18px;letter-spacing:1.8px}
+  .qj-trigger:hover,.qj-trigger:focus-visible{background:linear-gradient(#724722,#352011)}
+  .qj-social{gap:6px;margin-top:8px;flex-wrap:wrap;font:700 11px/1.3 system-ui,sans-serif}
+  .qj-social a{flex:1 1 28%;padding:7px 3px;color:#fbe7be;text-align:center;border:1px solid #78603b;border-radius:5px;background:#1a110ad9;min-height:32px}
+  .qj-social a:focus-visible{outline:3px solid #ffe9a2}
+  .qj-overlay{z-index:200;background:rgba(7,4,2,.83)}
+  .qj-drawer{z-index:201;max-width:430px;background:repeating-linear-gradient(90deg,#2b1a0d 0,#2b1a0d 8px,#321e0f 13px,#27160b 24px),#27160b;border:2px solid #d4a660;border-top:0;border-bottom:0;padding:0 13px max(25px,env(safe-area-inset-bottom));box-shadow:0 0 55px #000d,inset 0 0 0 2px #0f0804;overscroll-behavior:contain}
+  .qj-close{position:absolute;top:10px;right:12px;z-index:2;width:44px;height:44px;padding:0;border-radius:50%;border:2px solid #e1be7c;background:#221408ea;color:#fff0ce;font:31px/1 sans-serif;box-shadow:0 2px 8px #0009}
+  .qj-hero-placeholder{height:184px;margin:0 -13px 18px;padding:0;display:flex;align-items:flex-end;flex-direction:column;justify-content:flex-end;text-align:right;border:0;border-bottom:3px solid #bd8744;border-radius:0;background:linear-gradient(90deg,transparent 5%,#180b04a6 76%,#180b04bd),url('../assets/tscms-quick-jump-hero.jpg') 42% 50%/cover no-repeat;box-shadow:inset 0 -26px 25px #1208048c}
+  .qj-hero-placeholder .ph-label{max-width:72%;margin:0 14px 4px;font:bold 10px/1.3 Georgia,serif;letter-spacing:1px;color:#ffe0ab;text-shadow:0 2px 5px #000}
+  .qj-hero-placeholder .ph-brand{margin:0 17px;font-size:12px;color:#f9c474}
+  .qj-hero-placeholder h2{margin:2px 17px 3px;font:700 30px/1.1 Georgia,serif;color:#ffecbb;text-shadow:1px 2px 8px #000}
+  .qj-hero-placeholder p{margin:0 16px 14px;color:#ffe1a9;font:italic 13px Georgia,serif;text-shadow:0 2px 5px #000}
+  .qj-section{margin-bottom:12px;border:1px solid #926a37;border-radius:10px;overflow:hidden;background:linear-gradient(125deg,#321d0e,#190e07);box-shadow:inset 0 1px #ffe2a42a,0 3px 10px #0005}
+  .qj-section-head{border:0;border-radius:0;border-bottom:1px solid #a27b44;min-height:47px;padding:12px 14px;background:linear-gradient(180deg,#624021,#3a2412 55%,#281609);color:#ffdb94;font:700 16px/1.2 Georgia,serif;text-shadow:0 2px 4px #000;letter-spacing:1.3px}
+  .qj-section-head.static{background:linear-gradient(180deg,#6d4720,#43290e 65%,#311c0d);border-color:#bb9251}
+  .qj-section-head .chev{display:grid;place-items:center;width:27px;height:27px;border:1px solid #cc9b55;border-radius:5px;background:#241308}
+  .qj-links{margin:0;padding:3px 8px 7px;list-style:none}
+  .qj-link{min-height:49px;padding:8px 11px;color:#fff0ce;line-height:1.3;font-size:16px;border-color:#76522d;gap:12px}
+  .qj-link:hover,.qj-link:focus-visible{background:#654121;color:#fff}
+  .qj-link .ic{width:28px;font-size:21px;color:#ffcf7a}
+  .qj-link .go{font-size:22px;color:#f4c378}
+  .qj-footer{margin:16px 0 28px;color:#dcb77f;text-shadow:0 1px 4px #000;font-size:11px}
+  .page-note{background:#201208;border:1px solid #614222;color:#dcc59e;padding:16px}
+  .page-note p{margin:8px 0 0}
+  @media(max-width:350px){.qj-hero-placeholder{height:165px}.qj-link{font-size:15px}.qj-section-head{font-size:14px}.qj-trigger{font-size:16px}.qj-social a{font-size:10px}}
+  @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="draft-banner"><strong>ART REVIEW — NOT LIVE.</strong> This phone-friendly preview uses the site's existing Swiper artwork. No live homepage changes.</div>
+
+  <details class="spec">
+    <summary>Review notes and navigation rules</summary>
+    <ul>
+      <li>Quick Jump drawer, grouped: <strong>MUSIC</strong> / <strong>AROUND TOWN</strong> / <strong>COMMUNITY</strong>.</li>
+      <li><strong>MUSIC is always open.</strong> Its links never hide.</li>
+      <li>AROUND TOWN and COMMUNITY are headers. Tap one and <strong>only that one expands</strong>; the other one closes (its links just disappear). Tap an open header again to close it.</li>
+      <li><strong>Radio</strong> takes the team-pilot playlist entry's old spot in MUSIC. The playlist entry stays OUT until listener access exists — it is not promoted to general visitors.</li>
+      <li>Swiper photo hero kept on top of the drawer (placeholder block below — Clara supplies the real art).</li>
+      <li>Drawer closed by default: slim bar + social row only.</li>
+      <li>In this draft, page links go to the live site; in-page destinations point to the live homepage (in the real build they jump within the page like today).</li>
+    </ul>
+  </details>
+
+  <!-- Slim bar: drawer closed state -->
+  <div class="qj-bar">
+    <button class="qj-trigger" id="qj-trigger" type="button" aria-haspopup="dialog" aria-controls="qj-drawer" aria-expanded="false">☰ QUICK JUMP ★</button>
+    <div class="qj-social">
+      <a href="https://www.facebook.com/share/g/1HhNCD6FSS/" target="_blank" rel="noopener">FB Group ↗</a>
+      <a href="https://www.youtube.com/@TSCMSLive" target="_blank" rel="noopener">YouTube ↗</a>
+      <a href="https://www.facebook.com/share/19z71PkNja/" target="_blank" rel="noopener">FB Page ↗</a>
+    </div>
+  </div>
+
+  <div class="page-note"><strong>Today in TSCMS</strong><p>Here the normal homepage continues with its music, community features, and Pathway shortcuts. This preview changes Quick Jump only.</p></div>
+</div>
+
+<!-- Overlay + drawer -->
+<div class="qj-overlay" id="qj-overlay" hidden></div>
+<aside class="qj-drawer" id="qj-drawer" role="dialog" aria-modal="true" aria-labelledby="qj-title" hidden>
+  <button class="qj-close" id="qj-close" type="button" aria-label="Close quick jump menu">×</button>
+
+  <div class="qj-hero-placeholder">
+    <div class="ph-label">THE SUNO COUNTRY MUSIC SPOT</div>
+    <div class="ph-brand" aria-hidden="true">★ &nbsp; ★ &nbsp; ★</div>
+    <h2 id="qj-title">Quick Jump</h2>
+    <p>Songs · Friends · Community</p>
+  </div>
+
+  <!-- MUSIC: always open, not a toggle -->
+  <section class="qj-section" id="sec-music">
+    <div class="qj-section-head static"><span>♫</span> MUSIC</div>
+    <ul class="qj-links" id="links-music">
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">♫</span>Today's Songs<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">📻</span>Radio<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">♥</span>Most Loved<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/tscms-search.html"><span class="ic">🔎</span>Search Songs<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">🎃</span>Seasonal Playlists<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">★</span>Monthly Spotlight<span class="go">›</span></a></li>
+    </ul>
+  </section>
+
+  <!-- AROUND TOWN: collapsible -->
+  <section class="qj-section" id="sec-town">
+    <button class="qj-section-head" id="head-town" type="button" aria-expanded="false" aria-controls="links-town"><span>⌂</span> AROUND TOWN <span class="chev" aria-hidden="true">▾</span></button>
+    <ul class="qj-links" id="links-town" hidden>
+      <li><a class="qj-link" href="https://tscmsradio.com/gamehouse.html"><span class="ic">♠</span>Gamehouse<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/videos.html"><span class="ic">🎬</span>Drive-In Videos<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/red-dirt-redemption.html"><span class="ic">⛪</span>Red Dirt &amp; Redemption<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/"><span class="ic">🎲</span>Dicey Discovery<span class="go">›</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/town-journal.html"><span class="ic">📖</span>Town Journal<span class="go">›</span></a></li>
+    </ul>
+  </section>
+
+  <!-- COMMUNITY: collapsible -->
+  <section class="qj-section" id="sec-community">
+    <button class="qj-section-head" id="head-community" type="button" aria-expanded="false" aria-controls="links-community"><span>👥</span> COMMUNITY <span class="chev" aria-hidden="true">▾</span></button>
+    <ul class="qj-links" id="links-community" hidden>
+      <li><a class="qj-link" href="https://www.facebook.com/share/g/1HhNCD6FSS/" target="_blank" rel="noopener"><span class="ic">👥</span>Facebook Group<span class="go">↗</span></a></li>
+      <li><a class="qj-link" href="https://www.youtube.com/@TSCMSLive" target="_blank" rel="noopener"><span class="ic">▶</span>YouTube<span class="go">↗</span></a></li>
+      <li><a class="qj-link" href="https://www.facebook.com/share/19z71PkNja/" target="_blank" rel="noopener"><span class="ic">📄</span>Facebook Page<span class="go">↗</span></a></li>
+      <li><a class="qj-link" href="https://tscmsradio.com/admin.html"><span class="ic">⚙</span>Admin Sign In<span class="go">›</span></a></li>
+    </ul>
+  </section>
+
+  <div class="qj-footer">🍁 COUNTRY MUSIC BRINGS US TOGETHER 🍂</div>
+</aside>
+
+<script>
+(function () {
+  'use strict';
+  var trigger = document.getElementById('qj-trigger');
+  var drawer = document.getElementById('qj-drawer');
+  var overlay = document.getElementById('qj-overlay');
+  var closeBtn = document.getElementById('qj-close');
+  var lastFocus = null;
+
+  function openDrawer() {
+    if (!drawer.hidden) return;
+    lastFocus = document.activeElement;
+    drawer.hidden = false;
+    overlay.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    closeBtn.focus();
+  }
+  function closeDrawer() {
+    if (drawer.hidden) return;
+    drawer.hidden = true;
+    overlay.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  // Accordion: opening one collapsible closes the other. MUSIC is never toggled.
+  var collapsibles = [
+    { head: document.getElementById('head-town'), list: document.getElementById('links-town') },
+    { head: document.getElementById('head-community'), list: document.getElementById('links-community') }
+  ];
+  function setSection(c, open) {
+    c.list.hidden = !open;
+    c.head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    c.head.querySelector('.chev').textContent = open ? '▴' : '▾';
+  }
+  collapsibles.forEach(function (c) {
+    c.head.addEventListener('click', function () {
+      var willOpen = c.list.hidden;
+      collapsibles.forEach(function (other) { setSection(other, false); });
+      setSection(c, willOpen);
+    });
+  });
+
+  trigger.addEventListener('click', openDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function (e) {
+    if (!drawer.hidden && e.key === 'Escape') { e.preventDefault(); closeDrawer(); }
+  });
+})();
+</script>
+</body>
+</html>
