@@ -297,14 +297,14 @@
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 84%,transparent)
 }
 .tscms-qj-redesign .tscms-qj-painted-music{
-  background-image:url("assets/tscms-qj-painted-music-20261025.webp");
+  background-image:url("assets/tscms-qj-approved-music-20261025.webp");
   background-position:left center
 }
 .tscms-qj-redesign .tscms-qj-painted-town{
-  background-image:url("assets/tscms-qj-painted-town-20261025.webp")
+  background-image:url("assets/tscms-qj-approved-town-20261025.webp")
 }
 .tscms-qj-redesign .tscms-qj-painted-community{
-  background-image:url("assets/tscms-qj-painted-community-20261025.webp")
+  background-image:url("assets/tscms-qj-approved-community-20261025.webp")
 }
 .tscms-qj-redesign .tscms-qj-section-toggle .tscms-qj-chevron{
   margin-left:1px;flex:0 0 28px;position:relative;z-index:2
