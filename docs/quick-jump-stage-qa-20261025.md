@@ -40,3 +40,17 @@
 
 ## Owner gate
 Do not mark draft PR ready for review or merge until Fudgie approves the art and Cherish verifies the staging build on a mobile browser.
+
+## Header decoration follow-up — 2026-10-25
+- Source references provided by Fudgie:
+  - Screenshot: https://drive.google.com/file/d/1bFupzOQtuN-3W4Dug95rb6rNTSEs_LsC/view?usp=drivesdk
+  - Exact-styling mockup: https://drive.google.com/file/d/15qYPGVT70FnJAMZb0ROWWyu-srpPXULS/view?usp=drivesdk
+- Applied to actual proposed-site CSS (`tscms-quick-jump.css`) and mirrored byte-identical vector motifs in the stage-only preview (`quick-jump-stage/index.html`).
+- MUSIC: hand-drawn musical notes, curling staff traces, cream twinkles.
+- AROUND TOWN: three framed house silhouettes, roof/chimney detail and glowing amber windows.
+- COMMUNITY: warm-leaf-outline vine with a small rust-and-cream heart.
+- Same autumn-gold gradient under each motif. Palette: gold, amber, cream, rust; **no green**.
+- Decoration remains on the right; separate placement and 360px adjustments avoid text and chevron collisions as designed. Actual phone-width screenshot validation remains pending.
+- `tscms-quick-jump.js`, accordion logic, visitor links, homepage `index.html`, and the canonical Swiper art image were **not changed** in this follow-up.
+- Readback checks: 3 CSS motifs, 3 stage-preview motifs, encoded SVG identity matches across CSS/preview, required selectors, gold gradient, 360px rule, unchanged accordion code, original hero path, draft/not-merged PR — **11/11 pass**.
+- Browser QA at 320/360/390/430, contrast/zoom, and owner approval remain required; no production changes authorized.
