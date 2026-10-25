@@ -5,22 +5,26 @@
   function initialize() {
     var wrap = document.querySelector('.wrap');
     if (!wrap || document.getElementById('tscms-qj-bar')) return;
+    document.documentElement.classList.add('tscms-qj-redesign');
     var insertBefore = wrap.querySelector('.tscms-site-tabs') || wrap.firstElementChild;
     if (!insertBefore) return;
 
     var items = [
-      {key:'admin', icon:'🔐', label:'Admin Sign In', href:'admin.html'},
-      {key:'home', icon:'⌂', label:'Home'},
-      {key:'gamehouse', icon:'♠', label:'TSCMS Gamehouse', href:'gamehouse.html'},
-      {key:'journal', icon:'📖', label:'Town Journal — Heard & Built', href:'town-journal.html'},
-      {key:'videos', icon:'🎬', label:'Submit Your Music Video — Now Open', href:'videos.html'},
-      {key:'reddirt', icon:'⛪', label:'Red Dirt & Redemption', href:'red-dirt-redemption.html'},
-      {key:'halloween', icon:'🎃', label:'Halloween Playlist'},
-      {key:'dicey', icon:'🎲', label:'Dicey Discovery'},
-      {key:'daily', icon:'♫', label:'Daily Songs'},
-      {key:'weekly', icon:'▦', label:'Weekly Songs'},
-      {key:'loved', icon:'♥', label:'Most Loved'},
-      {key:'spotlight', icon:'★', label:'Monthly Spotlight'}
+      {group:'music',key:'daily',icon:'♫',label:"Today's Songs"},
+      {group:'music',key:'radio',icon:'📻',label:'Radio'},
+      {group:'music',key:'loved',icon:'♥',label:'Most Loved'},
+      {group:'music',key:'search',icon:'⌕',label:'Search Songs',href:'tscms-search.html'},
+      {group:'music',key:'seasonal',icon:'🍂',label:'Seasonal Playlists'},
+      {group:'music',key:'spotlight',icon:'★',label:'Monthly Spotlight'},
+      {group:'town',key:'gamehouse',icon:'♠',label:'Gamehouse',href:'gamehouse.html'},
+      {group:'town',key:'videos',icon:'🎬',label:'Drive-In Videos',href:'videos.html'},
+      {group:'town',key:'reddirt',icon:'⛪',label:'Red Dirt & Redemption',href:'red-dirt-redemption.html'},
+      {group:'town',key:'dicey',icon:'🎲',label:'Dicey Discovery'},
+      {group:'town',key:'journal',icon:'📖',label:'Town Journal',href:'town-journal.html'},
+      {group:'community',key:'group',icon:'👥',label:'Facebook Group',href:'https://www.facebook.com/share/g/1HhNCD6FSS/'},
+      {group:'community',key:'youtube',icon:'▶',label:'YouTube',href:'https://www.youtube.com/@TSCMSLive'},
+      {group:'community',key:'facebook',icon:'f',label:'Facebook Page',href:'https://www.facebook.com/share/19z71PkNja/'},
+      {group:'community',key:'admin',icon:'⚙',label:'Admin Sign In',href:'admin.html'}
     ];
     // The Admin shortcut is navigation to the protected login page only.
     // Public navigation never grants Admin access or bypasses authentication.
@@ -41,6 +45,20 @@
     desktop.className='tscms-qj-desktop';
     desktop.setAttribute('aria-label','Website sections');
     bar.appendChild(desktop);
+    var social=document.createElement('div');social.className='tscms-qj-social';
+    social.setAttribute('aria-label','TSCMS social links');
+    [
+      ['Facebook Group','https://www.facebook.com/share/g/1HhNCD6FSS/'],
+      ['YouTube','https://www.youtube.com/@TSCMSLive'],
+      ['Facebook Page','https://www.facebook.com/share/19z71PkNja/']
+    ].forEach(function(row){
+      var a=document.createElement('a');a.textContent=row[0]+' ↗';a.href=row[1];
+      a.target='_blank';a.rel='noopener noreferrer';social.appendChild(a);
+    });
+    bar.appendChild(social);
+    var message=document.createElement('p');message.className='tscms-qj-message';
+    message.setAttribute('role','status');message.setAttribute('aria-live','polite');
+    message.hidden=true;bar.appendChild(message);
     insertBefore.parentNode.insertBefore(bar,insertBefore);
 
     var shade=document.createElement('div');
@@ -62,7 +80,20 @@
         '<h2 id="tscms-qj-title">Quick Jump</h2>'+
         '<p class="tscms-qj-tagline">Songs · Friends · Community</p>'+
       '</div>'+
-      '<nav class="tscms-qj-drawer-links" aria-label="Quick jump destinations"></nav>'+
+      '<nav class="tscms-qj-drawer-links" aria-label="Quick jump destinations">'+
+        '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-music-head">'+
+          '<h3 id="tscms-qj-music-head" class="tscms-qj-section-static"><span class="tscms-qj-label">♫ &nbsp; MUSIC</span><span class="tscms-qj-painted-art tscms-qj-painted-music" aria-hidden="true"></span></h3>'+
+          '<ul class="tscms-qj-menu-list" id="tscms-qj-music-links"></ul>'+
+        '</section>'+
+        '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-town-head">'+
+          '<h3><button id="tscms-qj-town-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-town-links"><span class="tscms-qj-label">⌂ &nbsp; AROUND TOWN</span><span class="tscms-qj-painted-art tscms-qj-painted-town" aria-hidden="true"></span><span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
+          '<ul class="tscms-qj-menu-list" id="tscms-qj-town-links" hidden></ul>'+
+        '</section>'+
+        '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-community-head">'+
+          '<h3><button id="tscms-qj-community-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-community-links"><span class="tscms-qj-label">♣ &nbsp; COMMUNITY</span><span class="tscms-qj-painted-art tscms-qj-painted-community" aria-hidden="true"></span><span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
+          '<ul class="tscms-qj-menu-list" id="tscms-qj-community-links" hidden></ul>'+
+        '</section>'+
+      '</nav>'+
       '<div class="tscms-qj-footer" aria-hidden="true">🍁 COUNTRY MUSIC BRINGS US TOGETHER 🍂</div>';
     document.body.appendChild(drawer);
     var drawerNav=drawer.querySelector('.tscms-qj-drawer-links');
@@ -77,33 +108,53 @@
       daily:document.querySelector('.tabs button.tab[data-day]')?.closest('.tabs') || null
     };
 
+    // Every requested destination remains visible; do not hide links merely
+    // because a feature's separate production gate is still closed.
     function isReady(key) {
-      if (key==='dicey') {
-        var box=sections.dicey;
-        return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' && getComputedStyle(box).display!=='none');
+      if(key==='halloween')return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
+      if(key==='dicey'){
+        var box=document.getElementById('diceSection');
+        return !!(box && !box.hidden && box.getAttribute('aria-hidden')!=='true' &&
+          getComputedStyle(box).display!=='none');
       }
-      if (key==='admin' || key==='gamehouse' || key==='home' || key==='videos' || key==='journal' || key==='reddirt') return true;
-      if (key==='halloween') return !!(sections.halloween && sections.halloween.closest('.daypanel[id^="day-"]'));
-      return !!sections[key];
+      return true;
     }
-    function createLink(item, targetContainer) {
-      var link=document.createElement('a');
-      link.className='tscms-qj-link';
-      link.dataset.target=item.key;
-      link.href=item.href || '#tscms-qj-'+item.key;
-      link.innerHTML='<span class="tscms-qj-icon" aria-hidden="true">'+item.icon+'</span><span>'+item.label+'</span>'+
-        (targetContainer===drawerNav ? '<span class="tscms-qj-chevron" aria-hidden="true">›</span>' : '');
-      if(item.href){link.target='_self';}
-      link.hidden=!isReady(item.key);
-      targetContainer.appendChild(link);
+    function createLink(item,list) {
+      var li=document.createElement('li'),a=document.createElement('a');
+      a.className='tscms-qj-link';a.dataset.target=item.key;
+      a.href=item.href||'#tscms-qj-'+item.key;
+      a.innerHTML='<span class="tscms-qj-icon" aria-hidden="true">'+item.icon+'</span><span>'+item.label+'</span>'+
+        '<span class="tscms-qj-link-arrow" aria-hidden="true">'+(/^https?:/.test(item.href||'')?'↗':'›')+'</span>';
+      if(/^https?:/.test(item.href||'')){a.target='_blank';a.rel='noopener noreferrer';}
+      li.appendChild(a);list.appendChild(li);
     }
-    items.forEach(function(item){createLink(item,desktop);createLink(item,drawerNav);});
-
-    function syncAvailable(){
-      Array.prototype.forEach.call(document.querySelectorAll('.tscms-qj-link'),function(link){
-        link.hidden=!isReady(link.dataset.target);
+    var targets={
+      music:drawer.querySelector('#tscms-qj-music-links'),
+      town:drawer.querySelector('#tscms-qj-town-links'),
+      community:drawer.querySelector('#tscms-qj-community-links')
+    };
+    items.forEach(function(item){createLink(item,targets[item.group]);});
+    var townHead=drawer.querySelector('#tscms-qj-town-head');
+    var communityHead=drawer.querySelector('#tscms-qj-community-head');
+    function setSection(head,open){
+      var list=document.getElementById(head.getAttribute('aria-controls'));
+      list.hidden=!open;head.setAttribute('aria-expanded',open?'true':'false');
+      head.querySelector('.tscms-qj-chevron').textContent=open?'▴':'▾';
+    }
+    [townHead,communityHead].forEach(function(head){
+      head.addEventListener('click',function(){
+        var willOpen=head.getAttribute('aria-expanded')!=='true';
+        setSection(townHead,false);setSection(communityHead,false);
+        setSection(head,willOpen);
       });
+    });
+    function syncAvailable(){
+      sections.loved=document.querySelector('.most-loved-autumn')||
+        document.querySelector('.panel .trow')?.closest('.panel');
+      sections.spotlight=document.getElementById('tscms-september-spotlight-2026');
+      sections.dicey=document.getElementById('diceSection');
     }
+    function announceNavigation(value){message.textContent=value;message.hidden=false;}
     function closeMenu(restoreFocus) {
       if(drawer.hidden) return;
       drawer.hidden=true;
@@ -119,7 +170,8 @@
       document.documentElement.style.overflow='hidden';
       shade.hidden=false;drawer.hidden=false;
       trigger.setAttribute('aria-expanded','true');
-      syncAvailable();
+      setSection(townHead,false);setSection(communityHead,false);
+      message.hidden=true;syncAvailable();
       closeButton.focus();
     }
     trigger.addEventListener('click',openMenu);
@@ -129,7 +181,7 @@
       if(drawer.hidden) return;
       if(e.key==='Escape'){e.preventDefault();closeMenu(true);return;}
       if(e.key!=='Tab')return;
-      var focusables=Array.prototype.filter.call(drawer.querySelectorAll('button,a[href]'),function(n){return !n.hidden;});
+      var focusables=Array.prototype.filter.call(drawer.querySelectorAll('button,a[href]'),function(n){return !n.hidden && !n.closest('[hidden]') && n.getClientRects().length>0;});
       if(!focusables.length)return;
       var first=focusables[0],last=focusables[focusables.length-1];
       if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
@@ -158,7 +210,27 @@
       node.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
     }
     function jump(key) {
-      if(key==='home'){window.scrollTo({top:0,behavior:'smooth'});return;}
+      if(key==='radio'){
+        var tab=document.querySelector('#tscms-sitewide-radio .tc-radio-tab');
+        if(tab){
+          var station=tab.closest('#tscms-sitewide-radio');
+          if(station && station.getAttribute('data-open')!=='true')tab.click();
+          tab.focus();
+        }else{
+          announceNavigation("Radio isn't active on this build yet. Showing Today's Songs instead.");
+          jump('daily');
+        }
+        return;
+      }
+      if(key==='seasonal'){
+        if(isReady('halloween'))jump('halloween');
+        else{announceNavigation('No seasonal collection is open yet. Showing the song list.');jump('daily');}
+        return;
+      }
+      if(key==='dicey'&&!isReady('dicey')){
+        announceNavigation('Dicey Discovery is not open to listeners yet.');
+        return;
+      }
       if(key==='daily'){
         var dayButton=findCurrentDayButton();
         if(dayButton && typeof window.showDay==='function')window.showDay(Number(dayButton.dataset.day));
@@ -190,9 +262,8 @@
       var link=e.target.closest('.tscms-qj-link');
       if(!link)return;
       var key=link.dataset.target;
-      if(key==='admin'||key==='gamehouse'||key==='videos'||key==='journal'){closeMenu(false);return;} // Separate site pages use normal navigation.
+      if(link.getAttribute('href').indexOf('#tscms-qj-')!==0){closeMenu(false);return;} // Page and social links navigate normally.
       e.preventDefault();
-      if(!isReady(key))return;
       closeMenu(false);
       jump(key);
     }
@@ -260,6 +331,7 @@
 'use strict';
 var artwork='assets/tscms-autumn-public-links.webp';
 function mountAutumnNavigation(){
+  if(document.documentElement.classList.contains('tscms-qj-redesign'))return;
   if(document.getElementById('tscms-autumn-nav'))return;
   var tabs=document.querySelector('.wrap .tscms-site-tabs');
   var game=document.querySelector('.wrap .saloon-playnow');
