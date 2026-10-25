@@ -82,15 +82,15 @@
       '</div>'+
       '<nav class="tscms-qj-drawer-links" aria-label="Quick jump destinations">'+
         '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-music-head">'+
-          '<h3 id="tscms-qj-music-head" class="tscms-qj-section-static">♫ &nbsp; MUSIC <span class="tscms-qj-open-mark" aria-hidden="true">ALWAYS OPEN</span></h3>'+
+          '<h3 id="tscms-qj-music-head" class="tscms-qj-section-static"><span class="tscms-qj-label">♫ &nbsp; MUSIC</span><span class="tscms-qj-painted-art tscms-qj-painted-music" aria-hidden="true"></span></h3>'+
           '<ul class="tscms-qj-menu-list" id="tscms-qj-music-links"></ul>'+
         '</section>'+
         '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-town-head">'+
-          '<h3><button id="tscms-qj-town-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-town-links">⌂ &nbsp; AROUND TOWN <span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
+          '<h3><button id="tscms-qj-town-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-town-links"><span class="tscms-qj-label">⌂ &nbsp; AROUND TOWN</span><span class="tscms-qj-painted-art tscms-qj-painted-town" aria-hidden="true"></span><span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
           '<ul class="tscms-qj-menu-list" id="tscms-qj-town-links" hidden></ul>'+
         '</section>'+
         '<section class="tscms-qj-menu-section" aria-labelledby="tscms-qj-community-head">'+
-          '<h3><button id="tscms-qj-community-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-community-links">♣ &nbsp; COMMUNITY <span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
+          '<h3><button id="tscms-qj-community-head" class="tscms-qj-section-toggle" type="button" aria-expanded="false" aria-controls="tscms-qj-community-links"><span class="tscms-qj-label">♣ &nbsp; COMMUNITY</span><span class="tscms-qj-painted-art tscms-qj-painted-community" aria-hidden="true"></span><span aria-hidden="true" class="tscms-qj-chevron">▾</span></button></h3>'+
           '<ul class="tscms-qj-menu-list" id="tscms-qj-community-links" hidden></ul>'+
         '</section>'+
       '</nav>'+
