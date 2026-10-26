@@ -1,0 +1,8 @@
+(function(){'use strict';
+ const sw=document.getElementById('wh-demo-switch'),value=document.getElementById('wh-demo-switch-value'),host=document.getElementById('wh-demo-glass-host');if(!sw||!host)return;
+ const imgs=window.WORD_HUNT_IMAGES;let override=false;
+ const reset=document.createElement('button');reset.type='button';reset.textContent='Use automatic status';reset.style.margin='8px';sw.parentElement.append(reset);
+ function display(on){sw.checked=on;value.textContent=(override?'VISUAL TEST: ':'AUTO: ')+(on?'ON':'OFF');const glass=document.createElement(on?'a':'div');glass.className='wh-demo-glass '+(on?'is-lit':'is-dark');host.dataset.state=on?'live':'not-yet';if(on){glass.href=location.origin+'/word-hunt.html';glass.target='_self';glass.setAttribute('aria-label','Word Hunt Live - View Riddle');}else{glass.setAttribute('role','status');glass.setAttribute('aria-label','Not Yet - Come Back Later');}const img=document.createElement('img');img.src=on?imgs.on:imgs.off;img.alt='';const label=document.createElement('span');label.className='wh-demo-caption';label.textContent=on?'Word Hunt Live - View Riddle':'Not Yet - Come Back Later';glass.append(img,label);host.replaceChildren(glass);}
+ async function poll(){if(override)return;try{const r=await fetch(location.origin+'/api/word-hunt/status',{cache:'no-store'});const data=await r.json();if(!override)display(r.ok&&data.state==='live');}catch{if(!override)display(false);}}
+ sw.addEventListener('change',()=>{override=true;display(sw.checked);});reset.addEventListener('click',()=>{override=false;poll();});display(false);poll();setInterval(()=>{if(!document.hidden)poll();},5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll();});
+})();

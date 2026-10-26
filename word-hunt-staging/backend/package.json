@@ -1,0 +1,1 @@
+{"name":"tscms-word-hunt-staged-backend","private":true,"version":"1.0.0","type":"module","scripts":{"test":"node --test","build":"node -e \"console.log('Static review files retained')\""},"dependencies":{"@vercel/blob":"2.8.2"}}
