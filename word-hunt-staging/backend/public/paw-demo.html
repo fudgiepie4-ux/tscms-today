@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>STAGING | Pug Paw Word Hunt Test</title>
+<link rel="stylesheet" href="/paw-auto.css">
+<style>body{background:#24190e;color:#f4e7cc;font:18px/1.7 Georgia,serif;max-width:720px;padding:22px;margin:30px auto}.card{background:#f4e3bd;color:#2b1c13;padding:24px;border:5px solid #9c7138;border-radius:12px}h1{font-size:clamp(23px,7vw,34px);line-height:1.2}small{display:block;margin-top:12px}a{color:#ffdc83}#state{font-weight:bold}</style></head>
+<body><h1>🐾 Word Hunt — Pug Paw Staging Test</h1><p>This page uses a dummy word. No actual contest entries or secrets are shown.</p>
+<div class="card"><p>The detective carries one tiny <span data-word-hunt-marker="test-lantern">lantern</span> through the evening.</p>
+<p>That other <span>lantern</span> is unmarked and must always stay plain.</p><small>Only the FIRST “lantern” gets a faint translucent paw when today's test drop is active. Both retain normal color and font.</small></div>
+<p>Status: <output id="state">Checking server…</output></p>
+<p><a href="/final-candidate/">Check the automatic glass</a> · <a href="/cherish-drop.html">Cherish's controlled test flip</a> · <a href="/paw-simulation.html">Simulated flip and midnight replay</a></p>
+<script src="/paw-auto.js" defer></script>
+<script>async function refreshState(){const n=document.getElementById('state');try{const r=await fetch('/api/word-hunt/status',{cache:'no-store'});const s=await r.json();n.textContent=r.ok?s.state:'Unavailable';}catch{n.textContent='Unavailable';}}refreshState();setInterval(()=>{if(!document.hidden)refreshState()},5000);</script></body></html>

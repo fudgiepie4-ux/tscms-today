@@ -1,6 +1,6 @@
 /* Unaltered word typography. Only a translucent pug paw sits over the exact marked word. */
-[data-word-hunt-marker].wh-paw-live{position:relative;isolation:isolate;display:inline-block;color:inherit!important;background:transparent!important;text-decoration:inherit;font:inherit}
-[data-word-hunt-marker].wh-paw-live::after{
+[data-wh-runtime="1"].wh-paw-live{position:relative;isolation:isolate;display:inline-block;color:inherit!important;background:transparent!important;text-decoration:inherit;font:inherit}
+[data-wh-runtime="1"].wh-paw-live::after{
  content:'';position:absolute;left:50%;top:50%;width:2.1em;height:1.9em;
  transform:translate(-50%,-50%) rotate(-10deg);pointer-events:none;z-index:1;
  background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%232b2926'%3E%3Cellipse cx='47' cy='64' rx='29' ry='24' transform='rotate(-12 47 64)'/%3E%3Cellipse cx='18' cy='30' rx='9' ry='14' transform='rotate(-18 18 30)'/%3E%3Cellipse cx='40' cy='20' rx='9' ry='15' transform='rotate(-3 40 20)'/%3E%3Cellipse cx='63' cy='24' rx='9' ry='15' transform='rotate(16 63 24)'/%3E%3Cellipse cx='82' cy='41' rx='9' ry='13' transform='rotate(25 82 41)'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;

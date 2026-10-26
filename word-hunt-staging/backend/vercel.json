@@ -1,0 +1,1 @@
+{"version":2,"buildCommand":"npm run build","outputDirectory":"public","functions":{"api/word-hunt/*.js":{"maxDuration":15}},"headers":[{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},{"source":"/api/(.*)","headers":[{"key":"Cache-Control","value":"no-store, max-age=0"}]}]}
