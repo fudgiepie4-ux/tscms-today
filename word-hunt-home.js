@@ -31,7 +31,20 @@
     return frame;
   }
   function render(host,state){host.replaceChildren(makeFrame(state));host.dataset.state=state;}
+  // Placement: directly ABOVE the Quick Jump bar, never below the hero panels.
+  // The Quick Jump bar renders after this script may run, so placement is
+  // re-checked on every poll and the container is moved if it is not there yet.
+  function place(container){
+    const bar=document.getElementById('tscms-qj-bar');
+    if(bar&&bar.parentNode){
+      if(container.nextSibling!==bar)bar.parentNode.insertBefore(container,bar);
+      return true;
+    }
+    return false;
+  }
   async function poll(host){
+    const container=document.getElementById('tscms-wordhunt-hero');
+    if(container)place(container);
     if(isPreLaunch()){render(host,'coming-soon');return;}
     try{
       const resp=await fetch(API,{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'}});
@@ -49,7 +62,7 @@
     container.setAttribute('aria-label','$30 TSCMS Word Hunt');
     const host=document.createElement('div');host.id='tscms-wordhunt-indicator';
     render(host,isPreLaunch()?'coming-soon':'not-yet');container.append(host);
-    header.append(container); // Preserve all original homepage songs, navigation, and hero markup.
+    if(!place(container))header.append(container); // Fallback only until the Quick Jump bar exists.
     poll(host);
     window.setInterval(()=>{if(!document.hidden)poll(host);},5000);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)poll(host);});
