@@ -35,7 +35,7 @@ test('drawing filter requires private roster and removes matching names/test row
  assert.deepEqual(filterEntriesForDrawing(rows,{...c,adminNames:fakeRoster}).map(e=>e.name),['Eligible Member']);
 });
 test('real mode requires Oct 27-30 and all 16 private names',()=>{
- const real={...c,testOnly:false,adminNames:fakeRoster,days:[27,28,29,30].map(n=>({dateCT:`2026-10-${n}`,dropAtUTC:`2026-10-${n}T16:00:00Z`,answer:'fictional-word',riddle:'fictional hint'}))};
+ const real={...c,testOnly:false,manualDrop:true,adminNames:fakeRoster,days:[27,28,29,30].map(n=>({dateCT:`2026-10-${n}`,answer:'fictional-word',riddle:'fictional hint',target:{path:'/hidden.html',marker:`mark-${n}`}}))};
  assert.doesNotThrow(()=>validateConfig(real));
  assert.throws(()=>validateConfig({...real,adminNames:fakeRoster.slice(0,8)}));
  assert.throws(()=>validateConfig({...real,days:c.days}));
