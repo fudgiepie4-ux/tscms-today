@@ -1,9 +1,14 @@
 import {storage} from './storage.js';
 import {dateCT,nextMidnight,validateConfig} from './core.js';
-// No real contest dates, answers or admin roster are guessed. Live mode requires private env configuration.
+// Staging is dummy-only. Live intake is disabled unless production + explicit private launch flag.
 export async function config(){
- if(process.env.WORD_HUNT_CONFIG_JSON)return validateConfig(JSON.parse(process.env.WORD_HUNT_CONFIG_JSON));
- if(process.env.VERCEL_ENV!=='preview'||process.env.VERCEL_PROJECT_ID!=='prj_gVSzGbFJNElO95CwPvPNzoBkBoy2')throw Error('Unconfigured contest');
+ if(process.env.VERCEL_ENV==='production'&&process.env.WORD_HUNT_ENABLE_REAL==='true'){
+  if(!process.env.WORD_HUNT_CONFIG_JSON)throw Error('Private contest configuration missing');
+  const c=validateConfig(JSON.parse(process.env.WORD_HUNT_CONFIG_JSON));
+  if(c.testOnly!==false)throw Error('Live mode requires a confirmed live configuration');
+  return c;
+ }
+ if(process.env.VERCEL_ENV!=='preview'||process.env.VERCEL_PROJECT_ID!=='prj_gVSzGbFJNElO95CwPvPNzoBkBoy2')throw Error('Real entries are disabled');
  const key='test-config/automatic-drop-v1.json';let c=await storage.read(key);if(c)return validateConfig(c);
  let start=Date.now()+30000;
  if(nextMidnight(Date.now())-start<60000)start=nextMidnight(Date.now())+12*3600000;

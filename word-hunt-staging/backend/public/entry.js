@@ -3,8 +3,8 @@
   'use strict';
   // No answer, drop time, or admin list is stored in this public HTML.
   // Entry persistence and drop status are provided by Clara's server API.
-  const statusUrl = './api/word-hunt/status';
-  const checkUrl = './api/word-hunt/check';
+  const statusUrl = '/api/word-hunt/status';
+  const checkUrl = '/api/word-hunt/check';
   const form = document.getElementById('entry-form');
   const feedback = document.getElementById('entry-message');
   const button = document.getElementById('submit-word');
@@ -52,7 +52,7 @@
       const data=await response.json();
       if (data?.result==='incorrect') say('Not quite! You can try again. Keep hunting! 🔎','retry');
       else if (data?.result==='correct' && data.recorded===true && typeof data.acceptedAtUTC==='string' && chicagoTime(data.acceptedAtUTC)) {
-        say('Correct! Your entry was recorded at '+chicagoTime(data.acceptedAtUTC)+'. '+data.totalEntries+' chances recorded (1 base + '+data.bonusEntries+' bonus). STAGING TEST ONLY.','success');form.elements.word.value='';
+        say('Correct! Your entry was recorded at '+chicagoTime(data.acceptedAtUTC)+'. '+data.totalEntries+' chances recorded (1 base + '+data.bonusEntries+' bonus).'+(data.testOnly?' STAGING TEST ONLY.':''),'success');form.elements.word.value='';
       } else if (data?.result==='closed') say('Today\'s entry window has closed at midnight Central.','error');
       else if (data?.result==='ineligible') say('Admins are not eligible for prize entries. No entry was recorded.','error');
       else if (data?.result==='test-only') say('Staging test only: use an email ending in @example.invalid.','error');

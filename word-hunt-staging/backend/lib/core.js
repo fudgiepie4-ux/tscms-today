@@ -1,4 +1,4 @@
-import {isExcluded} from './exclusions.js';
+import {isExcluded,nameKey} from './exclusions.js';
 import {createHash, randomUUID, timingSafeEqual} from 'node:crypto';
 export const zone='America/Chicago';
 export const normalize=v=>String(v??'').normalize('NFKC').trim().replace(/\s+/gu,' ').toLocaleLowerCase('en-US');
@@ -8,8 +8,16 @@ export function timeCT(ms){
  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}.${String(ms%1000).padStart(3,'0')}${p.timeZoneName.replace('GMT','')}`;
 }
 export function nextMidnight(ms){const day=dateCT(ms);let lo=ms,hi=ms+27*3600000;while(hi-lo>1){let mid=Math.floor((lo+hi)/2);if(dateCT(mid)===day)lo=mid;else hi=mid;}return hi;}
+export const REAL_DATES=Object.freeze(['2026-10-27','2026-10-28','2026-10-29','2026-10-30']);
 export function validateConfig(c){
  if(!c||!c.id||!Array.isArray(c.days)||c.days.length!==4||!Array.isArray(c.adminNames)||!Array.isArray(c.adminEmails)||c.rosterConfirmed!==true)throw Error('Contest configuration incomplete');
+ if(typeof c.testOnly!=='boolean')throw Error('Contest mode required');
+ if(!c.testOnly){
+  if(c.days.some((d,i)=>d.dateCT!==REAL_DATES[i]))throw Error('Live contest must use October 27–30 Central');
+  if(c.adminNames.length<16||new Set(c.adminNames.map(nameKey)).size<16)throw Error('Complete private 16-name exclusion roster required');
+  if(c.adminNames.some(x=>!nameKey(x)||/replace|placeholder|example/i.test(x)))throw Error('Unconfirmed eligibility roster');
+  if(c.days.some(d=>/replace|placeholder|example|dummy/i.test(String(d.answer)+' '+String(d.riddle))))throw Error('Unconfirmed live words or riddles');
+ }
  const dates=new Set();let last=-Infinity;
  for(const d of c.days){const ms=Date.parse(d.dropAtUTC);if(!Number.isFinite(ms)||dateCT(ms)!==d.dateCT||dates.has(d.dateCT)||ms<=last||!d.answer||!d.riddle)throw Error('Invalid four-day schedule');dates.add(d.dateCT);last=ms;}
  return c;

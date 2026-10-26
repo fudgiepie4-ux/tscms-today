@@ -20,7 +20,7 @@ Supply `WORD_HUNT_CONFIG_JSON` privately in the contest service environment. Do 
 {"id":"unique-contest-id","testOnly":false,"rosterConfirmed":true,"adminNames":["complete approved list"],"adminEmails":["complete approved list"],"days":[{"dateCT":"YYYY-MM-DD","dropAtUTC":"ISO timestamp","answer":"private word","riddle":"approved clue"}]}
 ```
 
-`days` must contain exactly four distinct, chronologically ordered Central dates. The four real dates, unannounced daytime drop times, have NOT been supplied or guessed. The owner supplied all 16 mandatory excluded names on October 26; they are enforced in server-only lib/exclusions.js independent of login status or configuration roster. Cherish retains words, riddles, page sentences, announcements, verification and the drawing. Clara owns this storage/status service. The user's 2026-10-26 scope supersedes the earlier Cherish-backend assignment in CHERISH-INTEGRATION-CONTRACT.md.
+`days` must contain exactly four distinct, chronologically ordered Central dates. The four real dates, unannounced daytime drop times, have NOT been supplied or guessed. All 16 excluded names MUST be provided exclusively through private server environment configuration at launch; source contains no real roster. Preview uses synthetic exclusions independent of login status. Cherish retains words, riddles, page sentences, announcements, verification and the drawing. Clara owns this storage/status service. The user's 2026-10-26 scope supersedes the earlier Cherish-backend assignment in CHERISH-INTEGRATION-CONTRACT.md.
 
 Production needs an approved identity/eligibility check: a name/email exclusion list cannot detect an admin using a different identity. Cherish's final verification remains necessary. Staging does not send email or establish verified email ownership. Add durable abuse controls and review retention before a public contest. Do not open real intake until these gates and Fudgie's approval are complete.
 
@@ -31,5 +31,8 @@ No public entry listing/export or administrative mutation endpoint is exposed. R
 
 28 tests cover schedule validation, automatic state, normalization, saved/read-back server times, incorrect retries, first-hour cutoff, midnight, admin exclusions, concurrent duplicate submissions, persistence failures, dummy-only intake and both DST transitions.
 
-## Mandatory exclusion update
-All 16 owner-supplied names are always excluded. A smaller eight-name roster cannot override them. Matching ignores case, extra whitespace, accent marks and punctuation differences. Rejected requests return recorded:false and zero base/bonus/total chances and never call entry storage. No personal-login lookup is used. filterEntriesForDrawing also removes these names from existing rows and excludes test rows; Cherish must apply this filter when preparing the drawing. Names entered under entirely different identities still require manual verification.
+## Mandatory exclusion loading
+All 16 owner-supplied names must be passed in the private environment configuration for real entries. Validation refuses eight-only rosters. Matching ignores case, extra whitespace, accent marks, and punctuation differences. Ineligible submissions receive zero chances and do not reach storage. No personal-login lookup is used. Drawing filters must receive the same private config. The previous public Git commit has historical names; removing them from HEAD does not erase history.
+
+## Final candidate (staged)
+Review root `/` retains its visual switch. Automatic-only candidate `/final-candidate/` has NO toggle and opens `/final-candidate/word-hunt.html`. Real configuration remains disabled until private launch flag and confirmed production environment. See `docs/FINAL-CANDIDATE-HANDOFF.md`.

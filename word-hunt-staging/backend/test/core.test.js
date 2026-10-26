@@ -15,19 +15,28 @@ test('storage write/read failures never claim success',async()=>{await assert.re
 test('test environment rejects real contact details',async()=>{assert.equal((await check(c,{...body,email:'person@example.com'},memory(),now)).result,'test-only');});
 test('DST spring and fall midnight boundaries use Chicago dates',()=>{assert.equal(new Date(nextMidnight(Date.parse('2026-03-08T06:00:00Z'))).toISOString(),'2026-03-09T05:00:00.000Z');assert.equal(new Date(nextMidnight(Date.parse('2026-11-01T05:00:00Z'))).toISOString(),'2026-11-02T06:00:00.000Z');assert.equal(dateCT(Date.parse('2026-11-02T05:59:59Z')),'2026-11-01');assert.equal(timeCT(Date.parse('2026-11-02T06:00:00Z')),'2026-11-02T00:00:00.000-06:00');});
 
-import {EXCLUDED_NAMES,filterEntriesForDrawing} from '../lib/exclusions.js';
-for(const name of EXCLUDED_NAMES){
- test('mandatory exclusion: '+name+' regardless of signup or smaller config roster',async()=>{
-  let writes=0;const s={async create(){writes++;throw Error('Excluded name must not be stored');}};
-  for(const personalLogin of [true,false])for(const variant of [name,'  '+name.toUpperCase().replaceAll(' ','   ')+'  ',name.normalize('NFD').replace(/\p{M}/gu,'').replaceAll('-',' ')]){
-   const r=await check({...c,adminNames:[]},{...body,name:variant,personalLogin},s,now);
+import {filterEntriesForDrawing} from '../lib/exclusions.js';
+const fakeRoster=Array.from({length:16},(_,i)=>`Test Excluded ${String(i+1).padStart(2,'0')}`);
+for(const name of fakeRoster){
+ test('private configuration exclusion: '+name+' is independent of signup',async()=>{
+  let writes=0;const store={async create(){writes++;throw Error('Excluded name must not be stored');}};
+  const privateConfig={...c,adminNames:fakeRoster};
+  for(const login of [true,false])for(const variant of [name,'  '+name.toUpperCase().replaceAll(' ','   ')+'  ']){
+   const r=await check(privateConfig,{...body,name:variant,personalLogin:login},store,now);
    assert.deepEqual(r,{result:'ineligible',recorded:false,baseEntries:0,bonusEntries:0,totalEntries:0});
   }assert.equal(writes,0);
  });
 }
-test('drawing filter excludes all 16 even from old rows; test rows excluded',()=>{
- const rows=EXCLUDED_NAMES.map(name=>({name,email:'unknown@example.invalid',totalEntries:6}));
+test('drawing filter requires private roster and removes matching names/test rows',()=>{
+ const rows=fakeRoster.map(name=>({name,email:'unknown@example.invalid',totalEntries:6}));
  rows.push({name:'Eligible Member',email:'member@example.invalid',totalEntries:1});
  rows.push({name:'Dummy Test',email:'test@example.invalid',testOnly:true,totalEntries:6});
- assert.deepEqual(filterEntriesForDrawing(rows).map(e=>e.name),['Eligible Member']);
+ assert.throws(()=>filterEntriesForDrawing(rows));
+ assert.deepEqual(filterEntriesForDrawing(rows,{...c,adminNames:fakeRoster}).map(e=>e.name),['Eligible Member']);
+});
+test('real mode requires Oct 27-30 and all 16 private names',()=>{
+ const real={...c,testOnly:false,adminNames:fakeRoster,days:[27,28,29,30].map(n=>({dateCT:`2026-10-${n}`,dropAtUTC:`2026-10-${n}T16:00:00Z`,answer:'fictional-word',riddle:'fictional hint'}))};
+ assert.doesNotThrow(()=>validateConfig(real));
+ assert.throws(()=>validateConfig({...real,adminNames:fakeRoster.slice(0,8)}));
+ assert.throws(()=>validateConfig({...real,days:c.days}));
 });

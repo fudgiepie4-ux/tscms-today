@@ -38,7 +38,7 @@ The Claire54968 GitHub connector could read the exact staging branch but returne
 New preview: https://tscms-word-hunt-owner-review-20261026-gjf7qy6pf.vercel.app/
 Deployment: dpl_EpF4TrcgGGu9iNa21oeXVRwbVh4W (staging).
 
-Mandatory roster: Rachel Kulesa; Jenna Alexander-Lehman; Zoë Titterton; Victoria Gibson; Stephanie McGlennon; James Kulesa; Mary Workman; Brenda McSweeney; Charles E Easterday; John Coleman; CaseyJane Rattlinggourd; Scott Cagle; Michael Streeter; Rick Mann; Justin Randolph; Kay Hodder.
+Mandatory roster: 16 owner-specified names were verified in the original ZIP; real roster must now be supplied privately at launch (historic names remain in prior Git commits).
 
 All 28 local tests pass. Each listed name is tested with signup true and false, mixed case/whitespace, and accent/hyphen variations, even when the configuration roster is empty. Each rejection returns recorded:false and zero base, bonus, and total chances. Entry storage is never called. Mandatory exclusions cannot be overridden by an eight-only configuration roster.
 

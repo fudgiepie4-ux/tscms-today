@@ -1,0 +1,35 @@
+{
+  "id": "REPLACE-WITH-APPROVED-CONTEST-ID",
+  "testOnly": false,
+  "rosterConfirmed": true,
+  "adminNames": [
+    "REPLACE WITH ALL 16 NAMES FROM CHERISH PRIVATE HANDOFF"
+  ],
+  "adminEmails": [],
+  "days": [
+    {
+      "dateCT": "2026-10-27",
+      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
+      "answer": "REPLACE PRIVATE DAY-1 WORD",
+      "riddle": "REPLACE APPROVED OCT-27 RIDDLE"
+    },
+    {
+      "dateCT": "2026-10-28",
+      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
+      "answer": "REPLACE PRIVATE DAY-2 WORD",
+      "riddle": "REPLACE APPROVED OCT-28 RIDDLE"
+    },
+    {
+      "dateCT": "2026-10-29",
+      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
+      "answer": "REPLACE PRIVATE DAY-3 WORD",
+      "riddle": "REPLACE APPROVED OCT-29 RIDDLE"
+    },
+    {
+      "dateCT": "2026-10-30",
+      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
+      "answer": "REPLACE PRIVATE DAY-4 WORD",
+      "riddle": "REPLACE APPROVED OCT-30 RIDDLE"
+    }
+  ]
+}
