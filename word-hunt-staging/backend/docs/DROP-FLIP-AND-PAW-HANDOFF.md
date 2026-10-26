@@ -23,3 +23,6 @@
 - Visit `/cherish-drop.html`, enter only the isolated **preview** token, click Flip Today (08:00–20:59 CT).
 - Within five seconds: glass lit on final candidate homepage, clue visible on riddle page, only the tagged `lantern` has faint paw, first-hour entry gets six chances. Second flip returns already-live.
 - Simulated midnight and DST checks use `npm test`; real-world midnight is not accelerated on the preview deployment.
+
+## Staging visual replay
+At `/paw-simulation.html` click **Simulate server flip** then **Simulate midnight Central**. This confirms the exact paw overlay and glass state without waiting overnight; it is labeled **visual simulation**, does not write Blob or override the server. Use `/paw-demo.html` and `/cherish-drop.html` for the actual private server-status pathway once the preview-only operator token is configured.
