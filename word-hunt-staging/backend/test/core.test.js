@@ -40,3 +40,34 @@ test('real mode requires Oct 27-30 and all 16 private names',()=>{
  assert.throws(()=>validateConfig({...real,adminNames:fakeRoster.slice(0,8)}));
  assert.throws(()=>validateConfig({...real,days:c.days}));
 });
+
+import {flipDrop,currentDrop} from '../lib/drop.js';
+test('manual flip drives glass, paw target, bonus and midnight cutoff without a daily page push',async()=>{
+ const d='2026-10-27',start=Date.parse('2026-10-27T14:00:00Z');
+ const c2={...c,id:'simulated-flip',manualDrop:true,days:[27,28,29,30].map(n=>({dateCT:`2026-10-${n}`,answer:'lantern',riddle:'test',target:{path:'/paw-demo.html',marker:'test-lantern'}}))};
+ const s=memory();
+ assert.equal(status(c2,start).state,'not-yet');
+ const flipped=await flipDrop(c2,s,start);
+ assert.equal(flipped.result,'flipped');
+ const rec=await currentDrop(c2,s,start+1000);
+ assert.equal(status(c2,start+1000,rec).state,'live');
+ assert.equal((await check(c2,{...body,contestDateCT:d},s,start+5000,rec)).totalEntries,6);
+ assert.equal((await flipDrop(c2,s,start+6000)).result,'already-live');
+ const lastMs=Date.parse('2026-10-28T04:59:59.999Z');
+ assert.equal(status(c2,lastMs,await currentDrop(c2,s,lastMs)).state,'live');
+ const midnight=Date.parse('2026-10-28T05:00:00Z');
+ assert.equal(await currentDrop(c2,s,midnight),null);
+ assert.equal(status(c2,midnight).state,'not-yet');
+ assert.equal((await check(c2,{...body,contestDateCT:d},s,midnight,null)).result,'closed');
+});
+test('manual drop refuses a day not configured and outside daytime Central',async()=>{
+ const c2={...c,id:'simulated-restrictions',manualDrop:true};
+ assert.equal((await flipDrop(c2,memory(),Date.parse('2026-10-27T05:10:00Z'))).result,'outside-daytime');
+ assert.equal((await flipDrop(c2,memory(),Date.parse('2026-11-01T15:00:00Z'))).result,'wrong-day');
+});
+test('private target config validation blocks invalid selectors',()=>{
+ const d=[27,28,29,30].map(n=>({dateCT:`2026-10-${n}`,answer:'fake',riddle:'fake',target:{path:'/test.html',marker:'safe'}}));
+ const c2={...c,manualDrop:true,testOnly:true,days:d};
+ assert.doesNotThrow(()=>validateConfig(c2));
+ assert.throws(()=>validateConfig({...c2,days:d.map(x=>({...x,target:{path:'https://elsewhere.test',marker:'safe'}}))}));
+});

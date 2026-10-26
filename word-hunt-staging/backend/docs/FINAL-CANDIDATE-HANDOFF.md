@@ -9,3 +9,6 @@ Preview on the isolated review project accepts dummy identities/data only. Real 
 Do not activate the real flag until Fudgie explicitly approves and Cherish confirms the full word order, riddle copy, timestamps, admin roster, storage, entry abuse limits, retention, and drawing/identity verification.
 **Important:** the original public repo commit included real excluded names in source and tests. The current tree now omits them, but history remains visible; rewriting history or migrating must be handled separately before claiming historical privacy.
 No live deployment, no flyer posting, no production branch changes.
+
+## Manual drop and paw updates
+See `docs/DROP-FLIP-AND-PAW-HANDOFF.md`. Server-side daily flips replace schedule-based drop times. Paw follows the immutable record, and all four private target paths/marker IDs load from a single environment secret.

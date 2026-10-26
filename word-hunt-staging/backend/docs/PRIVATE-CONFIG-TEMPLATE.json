@@ -9,27 +9,40 @@
   "days": [
     {
       "dateCT": "2026-10-27",
-      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
       "answer": "REPLACE PRIVATE DAY-1 WORD",
-      "riddle": "REPLACE APPROVED OCT-27 RIDDLE"
+      "riddle": "REPLACE APPROVED OCT-27 RIDDLE",
+      "target": {
+        "path": "/REPLACE-APPROVED-PUBLIC-PAGE.html",
+        "marker": "REPLACE-OPAQUE-MARKER-ID"
+      }
     },
     {
       "dateCT": "2026-10-28",
-      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
       "answer": "REPLACE PRIVATE DAY-2 WORD",
-      "riddle": "REPLACE APPROVED OCT-28 RIDDLE"
+      "riddle": "REPLACE APPROVED OCT-28 RIDDLE",
+      "target": {
+        "path": "/REPLACE-APPROVED-PUBLIC-PAGE.html",
+        "marker": "REPLACE-OPAQUE-MARKER-ID"
+      }
     },
     {
       "dateCT": "2026-10-29",
-      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
       "answer": "REPLACE PRIVATE DAY-3 WORD",
-      "riddle": "REPLACE APPROVED OCT-29 RIDDLE"
+      "riddle": "REPLACE APPROVED OCT-29 RIDDLE",
+      "target": {
+        "path": "/REPLACE-APPROVED-PUBLIC-PAGE.html",
+        "marker": "REPLACE-OPAQUE-MARKER-ID"
+      }
     },
     {
       "dateCT": "2026-10-30",
-      "dropAtUTC": "REPLACE WITH APPROVED UTC INSTANT",
       "answer": "REPLACE PRIVATE DAY-4 WORD",
-      "riddle": "REPLACE APPROVED OCT-30 RIDDLE"
+      "riddle": "REPLACE APPROVED OCT-30 RIDDLE",
+      "target": {
+        "path": "/REPLACE-APPROVED-PUBLIC-PAGE.html",
+        "marker": "REPLACE-OPAQUE-MARKER-ID"
+      }
     }
-  ]
+  ],
+  "manualDrop": true
 }

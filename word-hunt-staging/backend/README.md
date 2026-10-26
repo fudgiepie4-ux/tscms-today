@@ -36,3 +36,6 @@ All 16 owner-supplied names must be passed in the private environment configurat
 
 ## Final candidate (staged)
 Review root `/` retains its visual switch. Automatic-only candidate `/final-candidate/` has NO toggle and opens `/final-candidate/word-hunt.html`. Real configuration remains disabled until private launch flag and confirmed production environment. See `docs/FINAL-CANDIDATE-HANDOFF.md`.
+
+## Daily automatic status after authorized Cherish flip
+A protected operator command creates one immutable daily drop record; the glass/riddle/checker/paw all reflect it. See `docs/DROP-FLIP-AND-PAW-HANDOFF.md`. The old tester switch remains purely visual. Do not post the flyer or deploy production.
