@@ -1,7 +1,9 @@
 /* TSCMS homepage indicator: append-only to existing hero, STAGING until approved. */
 (function(){
   'use strict';
-  const API='https://tscms-word-hunt-production-candidate-fudgiepie4-7168s-projects.vercel.app/api/word-hunt/status';
+  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
+  const API=GATEWAY+'/api/word-hunt/status';
   const GLASS={lit:'./assets/glass-lit.webp',dark:'./assets/glass-dark.webp'};
   const TEXT={
     live:'Word Hunt Live - View Riddle',
@@ -26,6 +28,7 @@
   function render(host,state){host.replaceChildren(makeFrame(state));host.dataset.state=state;}
   async function poll(host){
     try{
+      if(!GATEWAY_READY)throw new Error('gateway not configured');
       const resp=await fetch(API,{cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'}});
       if(!resp.ok)throw new Error('status unavailable');
       const data=await resp.json();
