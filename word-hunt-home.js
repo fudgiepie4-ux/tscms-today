@@ -1,7 +1,7 @@
 /* TSCMS homepage indicator: append-only to existing hero. Glass-only early release Oct 26, 2026; full hunt goes live at the final tap. */
 (function(){
   'use strict';
-  const API='https://tscms-word-hunt-production-candidate-fudgiepie4-7168s-projects.vercel.app/api/word-hunt/status';
+  const API='https://tscms-word-hunt-public-gateway-2026.vercel.app/api/word-hunt/status';
   const GLASS={lit:'./assets/glass-lit.webp',dark:'./assets/glass-dark.webp'};
   const TEXT={
     live:'Word Hunt Live - View Riddle',
