@@ -3,8 +3,10 @@
   'use strict';
   // No answer, drop time, or admin list is stored in this public HTML.
   // Entry persistence and drop status are provided by Clara's server API.
-  const statusUrl = 'https://tscms-word-hunt-production-candidate-fudgiepie4-7168s-projects.vercel.app/api/word-hunt/status';
-  const checkUrl = 'https://tscms-word-hunt-production-candidate-fudgiepie4-7168s-projects.vercel.app/api/word-hunt/check';
+  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
+  const statusUrl = GATEWAY+'/api/word-hunt/status';
+  const checkUrl = GATEWAY+'/api/word-hunt/check';
   const form = document.getElementById('entry-form');
   const feedback = document.getElementById('entry-message');
   const button = document.getElementById('submit-word');
@@ -20,6 +22,7 @@
   async function refresh() {
     if (location.protocol === 'file:') return; // Keep the design preview visible without pretending to have a checker.
     try {
+      if(!GATEWAY_READY) throw new Error('gateway not configured');
       const response = await fetch(statusUrl,{cache:'no-store',credentials:'omit',headers:{Accept:'application/json'}});
       if (!response.ok) throw new Error('status unavailable');
       const data = await response.json();
@@ -43,6 +46,7 @@
     if (!live) { say('The hunt is not accepting entries right now. Come back when the magnifying glass is glowing.','error');busy=false;return; }
     button.disabled=true;button.textContent='CHECKING…';say('Checking your word securely…');
     try {
+      if(!GATEWAY_READY)throw new Error('gateway not configured');
       const response=await fetch(checkUrl,{
         method:'POST',credentials:'omit',cache:'no-store',
         headers:{'Content-Type':'application/json',Accept:'application/json'},
