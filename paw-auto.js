@@ -1,5 +1,7 @@
 /* Include on approved target pages once at launch. No answer or dates embedded here. */
 (function(){'use strict';
+  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
  const selectors='[data-word-hunt-marker]';
  const candidates=()=>[...document.querySelectorAll(selectors)];
  let sequence=0;
@@ -8,7 +10,8 @@
   // A previous day's paw disappears immediately on refresh, even if server is unavailable.
   const clear=()=>candidates().forEach(node=>node.classList.remove('wh-paw-live'));
   try{
-   const res=await fetch('https://tscms-word-hunt-production-candidate-fudgiepie4-7168s-projects.vercel.app/api/word-hunt/mark?path='+encodeURIComponent(location.pathname),{
+   if(!GATEWAY_READY)throw Error('gateway not configured');
+   const res=await fetch(GATEWAY+'/api/word-hunt/mark?path='+encodeURIComponent(location.pathname),{
     credentials:'omit',cache:'no-store',headers:{Accept:'application/json'}
    });
    if(!res.ok)throw Error('unavailable');
