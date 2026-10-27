@@ -1,7 +1,7 @@
 /* TSCMS homepage indicator: append-only to existing hero, STAGING until approved. */
 (function(){
   'use strict';
-  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY='https://tscms-word-hunt-public-gateway-2026.vercel.app';
   const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
   const API=GATEWAY+'/api/word-hunt/status';
   const GLASS={lit:'./assets/glass-lit.webp',dark:'./assets/glass-dark.webp'};
