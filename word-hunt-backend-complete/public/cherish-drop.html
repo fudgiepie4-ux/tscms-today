@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>STAGING — Cherish Drop Control</title>
+<style>body{max-width:650px;margin:30px auto;padding:20px;background:#201309;color:#ffdfae;font:18px/1.6 system-ui,sans-serif}main{border:2px solid #ad7730;padding:22px;border-radius:12px}label{display:block;margin:12px 0}input,button{box-sizing:border-box;font:inherit;padding:12px;border-radius:7px;max-width:100%;width:100%}button{background:#b28847;color:#160e08;font-weight:800;cursor:pointer}button:disabled{opacity:.65}output{display:block;margin-top:16px;white-space:pre-wrap}a{color:#f3d28c}</style></head><body><main><h1>Cherish’s Drop Flip — STAGING</h1><p>This flips a dummy day only in the isolated preview. A production operator must be configured separately after owner-approved launch.</p>
+<p>One activation per Central day, 8:00 AM–8:59 PM CT. This is an operational flip, not a code push.</p>
+<form id="drop-form" autocomplete="off"><label for="secret">Private staging operator key</label><input id="secret" type="password" required minlength="40" autocomplete="off" spellcheck="false" aria-describedby="note"><small id="note">The key stays in this form; it is not stored in this browser.</small>
+<button id="flip" type="submit">Flip today's TEST word live</button></form>
+<output id="result" role="status" aria-live="polite">No flip requested.</output>
+<p><a href="/final-candidate/">Check automatic glass</a> · <a href="/paw-demo.html">Check faint pug paw</a></p>
+</main><script>
+const f=document.getElementById('drop-form'),result=document.getElementById('result'),button=document.getElementById('flip');
+f.addEventListener('submit',async e=>{
+ e.preventDefault();const token=f.querySelector('#secret').value.trim();f.querySelector('#secret').value='';
+ if(token.length<40){result.textContent='Missing private operator key.';return;}
+ button.disabled=true;result.textContent='Checking authorized test flip…';
+ try{
+  const r=await fetch('/api/word-hunt/flip',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}',cache:'no-store',credentials:'same-origin'});
+  const data=await r.json();
+  result.textContent=data.result==='flipped'?'TEST drop activated at '+data.activatedAtCT+' Central. Glass, riddle, paw and entries now follow that server time.':data.result==='already-live'?'This day already has an immutable drop; its clock cannot be restarted.':data.result==='outside-daytime'?'Only 08:00–20:59 Central is allowed.':'Not activated ('+r.status+'). Check the operator key and private preview setup.';
+ }catch{result.textContent='Unable to confirm activation. No successful flip was reported.';}
+ finally{button.disabled=false;}
+});
+</script></body></html>

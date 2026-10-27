@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Staging visual replay — Word Hunt</title><link rel="stylesheet" href="/paw-auto.css">
+<style>body{font:18px/1.6 Georgia,serif;max-width:680px;margin:30px auto;padding:20px;background:#25190c;color:#ffe5ae}button{font:700 16px system-ui;padding:12px;margin:6px;border:2px solid #ad813b;background:#f2dfb6;color:#201008;border-radius:8px}button:focus-visible{outline:3px solid gold}.card{background:#f2e1b6;color:#301b0d;border-radius:9px;padding:22px}a{color:#ffe9b7}#glass{display:block;padding:12px;border:2px solid #ab8650;width:max-content;margin:12px 0}#glass.is-lit{box-shadow:0 0 17px #ffc16f;background:#65411d}#glass.is-dark{opacity:.65}</style></head>
+<body><h1>🔎 Paw + Glass: Simulated Midnight Test</h1><p><strong>VISUAL SIMULATION ONLY.</strong> Buttons here do not activate the backend or record entries. The live service uses verified server time.</p>
+<div id="glass" class="is-dark" role="status">Glass DARK — not clickable</div>
+<div class="card"><p>Swiper's clue points to this <span data-word-hunt-marker="test-lantern">lantern</span>.</p><p>Another lantern (unmarked) remains ordinary.</p></div>
+<p><button id="before">Before drop</button><button id="drop">Simulate server flip</button><button id="midnight">Simulate midnight Central</button></p>
+<output id="result" role="status" aria-live="polite">Before flip: dark glass, no print.</output><p><a href="/paw-demo.html">Back to real server-status test</a></p>
+<script>
+const g=document.getElementById('glass'),p=document.querySelector('[data-word-hunt-marker]'),out=document.getElementById('result');
+function show(live,state){
+ const glass=document.createElement(live?'a':'div');glass.id='glass';glass.className=live?'is-lit':'is-dark';
+ if(live){glass.href='/final-candidate/word-hunt.html';glass.textContent='Glass LIT — open riddle';}
+ else{glass.setAttribute('role','status');glass.textContent='Glass DARK — not clickable';}
+ document.getElementById('glass').replaceWith(glass);p.classList.toggle('wh-paw-live',live);out.textContent=state;
+}
+document.getElementById('before').onclick=()=>show(false,'Before drop: only ordinary text and dark glass.');
+document.getElementById('drop').onclick=()=>show(true,'After simulated server flip: glass lit; only the tagged test word has a translucent paw; bonus clock starts.');
+document.getElementById('midnight').onclick=()=>show(false,'After simulated Central midnight: paw gone, dark non-clickable glass, closed to entries.');
+</script></body></html>
