@@ -1,0 +1,9 @@
+{
+  "name": "word-hunt-second-token-patch",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/drop-auth.test.js",
+    "check": "node --check api/word-hunt/flip.js && node --check lib/drop-auth.js && node --check test/drop-auth.test.js"
+  }
+}
