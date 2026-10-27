@@ -2,10 +2,12 @@ import {config} from '../../lib/config.js';
 import {activeDay} from '../../lib/core.js';
 import {currentDrop} from '../../lib/drop.js';
 import {storage} from '../../lib/storage.js';
-import {headers} from '../../lib/http.js';
-// Never returns the hidden answer or any other day's page or marker.
+import {headers,preflight,isDisabled} from '../../lib/http.js';
 export default async function handler(req,res){
- headers(res);if(req.method!=='GET')return res.status(405).json({error:'method'});
+ headers(res);
+ const pre=preflight(req,res,'GET');if(pre!==false)return;
+ if(req.method!=='GET')return res.status(405).json({error:'method'});
+ if(isDisabled())return res.status(200).json({active:false});
  try{
   const path=String(req.query?.path||'');
   if(!/^\/[a-zA-Z0-9/_-]+\.html$/.test(path)||path.length>180)return res.status(400).json({active:false});
