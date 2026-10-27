@@ -1,0 +1,9 @@
+{
+  "name": "tscms-word-hunt-public-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check lib/gateway.js && node --check api/word-hunt/status.js && node --check api/word-hunt/mark.js && node --check api/word-hunt/check.js"
+  }
+}
