@@ -3,7 +3,7 @@
   'use strict';
   // No answer, drop time, or admin list is stored in this public HTML.
   // Entry persistence and drop status are provided by Clara's server API.
-  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY='https://tscms-word-hunt-public-gateway-2026.vercel.app';
   const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
   const statusUrl = GATEWAY+'/api/word-hunt/status';
   const checkUrl = GATEWAY+'/api/word-hunt/check';
