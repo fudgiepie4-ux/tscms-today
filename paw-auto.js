@@ -1,6 +1,6 @@
 /* Include on approved target pages once at launch. No answer or dates embedded here. */
 (function(){'use strict';
-  const GATEWAY=String(window.TSCMS_WORD_HUNT_GATEWAY_ORIGIN||'').replace(/\/+$/,'');
+  const GATEWAY='https://tscms-word-hunt-public-gateway-2026.vercel.app';
   const GATEWAY_READY=/^https:\/\/[a-z0-9.-]+$/i.test(GATEWAY)&&!GATEWAY.includes('production-candidate');
  const selectors='[data-word-hunt-marker]';
  const candidates=()=>[...document.querySelectorAll(selectors)];
