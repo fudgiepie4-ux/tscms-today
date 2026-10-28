@@ -38,6 +38,8 @@ jobs:
         run: |
           node --check tscms-favorites-owner.js
           node --check favorites-pilot/backend/team-favorites-aggregate.cjs
+          node --check favorites-pilot/aggregation/count-favorites.cjs
+          node --check favorites-pilot/aggregation/run-hourly.cjs
       - name: Signed-out contract and single-player unit checks
         run: |
           node scripts/test-favorites-staging.cjs
