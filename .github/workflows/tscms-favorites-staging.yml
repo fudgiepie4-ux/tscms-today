@@ -16,6 +16,9 @@ on:
       - 'solitaire-phase1-staging/js/gamehouse-jukebox.js'
       - 'favorites-pilot/**'
       - 'scripts/test-favorites-staging.cjs'
+      - 'scripts/test-favorites-aggregate.cjs'
+      - 'favorites-pilot/aggregation/**'
+      - '.github/workflows/tscms-favorites-owner-hourly.yml'
       - 'test-favorites-core.mjs'
       - '.github/workflows/tscms-favorites-staging.yml'
 jobs:
@@ -36,4 +39,6 @@ jobs:
           node --check tscms-favorites-owner.js
           node --check favorites-pilot/backend/team-favorites-aggregate.cjs
       - name: Signed-out contract and single-player unit checks
-        run: node scripts/test-favorites-staging.cjs
+        run: |
+          node scripts/test-favorites-staging.cjs
+          node scripts/test-favorites-aggregate.cjs
