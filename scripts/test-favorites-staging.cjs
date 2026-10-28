@@ -64,23 +64,24 @@ check('Saved confirmation clears higher-layer Feedback at phone width',()=>{
 check('Radio stays linked to original playlist for restore',()=>{assert.match(jukebox,/masterTracks = list\.filter/);assert.match(jukebox,/stationTrackBeforeFavorites/);assert.match(jukebox,/Station shuffle preference saved for later/);});
 check('Rules fragment explicitly is not deployed or production root',()=>{assert.match(rules,/DO NOT DEPLOY/);assert.match(rules,/match \/users\/\{uid\}\/favorites\/\{songId\}/);assert.ok(!fs.existsSync('firestore.rules'));});
 check('Staging never adds hearts to Dicey',()=>{assert.doesNotMatch(src,/\.dicey|dice-card|\.dice-card/);});
-const backend=fs.readFileSync('favorites-pilot/backend/team-favorites-aggregate.cjs','utf8');
 const owner=fs.readFileSync('tscms-favorites-owner.js','utf8');
 const admin=fs.readFileSync('admin.html','utf8');
-check('Owner pilot counts are server-only, with owner Auth+profile check',()=>{
-  assert.match(backend,/request\.auth\?\.uid/);
-  assert.match(backend,/profile\.owner!==true/);
-  assert.match(backend,/profile\.status!=='approved'/);
-  assert.match(backend,/\.collection\('favorites'\)\.count\(\)/);
-  assert.match(backend,/return \{totalHearts,activeMembers,countedAt:/);
-  assert.doesNotMatch(owner,/collection\(db,'users'/);
-  assert.match(owner,/httpsCallable\(getFunctions\(app,'us-central1'\)/);
+const aggregate=fs.readFileSync('favorites-pilot/aggregation/count-favorites.cjs','utf8');
+const workflow=fs.readFileSync('.github/workflows/tscms-favorites-owner-hourly.yml','utf8');
+check('Owner pilot totals come only from privileged hourly aggregate document',()=>{
+  assert.match(aggregate,/\.where\('status', '==', 'approved'\)/);
+  assert.match(aggregate,/\.collection\('favorites'\)\.count\(\)/);
+  assert.match(aggregate,/db\.doc\('pilotAggregates\/favorites'\)\.set\(totals\)/);
+  assert.match(owner,/getDocFromServer\(doc\(db,'pilotAggregates','favorites'\)\)/);
+  assert.doesNotMatch(owner,/httpsCallable|getFunctions|unavailable — not verified/);
   assert.match(owner,/p\?\.owner!==true/);
   assert.equal((admin.match(/src="\.\/tscms-favorites-owner\.js"/g)||[]).length,1);
   assert.doesNotMatch(admin,/class="tc-owner-favorites-aggregate/);
 });
-check('Backend proposal cannot run without separately provisioned Firebase Functions',()=>{
-  assert.match(backend,/STAGING SOURCE ONLY/);
+check('Spark hourly writer is staged with no Firebase deployment command',()=>{
+  assert.match(workflow,/secrets\.TSCMS_FAVORITES_SERVICE_ACCOUNT_JSON/);
+  assert.match(workflow,/github\.ref == 'refs\/heads\/main'/);
+  assert.doesNotMatch(workflow,/firebase deploy|functions:deploy|Blaze/);
   assert.ok(!fs.existsSync('firebase.json'));
 });
 (async()=>{
