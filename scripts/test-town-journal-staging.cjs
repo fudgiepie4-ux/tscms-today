@@ -58,15 +58,24 @@ const tests=[
     assert.ok(html.includes("q('next').addEventListener('click'"));
     assert.ok(html.includes('function packEntries(items)'));
   }],
-  ['Quick Jump visibly exposes Town Journal in both desktop and drawer',()=>{
-    assert.match(qj,/key:'journal', icon:'📖', label:'Town Journal — Heard & Built', href:'town-journal\.html'/);
-    assert.match(qj,/items\.forEach\(function\(item\)\{createLink\(item,desktop\);createLink\(item,drawerNav\);\}\)/);
-    assert.match(qj,/item\.href \|\| '#tscms-qj-'/);
+  ['Quick Jump visibly exposes Town Journal in the drawer',()=>{
+    // Live label is 'Town Journal' (staging-era 'Town Journal — Heard & Built' was
+    // shortened) and the file uses compact no-space entries (Clara compact polish).
+    assert.match(qj,/key:'journal',icon:'📖',label:'Town Journal',href:'town-journal\.html'/);
+    // Current design (Oct 24-25 drawer redesign): one drawer with grouped MUSIC /
+    // AROUND TOWN / COMMUNITY lists; the old desktop-bar duplicate links are gone.
+    // Journal (group 'town') renders into the AROUND TOWN drawer list.
+    assert.match(qj,/items\.forEach\(function\(item\)\{createLink\(item,targets\[item\.group\]\);\}\)/);
+    assert.match(qj,/town:drawer\.querySelector\('#tscms-qj-town-links'\)/);
+    assert.match(qj,/item\.href\|\|'#tscms-qj-'/);
   }],
   ['Quick Jump Journal link remains real navigation, never an in-page jump',()=>{
-    assert.match(qj,/key==='videos' \|\| key==='journal'\) return true/);
-    assert.match(qj,/key==='videos'\|\|key==='journal'\)\{closeMenu\(false\);return;\}/);
-    assert.match(qj,/if\(item\.href\)\{link\.target='_self';\}/);
+    // Current handleLink (drawer redesign): only '#tscms-qj-' in-page anchors get
+    // preventDefault + jump; real page links close the menu and navigate normally.
+    // Journal's href is a real page, and createLink sets _blank only for http(s).
+    assert.match(qj,/key:'journal',icon:'📖',label:'Town Journal',href:'town-journal\.html'/);
+    assert.match(qj,/if\(link\.getAttribute\('href'\)\.indexOf\('#tscms-qj-'\)!==0\)\{closeMenu\(false\);return;\}/);
+    assert.match(qj,/if\(\/\^https\?:\/\.test\(item\.href\|\|''\)\)\{a\.target='_blank'/);
     assert.ok(!qj.includes("if(key==='journal'){e.preventDefault"));
   }],
   ['No site-wide deploy changes in staging PR',()=>{assert.ok(!html.includes('firebaseConfig'));assert.ok(!html.includes('admin-data.enc.json'));}],

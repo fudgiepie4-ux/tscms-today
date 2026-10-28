@@ -3,7 +3,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const terms=fs.readFileSync('drive-in-terms.html','utf8');
 const videos=fs.readFileSync('videos.html','utf8');
-const approved=fs.readFileSync('DRIVEIN-APPROVED-TEXT-20261022.txt','utf8');
+// Reference is the Oct 24, 2026 clarified text (commit 20ad906, fudgiepie4-ux):
+// three terms lines were deliberately reworded after the Oct 22 approval, so the
+// verbatim check runs against the clarified wording, not the superseded Oct 22 text.
+const approved=fs.readFileSync('DRIVEIN-APPROVED-TEXT-20261024-CLARIFIED.txt','utf8');
 const escape=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const cases=[
  ['Correct date/version header',()=>assert.ok(terms.includes('Version 1 · October 22, 2026'))],
@@ -14,7 +17,9 @@ const cases=[
    for(const l of lines){const phrase=l.startsWith('• ')?'<li>'+escape(l.slice(2))+'</li>':escape(l);assert.ok(terms.includes(phrase),'Missing/rewritten approved line: '+l);}
  }],
  ['Contractions have not been silently expanded',()=>{
-   for(const word of ['we’ve','can’t','there’s','doesn’t','What you’re agreeing to','you’re','You’re'])assert.ok(terms.includes(word));
+   // 'can’t' left with the superseded Oct 22 line: the Oct 24 clarification
+  // (commit 20ad906) rewrote it as 'A link to a song page never counts'.
+  for(const word of ['we’ve','there’s','doesn’t','What you’re agreeing to','you’re','You’re'])assert.ok(terms.includes(word));
  }],
  ['Email addresses and original song-title placeholder unchanged',()=>{
    assert.ok(terms.includes('fudgiepie4@gmail.com'));

@@ -14,7 +14,13 @@ check('No signed-out DOM creation outside approved-user gate in module',()=>{ass
 check('Signed-out bookmark only offers private sign-in path',()=>{assert.match(page,/id="tc-fav-playlist-root"/);assert.doesNotMatch(page,/class="tc-fav-row|class="tc-fav-heart|class="tc-fav-door/);assert.match(src,/Go to Team Sign In/);});
 check('Pilot account and ownership constraints remain exact',()=>{assert.match(lib,/TEAM_ONLY = true/);assert.match(lib,/emailVerified===true/);assert.match(lib,/profile\?\.status==='approved'/);assert.match(rules,/request\.auth\.uid == uid/);assert.match(rules,/request\.auth\.token\.email_verified == true/);assert.match(rules,/allow update: if false/);});
 check('Favorites song snapshots never truncate stream, use full title',()=>{assert.match(src,/title:row\.querySelector\('\.s-title,\.feat-title'\)/);assert.match(src,/songFromSearchRow/);assert.match(src,/serverTimestamp\(\)/);assert.match(src,/\.tc-fav-heart/);});
-check('Jukebox still has one audio creator and dedicated Favorites API',()=>{assert.equal((jukebox.match(/audio=document\.createElement\('audio'\)/g)||[]).length,1);assert.match(jukebox,/setFavoritesPlaylist: function/);assert.match(jukebox,/restoreStationPlaylist: function/);assert.match(jukebox,/isFavoritesMode: function/);assert.match(jukebox,/favoritesMode/);assert.ok(!src.includes("createElement('audio')"));});
+check('Jukebox still has one audio creator and dedicated Favorites API',()=>{assert.equal((jukebox.match(/audio=document\.createElement\('audio'\)/g)||[]).length,1);assert.match(jukebox,/setFavoritesPlaylist: function/);assert.match(jukebox,/restoreStationPlaylist: function/);assert.match(jukebox,/isFavoritesMode: function/);assert.match(jukebox,/favoritesMode/);// ROOM PLAYER (Oct 24 2026, Fudgie's morning notes): the Listening Room owns one
+  // coordinated audio element (tc-room-player) that pauses the sitewide station and
+  // vice versa, so the two never talk over each other. That single room player is the
+  // only audio creation allowed in the favorites module -- no second engine.
+  assert.equal((src.match(/createElement\('audio'\)/g)||[]).length,1);
+  assert.match(src,/id='tc-room-player'/);
+  assert.match(src,/ROOM PLAYER/);});
 check('Saving a song presents an accessible, non-clipped playlist link',()=>{
   const css=fs.readFileSync('tscms-favorites.css','utf8');
   assert.match(src,/a\.textContent='View my playlist'/);

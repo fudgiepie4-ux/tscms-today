@@ -43,7 +43,9 @@ function mount(options={}){
   return {document,window,wrap,counts:()=>({clicks,scrolls}),runAgain:()=>vm.runInNewContext(js,scriptCtx)};
 }
 test('Existing generated templates retain preserved Quick Jump loader',()=>{
-  for(const html of [index,today])assert.match(html,/tscms-quick-jump\.js\?v=/);
+  // Published surface is index.html: tscms-today.html is the chrome-less build
+  // intermediate (make_public.py adds Quick Jump when deriving index.html).
+  for(const html of [index])assert.match(html,/tscms-quick-jump\.js\?v=/);
   assert.match(quick,/script\.src='\.\x2ftscms-pathway-pack\.js\?v=20261023-additive-1'/);
   assert.match(quick,/data-tscms-preserved','pathway-pack'/);
 });

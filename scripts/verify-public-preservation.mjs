@@ -35,17 +35,23 @@ const museJs=read('tscms-muse-referral.js');
 const museCss=read('tscms-muse-referral.css');
 const homeDubbyJs=read('tscms-home-dubby.js');
 const homeDubbyCss=read('tscms-home-dubby.css');
-const pages=[['index.html',index],['tscms-today.html',today]];
-for(const [label,s] of pages) {
+// Published surface is index.html: tscms-today.html is the chrome-less build
+// intermediate (make_public.py adds runtime/Quick Jump/Feedback/styles when deriving
+// index.html), so chrome checks run on index only; content checks run on both.
+const chromePages=[['index.html',index]];
+const contentPages=[['index.html',index],['tscms-today.html',today]];
+for(const [label,s] of chromePages) {
   assert(label+' → public runtime exactly once',count(s,/<script\b[^>]*src=["']tscms-public-runtime\.js(?:\?[^"']*)?["']/g)===1);
   assert(label+' → Quick Jump exactly once',count(s,/<script\b[^>]*src=["']tscms-quick-jump\.js(?:\?[^"']*)?["']/g)===1);
   assert(label+' → Feedback exactly once',count(s,/<script\b[^>]*src=["']tscms-feedback\.js(?:\?[^"']*)?["']/g)===1);
   assert(label+' → site styles exactly once',count(s,/<link\b[^>]*href=["']site\.css(?:\?[^"']*)?["']/g)===1);
   assert(label+' → PLAY NOW Gamehouse entrance',/class=["']saloon-playnow["'][^>]*href=["']gamehouse\.html/.test(s));
   assert(label+' → PUBLIC tab',/class=["']tscms-site-tab is-active["']/.test(s));
+  assert(label+' → public icon links',/favicon-32\.png/.test(s)&&/manifest-public\.json/.test(s));
+}
+for(const [label,s] of contentPages) {
   assert(label+' → song day tabs',/class=["']tabs["']/.test(s)&&/id=["']day-0["']/.test(s));
   assert(label+' → protected footer anchor',/<footer class=["']mono["']>MADE WITH LOVE FOR THE TSCMS FAMILY/.test(s));
-  assert(label+' → public icon links',/favicon-32\.png/.test(s)&&/manifest-public\.json/.test(s));
   assert(label+' → dynamic stats and Dubby insertion anchors',count(s,/class=["']stats["']/g)===1&&count(s,/class=["']yt-banner["']/g)===1&&count(s,/class=["']feat["']/g)===1&&/<h1 class=["']slab["']>Today in/.test(s));
 }
 assert('Gamehouse Play Now + PUBLIC gold styles in safe CSS',/\.saloon-playnow\{/.test(siteCss)&&/\.tscms-site-tab\{/.test(siteCss));
@@ -123,7 +129,7 @@ assert('Site-wide Radio tab/Play/Volume + single engine intact',
 assert('Site-wide Radio still loads from same shared public runtime on Search + My Playlist',
   /tscms-public-runtime\.js/.test(searchHtml)&&
   /tscms-public-runtime\.js/.test(playlistHtml)&&
-  /tscms-public-runtime\.js/.test(index)&&/tscms-public-runtime\.js/.test(today));
+  /tscms-public-runtime\.js/.test(index)); // today is the chrome-less intermediate, not a published page
 for(const [name,html] of [['Town Journal',journalHtml],['Drive-In',read('videos.html')],['Gamehouse',game]]) {
   assert(name+' → site-wide radio script exactly once',
     count(html,/src=["']\.\/tscms-sitewide-radio\.js\?[^"']+["']/g)===1&&
@@ -225,7 +231,11 @@ for (const [filename,size,sha256] of driveInAssets) {
 }
 assert('Quick Jump has approved Videos link and navigates there normally',
   /key:'videos'/.test(quickJs)&&/href:'videos\.html'/.test(quickJs)&&
-  /key==='gamehouse'\|\|key==='videos'/.test(quickJs));
+  // Current navigation: only http(s) hrefs open a new tab (createLink); internal
+  // pages like videos.html take the same-tab path, and 'videos' has no in-page
+  // scroll branch in handleLink (unlike radio/seasonal/dicey/daily).
+  /if\(\/\^https\?:\/\.test\(item\.href\|\|''\)\)\{a\.target='_blank'/.test(quickJs)&&
+  !/key==='videos'\)\{scrollToElement/.test(quickJs));
 assert('Western Drive-In page preserves vinyl easter egg, one coherent hero and spotlight',
   /Jim B Records/.test(driveIn)&&/www\.facebook\.com\/share\/1LdqyvJKso/.test(driveIn)&&
   /western-drive-in\.jpg/.test(driveIn)&&/beam-one/.test(driveIn)&&/signal-drift/.test(driveIn));

@@ -98,7 +98,9 @@ const tests=[
   assert.ok(!js.includes('window.TSCMSJukebox.toggle'));
 }],
 ['public control remains focusable',()=>{assert.ok(css.includes('min-height:44px'));assert.ok(css.includes(':focus-visible'));}],
-['both real homeviews load text enhancement',()=>{for(const x of ['index.html','tscms-today.html']){let t=fs.readFileSync(x,'utf8');assert.ok(t.includes('tscms-legibility.css'));assert.ok(t.includes('tscms-legibility.js'));}}],
+// Published homepage only: tscms-today.html is the chrome-less build intermediate
+  // (make_public.py injects legibility when deriving index.html, audit Oct 28 #06).
+  ['published homepage loads text enhancement',()=>{for(const x of ['index.html']){let t=fs.readFileSync(x,'utf8');assert.ok(t.includes('tscms-legibility.css'));assert.ok(t.includes('tscms-legibility.js'));}}],
 ['Gamehouse and Drive-In also include it',()=>{for(const x of ['gamehouse.html','videos.html','public-redesign.html']){let t=fs.readFileSync(x,'utf8');assert.ok(t.includes('tscms-legibility.css'));assert.ok(t.includes('tscms-legibility.js'));}}],
 ['Admin is not modified by this wave',()=>{let t=fs.readFileSync('admin.html','utf8');assert.ok(!t.includes('tscms-legibility.js'));}],
 ['CSS engine is independent and scoped',()=>{assert.ok(css.includes('.tscms-legibility-controls'));assert.ok(!css.includes('.erow'));}]

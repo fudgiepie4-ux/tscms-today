@@ -130,7 +130,9 @@ function harness(savedState=null,opts={}){
   test('Seven requested public routes inherit or embed the same module, never admin',()=>{
     assert.match(runtime,/data-tscms-preserved','sitewide-radio'/);
     assert.match(runtime,/tscms-sitewide-radio\.js/);
-    for(const page of ['index.html','tscms-today.html','tscms-search.html','my-playlist.html'])
+    // tscms-today.html is the chrome-less build intermediate (make_public.py adds the
+    // runtime when deriving index.html); the published pages are what's checked.
+    for(const page of ['index.html','tscms-search.html','my-playlist.html'])
       assert.match(fs.readFileSync(page,'utf8'),/tscms-public-runtime\.js/,page);
     for(const page of ['town-journal.html','videos.html','gamehouse.html'])
       assert.equal((fs.readFileSync(page,'utf8').match(/src="\.\/tscms-sitewide-radio\.js\?/g)||[]).length,1,page);
