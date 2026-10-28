@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Friends of the Station | TSCMS</title>
+<link rel="stylesheet" href="./tscms-sitewide-radio.css?v=20261023-lefttab2">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#1a120b;font-family:Georgia,'Times New Roman',serif}
+  .board-wrap{position:relative;width:min(100%,941px);margin:0 auto}
+  .board-wrap img{display:block;width:100%;height:auto}
+  .hotspot{position:absolute;left:17.5%;top:29.5%;width:66.5%;height:3.8%;border-radius:8px}
+  .hotspot:focus-visible{outline:3px solid #f5cf7c;outline-offset:3px}
+  .counter-bar{background:linear-gradient(180deg,#2b1d10,#1d130a);border-top:2px solid #c9a44a;text-align:center;padding:14px 0 18px;color:#e8c87a;font-size:16px}
+  .counter-bar b{font-size:20px}
+</style>
+<script data-goatcounter="https://fudgiepielabsai.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="board-wrap">
+  <img src="./assets/friends-of-the-station.png" alt="Friends of the Station pin board. First card: Voice of Gen X, Larry Atkins, Unquiet Republic. Then funny cards, and a note about how to get your card on the board." />
+  <a class="hotspot" href="https://unquietrepublic.com" target="_blank" rel="noopener" aria-label="Visit Unquiet Republic, home of Voice of Gen X"></a>
+</div>
+<div class="counter-bar">Site visits: <b id="tscms-visitor-count-number"></b></div>
+<script>(function(){var el=document.getElementById("tscms-visitor-count-number");if(!el)return;fetch("https://fudgiepielabsai.goatcounter.com/counter/"+encodeURIComponent(location.pathname)+".json").then(function(r){return r.json()}).then(function(d){if(d&&d.count)el.textContent=d.count}).catch(function(){})})();</script>
+<script src="./tscms-sitewide-radio.js?v=20261023-lefttab2" defer></script>
+</body>
+</html>

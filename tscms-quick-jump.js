@@ -24,6 +24,7 @@
       {group:'community',key:'group',icon:'👥',label:'Facebook Group',href:'https://www.facebook.com/share/g/1HhNCD6FSS/'},
       {group:'community',key:'youtube',icon:'▶',label:'YouTube',href:'https://www.youtube.com/@TSCMSLive'},
       {group:'community',key:'facebook',icon:'f',label:'Facebook Page',href:'https://www.facebook.com/share/19z71PkNja/'},
+      {group:'community',key:'friends',icon:'📌',label:'Friends of the Station',href:'friends-of-the-station.html'},
       {group:'community',key:'admin',icon:'⚙',label:'Admin Sign In',href:'admin.html'}
     ];
     // The Admin shortcut is navigation to the protected login page only.
