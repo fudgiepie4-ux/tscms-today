@@ -2,14 +2,14 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const {spawnSync}=require('node:child_process');
 const check=(what,test)=>{try{test();console.log('PASS '+what);}catch(e){console.error('FAIL '+what);throw e;}};
-const paths=['index.html','tscms-today.html','tscms-search.html','gamehouse.html'];
+const paths=['index.html','tscms-search.html','gamehouse.html'];
 const src=fs.readFileSync('tscms-favorites.js','utf8');
 const lib=fs.readFileSync('tscms-favorites-core.mjs','utf8');
 const rules=fs.readFileSync('favorites-pilot/favorites-v4-TEST-ONLY.rules.fragment','utf8');
 const jukebox=fs.readFileSync('solitaire-phase1-staging/js/gamehouse-jukebox.js','utf8');
 const page=fs.readFileSync('my-playlist.html','utf8');
 check('Original core tests pass',()=>{const r=spawnSync(process.execPath,['test-favorites-core.mjs'],{encoding:'utf8'});assert.equal(r.status,0,r.stderr||r.stdout);assert.match(r.stdout,/12\/12/);});
-check('All four pilot pages load module once, no static heart/door',()=>{for(const p of paths){const h=fs.readFileSync(p,'utf8');assert.equal((h.match(/src="\.\/tscms-favorites\.js"/g)||[]).length,1,p);assert.equal((h.match(/href="\.\/tscms-favorites\.css"/g)||[]).length,1,p);assert.doesNotMatch(h,/class="tc-fav-heart|class="tc-fav-door|tc-fav-qj-link/g,p);}});
+check('All pilot pages load module once, no static heart/door',()=>{for(const p of paths){const h=fs.readFileSync(p,'utf8');assert.equal((h.match(/src="\.\/tscms-favorites\.js"/g)||[]).length,1,p);assert.equal((h.match(/href="\.\/tscms-favorites\.css"/g)||[]).length,1,p);assert.doesNotMatch(h,/class="tc-fav-heart|class="tc-fav-door|tc-fav-qj-link/g,p);}});
 check('No signed-out DOM creation outside approved-user gate in module',()=>{assert.match(src,/if\(!approvedTeam\(user,profile\)\)\{revokeView\(\);return;\}/);assert.match(src,/onSnapshot\(collection\(db,'users',user\.uid,'favorites'\)/);assert.match(src,/function sync\(\)\{if\(!signedIn\(\)\)return;/);assert.match(src,/function strip\(\)/);assert.match(src,/const ticket=\+\+generation/);assert.match(src,/subscriptionGeneration/);assert.match(src,/if\(sameApprovedIdentity\)\{/);assert.match(src,/getDocFromServer/);});
 check('Signed-out bookmark only offers private sign-in path',()=>{assert.match(page,/id="tc-fav-playlist-root"/);assert.doesNotMatch(page,/class="tc-fav-row|class="tc-fav-heart|class="tc-fav-door/);assert.match(src,/Go to Team Sign In/);});
 check('Pilot account and ownership constraints remain exact',()=>{assert.match(lib,/TEAM_ONLY = true/);assert.match(lib,/emailVerified===true/);assert.match(lib,/profile\?\.status==='approved'/);assert.match(rules,/request\.auth\.uid == uid/);assert.match(rules,/request\.auth\.token\.email_verified == true/);assert.match(rules,/allow update: if false/);});

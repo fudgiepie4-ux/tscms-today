@@ -23,7 +23,6 @@ function assert(label,ok) {
 }
 function count(s,re) {return (s.match(re)||[]).length;}
 const index=read('index.html');
-const today=read('tscms-today.html');
 const runtime=read('tscms-public-runtime.js');
 const siteCss=read('site.css');
 const quickJs=read('tscms-quick-jump.js');
@@ -39,7 +38,7 @@ const homeDubbyCss=read('tscms-home-dubby.css');
 // intermediate (make_public.py adds runtime/Quick Jump/Feedback/styles when deriving
 // index.html), so chrome checks run on index only; content checks run on both.
 const chromePages=[['index.html',index]];
-const contentPages=[['index.html',index],['tscms-today.html',today]];
+const contentPages=[['index.html',index]];
 for(const [label,s] of chromePages) {
   assert(label+' → public runtime exactly once',count(s,/<script\b[^>]*src=["']tscms-public-runtime\.js(?:\?[^"']*)?["']/g)===1);
   assert(label+' → Quick Jump exactly once',count(s,/<script\b[^>]*src=["']tscms-quick-jump\.js(?:\?[^"']*)?["']/g)===1);

@@ -8,7 +8,6 @@ const quick=fs.readFileSync('tscms-quick-jump.js','utf8');
 const css=fs.readFileSync('tscms-pathway-pack.css','utf8');
 const runtime=fs.readFileSync('tscms-public-runtime.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
-const today=fs.readFileSync('tscms-today.html','utf8');
 let count=0;
 function test(label,fn){fn();count++;console.log('PASS '+count+': '+label);}
 const GROUP_URL='https://www.facebook.com/share/g/1HhNCD6FSS/';
