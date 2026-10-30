@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="./tscms-search.css">
 <link rel="stylesheet" href="./tscms-legibility.css?v=wave-20261022">
 <link rel="stylesheet" href="./paw-auto.css">
+<style>
+/* Word Hunt Day 4 dark-page fix: light paw visible on the dark Search page background. Overrides paw-auto.css only on this page. */
+[data-wh-runtime="1"].wh-paw-live::after{background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23f5e9c8'%3E%3Cellipse cx='47' cy='64' rx='29' ry='24' transform='rotate(-12 47 64)'/%3E%3Cellipse cx='18' cy='30' rx='9' ry='14' transform='rotate(-18 18 30)'/%3E%3Cellipse cx='40' cy='20' rx='9' ry='15' transform='rotate(-3 40 20)'/%3E%3Cellipse cx='63' cy='24' rx='9' ry='15' transform='rotate(16 63 24)'/%3E%3Cellipse cx='82' cy='41' rx='9' ry='13' transform='rotate(25 82 41)'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;opacity:.6;filter:drop-shadow(0 0 3px rgba(0,0,0,.9));}
+</style>
 </head>
 <body style="margin:0;background:linear-gradient(#17120d,#0f0b08);min-height:100vh">
 <main class="tscms-search-wrap">
