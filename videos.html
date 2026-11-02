@@ -157,6 +157,7 @@ html{scroll-behavior:smooth}body{margin:0;background:#130e16;color:#fff0d1;font-
         <div class="send-head">SEND YOUR VIDEO</div>
         <div class="send-grid">
           <button class="send-btn" type="button" id="send-email" disabled><span aria-hidden="true">✉</span>SEND BY EMAIL<small id="email-status">Complete the form &amp; agreement first.</small></button>
+<div id="email-fallback" hidden style="margin-top:12px;padding:12px;border:2px solid #fddc89;border-radius:10px;background:#2c211e;color:#ffe0a0;font-family:system-ui,sans-serif"><strong>Did your email app not open?</strong> No problem — tap the button below to copy your submission text, then send it yourself to <strong>fudgiepie4@gmail.com</strong> and attach your MP4 or MOV video before sending.<br><button type="button" id="copy-submission" style="margin-top:10px;padding:10px 16px;border-radius:8px;font-weight:700">Copy submission text</button><span id="copy-status" style="margin-left:10px"></span></div>
         </div>
         <p class="submission-note">Complete the form, read the terms, check the agreement, then tap SEND BY EMAIL. Your email app will open a prepared message; <strong>you must attach your MP4 or MOV video and press Send yourself.</strong> The website does not collect or store submissions. Your sent email serves as your consent record.</p>
       </form>
@@ -223,7 +224,16 @@ email.addEventListener('click',()=>{
     '',
     'I am submitting this video under the agreement above.'
   ].join('\r\n');
-  window.location.href='mailto:fudgiepie4@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  const mailto='mailto:fudgiepie4@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  const a=document.createElement('a');a.href=mailto;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+  window._tscmsSubmissionBody=body;
+  setTimeout(()=>{document.getElementById('email-fallback').hidden=false;},1200);
+});
+document.getElementById('copy-submission').addEventListener('click',async()=>{
+  const text=window._tscmsSubmissionBody||'';
+  const st=document.getElementById('copy-status');
+  try{await navigator.clipboard.writeText(text);st.textContent='Copied — paste it into an email to fudgiepie4@gmail.com and attach your video.';}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();st.textContent='Copied — paste it into an email to fudgiepie4@gmail.com and attach your video.';}
 });
  const toggle=document.getElementById('sound-toggle');
  const choice=document.getElementById('sound-choice');
