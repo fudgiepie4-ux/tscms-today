@@ -1,1 +1,11 @@
-{"generated": "2026-11-07T10:52-06:00", "note": "Counts via GoatCounter stats totals (the export feed returns zero rows on this account). Rolls/taps are exact per-path totals; rolls_all covers the last 30 days. Comments matched to a roll/tap within the same clock hour (site time), so attribution is hour-level, not exact-minute.", "rolls_24h": 0, "rolls_7d": 15, "rolls_all": 304, "taps_7d": 1, "tap_through_7d_pct": 6.7, "attributed_7d": 0, "attributed": []}
+{
+  "generated": "2026-11-09T21:30-06:00",
+  "note": "Counts via GoatCounter stats totals (the export feed returns zero rows on this account). Rolls/taps are exact per-path totals; rolls_all covers the last 30 days. Comments matched to a roll/tap within the same clock hour (site time), so attribution is hour-level, not exact-minute.",
+  "rolls_24h": 2,
+  "rolls_7d": 4,
+  "rolls_all": 306,
+  "taps_7d": 1,
+  "tap_through_7d_pct": 25,
+  "attributed_7d": 0,
+  "attributed": []
+}
