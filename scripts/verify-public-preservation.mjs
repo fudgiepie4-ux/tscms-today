@@ -39,6 +39,11 @@ const promoPublic=read('tscms-promo-calendar.js');
 const promoStyle=read('tscms-promo-calendar.css');
 const promoAdmin=read('tscms-promo-admin.js');
 const adminAuth=read('tscms-admin-dual.js');
+const adminPage=read('admin.html');
+assert('Coming Up generated admin retains personal sign-in loader',
+  adminPage.includes('tscms-admin-dual.js') &&
+  adminPage.includes('id="adminbody"'));
+
 assert('Coming Up survives generator overwriting index.html and admin.html',
   quickJs.includes('tscms-promo-bootstrap.js') &&
   promoBootstrap.includes('tscms-promo-calendar.js') &&
