@@ -4,7 +4,8 @@ Draft feature branch, 2026-11-11. **Not live. Do not merge or deploy Firebase ru
 
 ## What is in this branch
 
-- `tscms-promo-calendar.js` + CSS: a read-only Firestore listener on the homepage. Renders directly **after Song of the Week**, before Sponsor TV and Songs by Day. Uses image elements only. No audio/video controls or autoplay.\n- `tscms-promo-bootstrap.js`: single instance of the calendar CSS and module on homepage. `tscms-quick-jump.js` (already preserved by the six-hour homepage generator) loads this bootstrap. Nothing new is baked into generated `index.html`.
+- `tscms-promo-calendar.js` + CSS: a read-only Firestore listener on the homepage. Renders directly **after Song of the Week**, before Sponsor TV and Songs by Day. Uses image elements only. No audio/video controls or autoplay.
+- `tscms-promo-bootstrap.js`: single instance of the calendar CSS and module on homepage. `tscms-quick-jump.js` (already preserved by the six-hour homepage generator) loads this bootstrap. Nothing new is baked into generated `index.html`.
 - `tscms-promo-admin.js`: upload form inside the existing admin body. The existing generator-preserved `tscms-admin-dual.js` imports it, instead of relying on a generated `admin.html` tag. It only appears after a **verified Firebase email login** and server-confirmed approved user profile. PIN unlock alone does not grant promo access.
 - Images: Firebase Storage `promo-images/{uid}/{promoId}.{jpg|png|webp}`.
 - Records: Firestore `promoEntries/{promoId}` with `title`, `postingBy`, `scheduledAtCT`, `imagePath`, `createdBy`, `createdAt`.
