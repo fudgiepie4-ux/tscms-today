@@ -1,0 +1,13 @@
+/* TSCMS Coming Up. Scoped styling; no site-wide player or navigation changes. */
+.tscms-coming-up{margin:18px 0 26px;padding:18px;background:linear-gradient(155deg,#271a0c,#130e09);border:1px solid #aa8244;border-radius:15px;color:#f5e4c6;box-shadow:0 8px 28px #0005}
+.tscms-coming-up-heading{color:#f2c777;margin:0 0 12px;font:700 clamp(21px,4vw,29px)/1.25 Georgia,serif;letter-spacing:.4px}
+.tscms-promo-status{color:#e2cba4;margin:2px 0 15px;font:500 15px/1.5 system-ui,sans-serif}
+.tscms-promo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,275px),1fr));gap:14px}
+.tscms-promo-card{display:flex;flex-direction:column;overflow:hidden;background:#1c150e;border:1px solid #6f512e;border-radius:11px}
+.tscms-promo-art{min-height:105px;background:#302419;display:flex;justify-content:center;align-items:center;color:#e8d3b2;font:500 13px/1.4 system-ui,sans-serif;text-align:center}
+.tscms-promo-image{display:block;width:100%;height:auto;max-height:340px;object-fit:contain}
+.tscms-promo-copy{padding:13px 14px 16px}
+.tscms-promo-when{color:#f3bd63;font:700 14px/1.5 system-ui,sans-serif;margin:0 0 8px}
+.tscms-promo-title{font:700 19px/1.35 system-ui,sans-serif;letter-spacing:normal;text-transform:none;color:#fff5e0;margin:0 0 9px;overflow-wrap:anywhere}
+.tscms-promo-poster{font:500 14px/1.4 system-ui,sans-serif;color:#dbc5a0;margin:0}
+@media(max-width:560px){.tscms-coming-up{padding:14px;margin:14px 0 24px}.tscms-promo-list{grid-template-columns:minmax(0,1fr)}.tscms-promo-image{max-height:410px}}
