@@ -494,3 +494,10 @@ async function showOwnerApprovals(ownerUid){
   }
   await refresh();
 }
+
+/* TSCMS Coming Up: load its independently permission-checked uploader from
+   the generator-preserved personal Admin module, not generated admin.html.
+   PIN-only unlocks cannot pass the uploader's Firebase UID/rules gates. */
+void import('./tscms-promo-admin.js').catch(function(){
+  console.warn('TSCMS promo uploader unavailable; admin access stays unchanged.');
+});
