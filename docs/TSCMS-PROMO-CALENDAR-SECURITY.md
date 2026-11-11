@@ -1,12 +1,12 @@
 # TSCMS “Coming Up” — deployment and permission gate
 
-Draft feature branch, 2026-11-11. **Not live. Do not merge or deploy Firebase rules until Fudgie separately authorizes it.** The generator-survival fix is staged; actual pipeline rebuild acceptance is still pending.
+Draft feature branch, 2026-11-11. **Not live. Do not merge or deploy Firebase rules until Fudgie separately authorizes it.** Cherish reports the homepage survived a full staged rebuild. The actual private admin generator still requires a narrowly scoped patch and independent rebuild verification.
 
 ## What is in this branch
 
 - `tscms-promo-calendar.js` + CSS: a read-only Firestore listener on the homepage. Renders directly **after Song of the Week**, before Sponsor TV and Songs by Day. Uses image elements only. No audio/video controls or autoplay.
 - `tscms-promo-bootstrap.js`: single instance of the calendar CSS and module on homepage. `tscms-quick-jump.js` (already preserved by the six-hour homepage generator) loads this bootstrap. Nothing new is baked into generated `index.html`.
-- `tscms-promo-admin.js`: upload form inside the existing admin body. The existing generator-preserved `tscms-admin-dual.js` imports it, instead of relying on a generated `admin.html` tag. It only appears after a **verified Firebase email login** and server-confirmed approved user profile. PIN unlock alone does not grant promo access.
+- `tscms-promo-admin.js`: upload form inside the existing admin body. The authenticated `tscms-admin-dual.js` imports it; the current private `make_public.py` must inject that module into generated `admin.html` if absent (see below). It only appears after a **verified Firebase email login** and server-confirmed approved user profile. PIN unlock alone does not grant promo access.
 - Images: Firebase Storage `promo-images/{uid}/{promoId}.{jpg|png|webp}`.
 - Records: Firestore `promoEntries/{promoId}` with `title`, `postingBy`, `scheduledAtCT`, `imagePath`, `createdBy`, `createdAt`.
 - Schedule is entered and displayed in **America/Chicago (CT)**. At the scheduled minute, a promo disappears from the upcoming list. A Firestore listener publishes new entries without rebuilding GitHub Pages.
@@ -110,16 +110,40 @@ match /promo-images/{uid}/{filename} {
 }
 ```
 
+## Admin generator handoff — APPLY TO CURRENT PRIVATE make_public.py, NOT AN ARCHIVED COPY
+
+**Owner decision, November 11:** Firebase Firestore/Storage rules deploy stays on hold, as do production merger and site release. Cherish reports that the homepage calendar survives a complete staged rebuild. The remaining admin-side condition is that the generated `admin.html` must load one and only one *module* reference to `tscms-admin-dual.js`.
+
+This PR contains `scripts/patch-make-public-admin-dual.py`: it inserts an **inject-if-missing** block immediately before the current generator's admin HTML file write. It recognizes an existing `tscms-admin-dual.js` script (with or without `./` or a query version), reuses it if it is already `type="module"`, inserts a new `type="module"` script if missing, and blocks missing closing tags, duplicates, or non-module tags. It does not modify homepage generation, inline the uploader, change Firebase security rules, or add rights to accounts.
+
+To apply to Cherish's *current private* generator (not the older copy found in Drive):
+
+```sh
+# Read-only preview: verifies the expected generator anchor, parses the result,
+# and prints a focused diff. Does not change make_public.py.
+python3 scripts/patch-make-public-admin-dual.py /actual/workspace/make_public.py
+
+# Only after verifying the diff against the actual current source:
+python3 scripts/patch-make-public-admin-dual.py /actual/workspace/make_public.py --write
+
+# Verify static unit tests (test no tag, tag present, duplicate, malformed):
+python3 scripts/test-patch-make-public-admin-dual.py
+```
+
+The patcher stops instead of guessing if the current private generator's admin HTML write anchor differs from the November 2 source. If this happens, insert the documented block manually just before the actual `admin.html` write and run the same tests. Do not overwrite a newer private generator with the archived November 2 version.
+
+**Before PR #41 is considered ready for merge:** Cherish must confirm a real private `make_public.py` rebuild produces `admin.html` with exactly one `tscms-admin-dual.js` module, that loading the page makes `tscms-promo-admin.js` available to approved users, and that PIN-only/unapproved users cannot publish. Check current staged auth behavior; do not test by deploying Firebase rules. Fudgie retains final merge and Firebase deploy decisions.
+
 ## Explicit go/no-go
 
 A static JSON file alone is insufficient because GitHub Pages cannot accept client writes. The Firestore listener and Firebase Storage give real-time data and image publishing *once rules are deployed*. **Merely merging these JavaScript files does not enforce any permission or make uploads work**.
 
 ## Rebuild survival / confirmed scope
 
-The homepage and admin pages are generated. **The original two direct tags in `index.html` and one tag in `admin.html` have been removed from this branch**. The generated pages can be replaced wholesale: the independent `tscms-quick-jump.js` imports `tscms-promo-bootstrap.js` on the homepage; the independently preserved `tscms-admin-dual.js` imports the uploader on signed-in staff pages. These loaders are idempotent. No song data is rewritten by this change.
+The homepage and admin pages are generated. **The original two direct tags in `index.html` and one tag in `admin.html` have been removed from this branch**. The generated pages can be replaced wholesale: the independent `tscms-quick-jump.js` imports `tscms-promo-bootstrap.js` on the homepage; the `tscms-admin-dual.js` module imports the uploader on signed-in staff pages **only when the actual generator preserves/injects that module**. These loaders are idempotent. No song data is rewritten by this change.
 
 This avoids the immediate rebuild-stripping bug even if the generator still produces pages with zero promo tags. The branch's CI `node scripts/verify-promo-calendar.mjs` simulates such a clean rebuild and tests both loaders; `node scripts/verify-public-preservation.mjs` now stops a release if any of the protected promo loader files disappear.
 
-**Source limitation:** The actual current `make_public.py` and `build_member.py` pipeline scripts live in Cherish's separate restricted workspace, not this GitHub repository. An archived `personal-note-make_public.py` dated Nov 2 is available in Drive but is not an authoritative Nov 11 production source; it was not overwritten. **A real six-hour pipeline regeneration must still be run by the pipeline operator on a non-public stage**, and the generated index and admin inspected. Verify exactly one promo loader, one CSS and public calendar module, correct admin uploader, preserved 62+ public features, and no song loss. If the actual current generator removes either the Quick Jump loader or personal Admin module, fix the real pipeline source and rerun before approving release.
+**Source limitation:** The actual current `make_public.py` and `build_member.py` pipeline scripts live in Cherish's separate restricted workspace, not this GitHub repository. An archived `personal-note-make_public.py` dated Nov 2 is available in Drive but is not an authoritative Nov 11 production source; it was not overwritten. **Cherish reports the homepage rebuild passed**; a fresh private admin rebuild with the new inject-if-missing patch is still required, and generated admin must be inspected. Verify exactly one promo loader, one CSS and public calendar module, correct admin uploader, preserved 62+ public features, and no song loss. If the actual current generator removes either the Quick Jump loader or personal Admin module, fix the real pipeline source and rerun before approving release.
 
 **No Firebase Security Rules, Storage rules, accounts, main-branch merge, or live deployments were changed.** A green static CI is not proof of Firebase writes or an actual phone rendering pass.
