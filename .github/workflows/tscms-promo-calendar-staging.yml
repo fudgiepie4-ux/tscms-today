@@ -13,6 +13,8 @@ on:
       - 'tscms-promo-calendar.css'
       - 'tscms-promo-admin.js'
       - 'scripts/verify-promo-calendar.mjs'
+      - 'scripts/patch-make-public-admin-dual.py'
+      - 'scripts/test-patch-make-public-admin-dual.py'
       - 'docs/TSCMS-PROMO-CALENDAR-SECURITY.md'
       - '.github/workflows/tscms-promo-calendar-staging.yml'
   workflow_dispatch:
@@ -29,6 +31,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify make_public.py admin injection is safe and idempotent
+        run: python3 scripts/test-patch-make-public-admin-dual.py
       - name: Verify promo feature is isolated and syntax-valid
         run: node scripts/verify-promo-calendar.mjs
       - name: Verify protected homepage invariants
