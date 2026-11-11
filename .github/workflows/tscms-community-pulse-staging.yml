@@ -1,0 +1,26 @@
+name: TSCMS Community Pulse Producer — Staging Only
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_community_pulse.py'
+      - 'scripts/test_community_pulse.py'
+      - 'docs/COMMUNITY-PULSE-PRODUCER-STAGING.md'
+      - '.github/workflows/tscms-community-pulse-staging.yml'
+  workflow_dispatch:
+
+jobs:
+  producer-contract-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax checks
+        run: python3 -m py_compile scripts/build_community_pulse.py scripts/test_community_pulse.py
+      - name: Seven completed Central-time days (synthetic fixtures)
+        run: python3 scripts/test_community_pulse.py
+      - name: Verify no live Pulse JSON was added
+        run: test ! -e community-pulse-current.json
