@@ -1,0 +1,31 @@
+name: TSCMS Coming Up — STAGING SAFETY
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'admin.html'
+      - 'tscms-promo-calendar.js'
+      - 'tscms-promo-calendar.css'
+      - 'tscms-promo-admin.js'
+      - 'scripts/verify-promo-calendar.mjs'
+      - 'docs/TSCMS-PROMO-CALENDAR-SECURITY.md'
+      - '.github/workflows/tscms-promo-calendar-staging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Parse and guard promo calendar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify promo feature is isolated and syntax-valid
+        run: node scripts/verify-promo-calendar.mjs
+      - name: Verify protected homepage invariants
+        run: node scripts/verify-public-preservation.mjs
