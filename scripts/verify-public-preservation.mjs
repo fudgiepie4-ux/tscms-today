@@ -40,13 +40,13 @@ const promoStyle=read('tscms-promo-calendar.css');
 const promoAdmin=read('tscms-promo-admin.js');
 const adminAuth=read('tscms-admin-dual.js');
 assert('Coming Up survives generator overwriting index.html and admin.html',
-  /tscms-promo-bootstrap\\.js/.test(quickJs) &&
-  /tscms-promo-calendar\\.js/.test(promoBootstrap) &&
-  /tscms-promo-calendar\\.css/.test(promoBootstrap) &&
-  /onSnapshot/.test(promoPublic) &&
-  /tscms-coming-up/.test(promoStyle) &&
-  /tscms-promo-admin\\.js/.test(adminAuth) &&
-  /promoEditors/.test(promoAdmin));
+  quickJs.includes('tscms-promo-bootstrap.js') &&
+  promoBootstrap.includes('tscms-promo-calendar.js') &&
+  promoBootstrap.includes('tscms-promo-calendar.css') &&
+  promoPublic.includes('onSnapshot') &&
+  promoStyle.includes('tscms-coming-up') &&
+  adminAuth.includes('tscms-promo-admin.js') &&
+  promoAdmin.includes('promoEditors'));
 
 // Published surface is index.html: tscms-today.html is the chrome-less build
 // intermediate (make_public.py adds runtime/Quick Jump/Feedback/styles when deriving
