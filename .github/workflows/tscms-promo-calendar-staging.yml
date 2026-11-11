@@ -5,6 +5,10 @@ on:
     paths:
       - 'index.html'
       - 'admin.html'
+      - 'tscms-quick-jump.js'
+      - 'tscms-admin-dual.js'
+      - 'tscms-promo-bootstrap.js'
+      - 'scripts/verify-public-preservation.mjs'
       - 'tscms-promo-calendar.js'
       - 'tscms-promo-calendar.css'
       - 'tscms-promo-admin.js'
