@@ -450,3 +450,23 @@ else mountAutumnNavigation();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadPathway,{once:true});
   else loadPathway();
 })();
+
+/* TSCMS Coming Up: protected generator-survival bootloader.
+   The six-hour make_public.py build preserves this standalone Quick Jump
+   module, even when it completely regenerates index.html. Keep this
+   separate from the Quick Jump drawer and the radio/audio controls. */
+(function () {
+  'use strict';
+  function loadComingUpBootstrap() {
+    if (!document.querySelector('.wrap .feat')) return;
+    if (document.querySelector('script[data-tscms-preserved="promo-calendar-bootstrap"]')) return;
+    var script=document.createElement('script');
+    script.src='./tscms-promo-bootstrap.js?v=20261111';
+    script.async=true;
+    script.setAttribute('data-tscms-preserved','promo-calendar-bootstrap');
+    script.onerror=function(){console.warn('TSCMS Coming Up calendar unavailable; the rest of the homepage is unchanged.');};
+    document.head.appendChild(script);
+  }
+  if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',loadComingUpBootstrap,{once:true});
+  else loadComingUpBootstrap();
+})();
