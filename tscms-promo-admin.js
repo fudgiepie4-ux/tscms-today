@@ -76,7 +76,11 @@ function showPanel(user){
   }
   const title=field('What is the promo? (short title)','text',{name:'title',maxLength:120,placeholder:'Songwriters Workshop promo'});
   const postingBy=field('Who is posting it?','text',{name:'postingBy',maxLength:80,placeholder:'Vickie Gibson'});
-  const when=field('Scheduled date and time (Central Time)','datetime-local',{name:'when'});
+  const when=field('Date and time of the event (Central Time)','datetime-local',{name:'when'});
+  const whenNote=document.createElement('p');
+  whenNote.className='tscms-promo-admin-note';
+  whenNote.textContent='This is when the event happens. Your promo goes live on the homepage as soon as you hit Publish, and stays listed until this date passes.';
+  form.append(whenNote);
   when.min=nowCT();
   const file=field('Promo image (JPG, PNG, or WebP — max 4 MB)','file',{name:'image',accept:'image/jpeg,image/png,image/webp'});
   const submit=document.createElement('button');
@@ -94,7 +98,7 @@ function showPanel(user){
     const name=title.value.trim(),poster=postingBy.value.trim();
     if(!name||name.length>120||!poster||poster.length>80||
        !/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(scheduledAtCT)||scheduledAtCT<nowCT()){
-      status.textContent='Enter a valid title, poster and future Central Time schedule.';return;
+      status.textContent='Enter a valid title, poster and future event date and time.';return;
     }
     if(!selected||!extension||selected.size===0||selected.size>MAX_SIZE){
       status.textContent='Choose a JPG, PNG, or WebP image no larger than 4 MB.';return;
