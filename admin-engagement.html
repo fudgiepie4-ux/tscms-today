@@ -83,6 +83,27 @@ background:radial-gradient(ellipse at 50% 0,#79431e 0,#2b160d 40%,#170e08 90%)}
  .eng-rank-table th:nth-child(1),.eng-rank-table td:nth-child(1){width:7%}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+/* Approved saluting-pug awards artwork is used unchanged; only data fields overlay it. */
+.eng-awards{position:relative;width:100%;aspect-ratio:1024/969;container-type:inline-size;isolation:isolate;overflow:hidden;box-shadow:0 10px 28px #000a;background:#241108}
+.eng-awards-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom;display:block;pointer-events:none;user-select:none}
+.eng-awards-field{position:absolute;z-index:1;display:flex;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;overflow:hidden}
+.eng-awards-month{top:21.7%;left:31.6%;width:39%;height:8%;flex-direction:column;background:linear-gradient(115deg,#f0cb96,#edc48e 56%,#e9c18f);color:#371606;font-weight:800;border-radius:7px 7px 12px 12px}
+.eng-awards-month strong{font-size:4.3cqw;line-height:1.01;white-space:nowrap;letter-spacing:-.03em}
+.eng-awards-month small{font-size:2.6cqw;line-height:1.08}
+.eng-award-name{top:50.95%;height:7.7%;color:#351b0e;font-weight:800;line-height:1.08;background:linear-gradient(#f8dbaa,#f1cea0);padding:0 .2cqw;overflow-wrap:anywhere}
+.eng-award-name--silver{left:7%;width:25.2%;font-size:2.6cqw}
+.eng-award-name--gold{left:37.7%;width:24.8%;font-size:3.8cqw}
+.eng-award-name--bronze{left:69.7%;width:25.2%;font-size:2.35cqw}
+.eng-award-score{top:59.8%;height:7.75%;color:#fff2bc;font-weight:800;flex-direction:column;line-height:1.12;background:linear-gradient(180deg,#a91a1d,#7a0c13 62%,#560916);text-shadow:0 1px 2px #2c0706}
+.eng-award-score strong{font-size:3.3cqw;line-height:1.03;white-space:nowrap}
+.eng-award-score small{font-size:2.23cqw;line-height:1.1;white-space:nowrap}
+.eng-award-score--silver{left:10%;width:20.7%}
+.eng-award-score--gold{left:40.8%;width:18.2%}
+.eng-award-score--bronze{left:72.2%;width:18.8%}
+.eng-awards-footer{top:93.5%;left:17.7%;width:64%;height:3.4%;background:linear-gradient(90deg,#683213,#392016,#653311);color:#f8dcaa;font-size:1.94cqw;white-space:nowrap;padding:0 .4cqw;overflow:hidden}
+.eng-award-description{font:12px/1.45 system-ui,sans-serif;color:#e8cfa8;margin:10px 12px 0;overflow-wrap:anywhere}
+.eng-extra{padding:0 0 25px;background:#190d07}
+@media(max-width:420px){.eng-award-name--silver{font-size:2.6cqw}.eng-award-name--bronze{font-size:2.35cqw}}
 </style>
 </head>
 <body>
@@ -118,9 +139,18 @@ background:radial-gradient(ellipse at 50% 0,#79431e 0,#2b160d 40%,#170e08 90%)}
       </section>
     </section>
     <div class="eng-extra">
-      <details id="eng-spotlight-details"><summary>🔎 Monthly Admin Spotlight · Case Notes</summary>
-        <div class="eng-spot-detail" id="eng-spotlight"></div>
-      </details>
+      <section class="eng-awards" id="eng-spotlight-details" hidden aria-label="Monthly Admin Spotlight awards and recognition">
+        <img class="eng-awards-art" src="./assets/admin-spotlight-saluting-pug-approved.png" width="1024" height="1535" alt="" aria-hidden="true" decoding="async">
+        <div class="eng-awards-field eng-awards-month" aria-label="Award month"><strong id="eng-awards-month"></strong><small>(Central Time)</small></div>
+        <div class="eng-awards-field eng-award-name eng-award-name--silver" id="eng-award-silver-name"></div>
+        <div class="eng-awards-field eng-award-name eng-award-name--gold" id="eng-award-gold-name"></div>
+        <div class="eng-awards-field eng-award-name eng-award-name--bronze" id="eng-award-bronze-name"></div>
+        <div class="eng-awards-field eng-award-score eng-award-score--silver"><strong id="eng-award-silver-total"></strong><small id="eng-award-silver-average"></small></div>
+        <div class="eng-awards-field eng-award-score eng-award-score--gold"><strong id="eng-award-gold-total"></strong><small id="eng-award-gold-average"></small></div>
+        <div class="eng-awards-field eng-award-score eng-award-score--bronze"><strong id="eng-award-bronze-total"></strong><small id="eng-award-bronze-average"></small></div>
+        <div class="eng-awards-field eng-awards-footer" id="eng-awards-dates"></div>
+      </section>
+      <p class="eng-award-description" id="eng-awards-definition" hidden></p>
       <p class="eng-meta" id="eng-when"></p>
       <p class="eng-meta">Comments are counted by the day they were made in Central Time. The TSCMS week begins Wednesday at 12:00 AM Central Time and runs through Tuesday. The table shows every admin returned by the tracker, including zero comments.</p>
     </div>
@@ -158,14 +188,24 @@ function renderEngagement(data){
     '<td class="eng-n">'+engNum(r.day)+'</td><td class="eng-n">'+(week?engNum(r.week):'—')+'</td><td class="eng-n">'+engNum(r.month)+'</td></tr>'
   ).join(''):'<tr><td colspan="5">No ranked admin records collected yet.</td></tr>';
   const s=data.spotlight;
-  const spotlight=document.getElementById('eng-spotlight');
   const spotlightWrap=document.getElementById('eng-spotlight-details');
   if(s){
-    const fin=Array.isArray(s.finalists)?s.finalists:[];
-    spotlight.innerHTML='<h2>'+engEsc(s.month)+' (Central Time)</h2><p><strong>'+engEsc(s.winner)+'</strong> · '+engEsc(s.winner_average)+' comments/day average · '+engNum(s.winner_total)+' total</p>'+
-      '<ol>'+fin.map(f=>'<li>'+engEsc(f.name)+' — '+engNum(f.total)+' total ('+engEsc(f.average)+' / day)</li>').join('')+'</ol><p>'+engEsc(s.definition)+'</p>';
+    const finalists=Array.isArray(s.finalists)?s.finalists:[];
+    const gold=finalists.find(f=>f.name===s.winner)||{name:s.winner,total:s.winner_total,average:s.winner_average};
+    const others=finalists.filter(f=>f.name!==gold.name).sort((a,b)=>(Number(b.average)||0)-(Number(a.average)||0)||(Number(b.total)||0)-(Number(a.total)||0));
+    const medals={gold, silver:others[0],bronze:others[1]};
+    const label=(id,value)=>{document.getElementById(id).textContent=value;};
+    label('eng-awards-month',s.month||'Monthly Honors');
+    Object.entries(medals).forEach(([medal,person])=>{
+      label('eng-award-'+medal+'-name',person?.name||'Awaiting results');
+      label('eng-award-'+medal+'-total',person?engNum(person.total)+' Total':'—');
+      label('eng-award-'+medal+'-average',person?'('+String(person.average)+' / Day)':'');
+    });
+    label('eng-awards-dates','Data as of '+(data.latest_date||'—')+' (Central Time)  ✦  Updated '+(data.generated||'—'));
+    const def=document.getElementById('eng-awards-definition');
+    def.textContent=s.definition||'';def.hidden=!s.definition;
     spotlightWrap.hidden=false;
-  }else{spotlightWrap.hidden=true;}
+  }else{spotlightWrap.hidden=true;document.getElementById('eng-awards-definition').hidden=true;}
   document.getElementById('eng-when').textContent='Data as of '+(data.latest_date||'not yet available')+' (Central Time) · Generated '+(data.generated||'unknown')+' · Approved admins only.';
   return true;
 }
