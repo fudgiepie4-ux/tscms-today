@@ -18,43 +18,113 @@
   A link from admin.html is a one-line patch for Clara (see handoff).
 -->
 <style>
-body{margin:0;background:#14100b;color:#f6e6ca;font:15px/1.5 system-ui,sans-serif}
-.eng-wrap{max-width:800px;margin:0 auto;padding:20px}
-.eng-gate{margin:60px auto;max-width:420px;background:#231a10;border:2px solid #bc975e;border-radius:14px;padding:22px;text-align:center}
-.eng-gate h1{font:700 22px/1.3 Georgia,serif;color:#ffd88a;margin:0 0 8px}
-.eng-gate p{color:#d9c49a;margin:0 0 14px}
-.eng-gate a{color:#ffd88a}
-.eng-err{color:#ff9a7a;min-height:22px;margin:10px 0 0;font-weight:700}
-.eng-body h1{font:700 24px/1.3 Georgia,serif;color:#ffd88a;margin:0 0 4px}
-.eng-meta{color:#d9c49a;margin:0 0 6px}
-.eng-note{color:#d9c49a;font-size:13px;margin:0 0 18px}
-.eng-spot{margin:0 0 20px;padding:16px;background:#231a10;border:2px solid #bc975e;border-radius:14px}
-.eng-spot h2{font:700 19px/1.3 Georgia,serif;color:#ffd88a;margin:0 0 6px}
-.eng-spot .eng-winner{font:700 22px/1.3 Georgia,serif;color:#fff}
-.eng-spot .eng-avg{font-size:17px;margin:4px 0}
-.eng-spot .eng-def{color:#d9c49a;font-size:13px;margin:8px 0 0}
-.eng-spot ol{margin:8px 0 0;padding-left:22px}
-.eng-win{margin:0 0 20px;padding:16px;background:#231a10;border:1px solid #6b543a;border-radius:14px}
-.eng-win h2{font:700 18px/1.3 Georgia,serif;color:#ffd88a;margin:0 0 4px}
-.eng-win .eng-sub{color:#d9c49a;font-size:13px;margin:0 0 10px}
-.eng-win table{width:100%;border-collapse:collapse}
-.eng-win th{text-align:left;color:#d9c49a;font-size:13px;border-bottom:1px solid #6b543a;padding:4px 6px}
-.eng-win td{border-bottom:1px solid #3a2d1d;padding:6px}
-.eng-win td.eng-n{text-align:right;font-weight:700}
-.eng-zero{margin-top:10px;color:#d9c49a}
-.eng-zero b{color:#f6e6ca}
-.eng-tot{margin-top:10px;color:#ffdd9c}
-.eng-empty{color:#d9c49a;padding:20px;text-align:center}
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Special+Elite&display=swap');
+:root{color-scheme:dark;--ink:#301b11;--coffee:#160e09;--leather:#301b12;--gold:#d49a43;--paper:#f0dbac;--parchment:#f7e7c2;--muted:#775b40;--wine:#5b1815}
+*{box-sizing:border-box}
+html{min-width:280px}
+body{margin:0;min-height:100vh;color:#f5e7c9;font:16px/1.5 "DM Sans",system-ui,sans-serif;background:radial-gradient(circle at 20% 8%,#704123 0%,transparent 27%),repeating-linear-gradient(91deg,#1b110b 0 16px,#27170e 17px 20px,#170e09 21px 45px,#2b1a10 47px 49px,#180e08 50px 86px),#1b110b}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,#0008,transparent 22%,transparent 78%,#0008),radial-gradient(ellipse at 50% 5%,transparent 10%,#0008 120%);z-index:0}
+a{color:#ffe0a0}
+a:focus-visible{outline:3px solid #ffdb8a;outline-offset:4px}
+.eng-wrap{width:min(100%,770px);margin:0 auto;padding:13px clamp(10px,3vw,22px) 60px;position:relative;z-index:1}
+.eng-scene{position:relative;isolation:isolate;overflow:hidden;min-height:260px;border:2px solid #6c4727;border-radius:14px 14px 8px 8px;background:radial-gradient(ellipse at 22% 15%,#d4a36355,transparent 35%),linear-gradient(140deg,#4c301d,#2a1a10 45%,#130e0a);box-shadow:0 11px 36px #000b,inset 0 0 30px #080401;display:grid;grid-template-columns:minmax(126px,38%) 1fr;align-items:end;margin-bottom:20px}
+.eng-scene:before{content:"";position:absolute;inset:18px 15px;background:repeating-linear-gradient(23deg,transparent 0 24px,#bb90521c 25px 26px),linear-gradient(145deg,#d6b27b40,#a7794033);clip-path:polygon(6% 0,94% 4%,100% 90%,5% 100%);transform:rotate(-2deg);border:1px solid #e8bd7655;z-index:-1}
+.eng-sitetop{position:absolute;top:0;left:0;right:0;background:#0e0a08d9;color:#f3dfb7;text-align:center;font:700 clamp(15px,3vw,22px)/1.4 Georgia,serif;letter-spacing:1.4px;padding:10px 6px;border-bottom:2px solid #9b6a35}
+.eng-pug{width:100%;max-width:268px;display:block;filter:drop-shadow(5px 8px 7px #0009);align-self:end;z-index:1}
+.eng-cover{padding:52px 13px 16px 1px;align-self:center;text-align:center;z-index:2}
+.eng-cover .eng-sticker{display:inline-block;transform:rotate(-7deg);font:700 11px/1.1 "Special Elite",Georgia,serif;letter-spacing:1px;color:#6f2119;border:3px solid #6f2119;background:#f4dfb6e8;padding:6px 8px;margin-bottom:10px}
+.eng-cover h1{font:700 clamp(24px,4.7vw,40px)/1.07 "Special Elite",Georgia,serif;color:#f8e5b9;text-shadow:2px 3px #170a06,0 3px 12px #000;overflow-wrap:break-word;letter-spacing:.1px;margin:0}
+.eng-cover .eng-tag{font:700 11px/1.3 "Special Elite",Georgia,serif;color:#f3c67f;margin-top:11px;letter-spacing:1.3px}
+.eng-prints{position:absolute;right:8px;bottom:11px;font-size:22px;letter-spacing:16px;opacity:.4;transform:rotate(-18deg);pointer-events:none}
+.eng-gate,.eng-spot,.eng-win,.eng-report-head{position:relative;margin:0 0 17px;border-radius:5px 14px 7px 12px;border:1px solid #b18a51;background:radial-gradient(circle at 98% 98%,#cda36b33,transparent 35%),linear-gradient(137deg,#f9e8c5,#e4c994 100%);color:var(--ink);box-shadow:0 4px 0 #623f27,0 12px 22px #0008,inset 0 0 16px #9c69331a}
+.eng-gate:before,.eng-spot:before,.eng-win:before,.eng-report-head:before{content:"";position:absolute;left:50%;top:-8px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f7a75a,#862d12 65%,#43180d);box-shadow:1px 3px 3px #0006;z-index:2}
+.eng-gate{margin:18px auto;max-width:640px;padding:32px 20px;text-align:center;border:7px solid #49301d;border-radius:18px;background:linear-gradient(160deg,#3b2519,#1a100a);color:#f6ddb0;box-shadow:inset 0 0 0 2px #9e7848,0 8px 25px #000b}
+.eng-gate:before{display:none}
+.eng-gate h1{font:700 clamp(23px,5vw,33px)/1.15 "Special Elite",Georgia,serif;color:#ffe3a8;margin:0 0 12px}
+.eng-gate p{margin:0 0 12px;color:#e6cca0}
+.eng-gate a{font-weight:800;text-underline-offset:4px}
+.eng-gate .eng-kicker{display:block;color:#d9a75e;letter-spacing:2px;font-size:12px;font-weight:800;margin-bottom:8px}
+.eng-err{color:#ffb39c!important;min-height:22px;font-weight:700}
+.eng-report-head{padding:22px 20px 20px;transform:rotate(-.15deg)}
+.eng-report-head h1{font:700 clamp(24px,5vw,32px)/1.1 "Special Elite",Georgia,serif;color:#411d13;margin:3px 0 8px}
+.eng-kicker{font-size:11px;font-weight:800;letter-spacing:2px;color:#71331d}
+.eng-meta{font-size:12px;font-weight:700;color:#6c4c36;margin:0 0 8px;overflow-wrap:anywhere}
+.eng-note{color:#614932;font-size:13px;line-height:1.45;margin:0}
+.eng-spot{padding:23px 19px 21px}
+.eng-spot h2{font:700 clamp(21px,4vw,27px)/1.16 "Special Elite",Georgia,serif;color:#511d16;margin:6px 0 16px}
+.eng-winner{color:#5b1815;font:700 clamp(24px,5vw,33px)/1.15 Georgia,serif;overflow-wrap:anywhere}
+.eng-avg{font-size:15px;font-weight:800;margin:8px 0 16px;color:#48261b}
+.eng-spot ol{margin:8px 0 12px;padding-left:25px;font-size:14px}
+.eng-spot li{margin-bottom:7px}
+.eng-def{border-top:1px dashed #ad8152;padding-top:11px;color:#694b36;font-size:12px;margin:14px 0 0}
+.eng-win{padding:19px 16px 17px}
+.eng-window-kicker{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1.7px;color:#832b1b;border:2px solid #a64d3c;padding:3px 8px;transform:rotate(-2deg);margin-bottom:9px}
+.eng-win h2{font:700 clamp(20px,4.5vw,27px)/1.15 "Special Elite",Georgia,serif;color:#422116;margin:0 0 3px}
+.eng-sub{color:#75543b;font-size:12px;margin:0 0 13px}
+.eng-metric{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#ead1a1;border:1px solid #b6905b;border-radius:7px;box-shadow:inset 0 1px 4px #84512b1c;padding:14px;margin-bottom:15px}
+.eng-metric>div:first-child{max-width:55%}
+.eng-metric-label{font-size:11px;letter-spacing:1.2px;font-weight:800;color:#6c4731}
+.eng-metric-desc{display:block;color:#6e5642;font-size:12px;margin-top:4px}
+.eng-metric strong{font:700 clamp(30px,8vw,48px)/1 Georgia,serif;color:#681e18;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.eng-rank-label{font-size:12px;letter-spacing:1px;font-weight:800;text-transform:uppercase;color:#553323;margin:2px 0 8px}
+.eng-scroll{overflow-x:auto}
+.eng-win table{width:100%;min-width:245px;border-collapse:collapse;font-size:14px;table-layout:fixed}
+.eng-win th{text-align:left;color:#724b2f;font-weight:800;font-size:12px;border-bottom:2px solid #9d7345;padding:7px 5px}
+.eng-win td{padding:10px 5px;border-bottom:1px dashed #c69e6c;overflow-wrap:anywhere}
+.eng-win th:first-child,.eng-win td:first-child{width:34px}
+.eng-win th:last-child,.eng-win td.eng-n{text-align:right;width:80px}
+.eng-win td.eng-n{font:700 17px/1.25 Georgia,serif;color:#642019;font-variant-numeric:tabular-nums}
+.eng-win tr:nth-child(1) td:nth-child(2){font-weight:800}
+.eng-zero{margin-top:14px;padding:9px 10px;font-size:13px;border-left:4px solid #a27946;background:#f7e6c277;color:#61432f}
+.eng-zero b{color:#451f15}
+.eng-empty{text-align:center;padding:27px;color:#593722;font-weight:700;background:var(--paper);border-radius:9px}
+.eng-tot{font-size:12px;color:#624b35;margin-top:10px}
+.eng-foot{color:#eed5a8;text-align:center;margin-top:25px;font:700 12px/1.6 "Special Elite",Georgia,serif;letter-spacing:1px}
+.eng-foot a{color:#f7d38d}
+@media(min-width:600px){.eng-scene{min-height:314px}.eng-cover{padding-top:65px}.eng-spot,.eng-win{padding:26px 30px}.eng-report-head{padding:26px 30px}}
+@media(max-width:390px){.eng-scene{grid-template-columns:39% 61%;min-height:232px}.eng-cover{padding:50px 7px 9px 0}.eng-cover h1{font-size:clamp(18px,6vw,25px)}.eng-sticker{font-size:9px!important}.eng-tag{font-size:9px!important}.eng-wrap{padding-left:10px;padding-right:10px}.eng-metric{padding:12px 10px}.eng-win{padding:17px 12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <div class="eng-wrap">
+<div class="eng-scene" aria-label="Pug detective themed people tracker">
+  <div class="eng-sitetop">✦ TSCMS RADIO ✦</div>
+  <svg class="eng-pug" viewBox="0 0 260 255" role="img" aria-label="Illustration of a pug dressed like Sherlock Holmes, holding a magnifying glass">
+    <defs><linearGradient id="engFur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d8b27d"/><stop offset=".58" stop-color="#b98b5c"/><stop offset="1" stop-color="#70462c"/></linearGradient><linearGradient id="engCoat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9a7652"/><stop offset="1" stop-color="#3b2a1d"/></linearGradient></defs>
+    <path d="M35 255Q19 194 90 167L173 170Q242 196 235 255Z" fill="url(#engCoat)" stroke="#27160d" stroke-width="5"/>
+    <path d="M114 159L89 253M155 160L184 253" stroke="#261810" stroke-width="11" opacity=".55"/>
+    <path d="M31 255L68 198L102 227L92 255M234 255L195 196L169 224L176 255" fill="#bb9b70" stroke="#3c2b1d" stroke-width="4"/>
+    <ellipse cx="59" cy="120" rx="27" ry="54" fill="#2f241e" transform="rotate(-23 59 120)"/>
+    <ellipse cx="204" cy="120" rx="29" ry="56" fill="#2c231c" transform="rotate(22 204 120)"/>
+    <ellipse cx="130" cy="122" rx="83" ry="88" fill="url(#engFur)" stroke="#3e2b20" stroke-width="4"/>
+    <path d="M73 118Q84 85 130 96Q175 83 191 120Q181 189 131 199Q81 191 73 118Z" fill="#514139"/>
+    <path d="M80 109Q91 96 112 105M144 106Q171 96 182 108M104 79Q125 69 140 77" fill="none" stroke="#513121" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="102" cy="131" rx="19" ry="23" fill="#1c1714"/><ellipse cx="161" cy="130" rx="19" ry="22" fill="#201812"/>
+    <circle cx="109" cy="125" r="7" fill="#fff5d5"/><circle cx="166" cy="124" r="7" fill="#fff5d5"/>
+    <ellipse cx="105" cy="170" rx="27" ry="23" fill="#c9a47c"/><ellipse cx="157" cy="170" rx="27" ry="23" fill="#d0a77f"/>
+    <path d="M115 154Q131 146 147 155Q145 171 131 172Q116 169 115 154Z" fill="#16130f"/>
+    <path d="M131 172Q130 182 120 185M131 172Q132 182 142 185" stroke="#51362b" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M40 85Q44 39 111 28Q176 22 208 73L235 89Q208 107 173 96L74 98Q46 104 25 94Z" fill="#7c5b3c" stroke="#281e15" stroke-width="5"/>
+    <path d="M86 32Q118 6 144 29L177 31L170 51L92 49Z" fill="#b3986b" stroke="#2d2016" stroke-width="4"/>
+    <path d="M56 61L207 76M79 44L173 91M107 27L183 87" stroke="#d0ae79" opacity=".5" stroke-width="3"/>
+    <path d="M95 199L126 220L157 200" fill="none" stroke="#8c3723" stroke-width="12"/>
+    <circle cx="95" cy="125" r="39" fill="none" stroke="#17120f" stroke-width="12"/>
+    <circle cx="95" cy="125" r="39" fill="none" stroke="#b98b4b" stroke-width="7"/>
+    <path d="M69 154L43 195" stroke="#1a100c" stroke-width="20" stroke-linecap="round"/>
+    <path d="M69 154L43 195" stroke="#b38b57" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="42" cy="200" rx="17" ry="14" fill="#ac8059" stroke="#2b1a10" stroke-width="3"/>
+  </svg>
+  <div class="eng-cover"><span class="eng-sticker">TOP SECRET · 🐾<br>PEOPLE TRACKER</span><h1>ADMIN<br>ENGAGEMENT<br>TRACKER</h1><div class="eng-tag">THE CASE OF THE COMMENT TRAIL</div></div>
+  <div class="eng-prints" aria-hidden="true">🐾 🐾</div>
+</div>
   <div class="eng-gate" id="eng-gate">
-    <h1>&#128272; Admin Engagement Tracker</h1>
+    <span class="eng-kicker">🔒 TSCMS STAFF ACCESS</span><h1>Detective’s desk · Admin only</h1>
     <p id="eng-gate-msg">Admins only. Checking your sign-in…</p>
     <p class="eng-err" id="eng-err" role="status"></p>
   </div>
   <div class="eng-body" id="eng-body" style="display:none"></div>
+  <footer class="eng-foot">🐾 Follow the clues · <a href="admin.html" target="_self">Back to Admin Control Room</a></footer>
 </div>
 <script type="module">
 import {initializeApp,getApp,getApps} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
@@ -88,16 +158,18 @@ function fmtRange(w){
   if(a[1]===b[1])return MON[+a[2]-1]+' '+ +a[3] +' – '+MON[+b[2]-1]+' '+ +b[3] +', '+a[1]+' (Central Time)';
   return MON[+a[2]-1]+' '+ +a[3] +', '+a[1]+' – '+MON[+b[2]-1]+' '+ +b[3] +', '+b[1]+' (Central Time)';
 }
-function windowHtml(w){
+function windowHtml(w,caseNo){
   var rows=w.ranked.map(function(r,i){
     return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.name)+'</td><td class="eng-n">'+r.comments+'</td></tr>';
   }).join('');
   var zero=w.no_comments.length
     ? '<div class="eng-zero">No comments: <b>'+w.no_comments.map(escHtml).join(', ')+'</b></div>'
     : '<div class="eng-zero">Everyone commented.</div>';
-  return '<section class="eng-win"><h2>'+fmtRange(w)+'</h2>'+
+  return '<section class="eng-win"><span class="eng-window-kicker">EVIDENCE '+caseNo+' · 🐾</span><h2>'+fmtRange(w)+'</h2>'+
     '<p class="eng-sub">'+w.days_of_data+' day(s) of data collected</p>'+
-    '<table><tr><th>#</th><th>Admin</th><th style="text-align:right">Comments</th></tr>'+rows+'</table>'+
+    '<div class="eng-metric"><div><div class="eng-metric-label">ADMIN COMMENTS</div><span class="eng-metric-desc">Of '+w.total_comments+' total comments seen</span></div><strong>'+w.admin_total+'</strong></div>'+
+    '<div class="eng-rank-label">🔎 The comment trail · ranked admins</div>'+
+    '<div class="eng-scroll"><table aria-label="Ranked administrator comments"><thead><tr><th>#</th><th>Admin</th><th>Comments</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     zero+
     '<div class="eng-tot">Admin comments: '+w.admin_total+' of '+w.total_comments+' total comments seen.</div></section>';
 }
@@ -109,15 +181,15 @@ function renderEngagement(e){
   var fin=s.finalists.map(function(f,i){
     return '<li>'+escHtml(f.name)+' — '+f.total+' total ('+f.average+' / day)</li>';
   }).join('');
-  var spot='<section class="eng-spot"><h2>&#11088; Admin Spotlight — '+escHtml(s.month)+' (Central Time)</h2>'+
+  var spot='<section class="eng-spot"><span class="eng-kicker">🔎 THE FEATURED DETECTIVE</span><h2>⭐ Admin Spotlight — '+escHtml(s.month)+' (Central Time)</h2>'+
     '<div class="eng-winner">'+escHtml(s.winner)+'</div>'+
     '<div class="eng-avg">'+s.winner_average+' comments per day average &middot; '+s.winner_total+' total</div>'+
     '<ol>'+fin+'</ol>'+
     '<p class="eng-def">'+escHtml(s.definition)+' Based on '+s.days_of_data+' day(s) of data collected so far ('+s.days_elapsed+' days elapsed in the month, Central Time).</p></section>';
-  return '<h1>Admin Engagement Tracker</h1>'+
+  return '<section class="eng-report-head"><div class="eng-kicker">CASE FILE · ADMIN ONLY</div><h1>Following the footprints 🐾</h1>'+
     '<p class="eng-meta">Data as of '+fmtDate(e.latest_date)+' &middot; updated '+escHtml(e.generated)+' &middot; admin-only</p>'+
-    '<p class="eng-note">Comments are counted on the Central Time day they were made — so an evening comment from Australia lands on the Central Time day it fell on.</p>'+
-    spot+windowHtml(e.day)+windowHtml(e.last_7_days)+windowHtml(e.month);
+    '<p class="eng-note">Comments are counted on the Central Time day they were made — so an evening comment from Australia lands on the Central Time day it fell on.</p></section>'+
+    spot+windowHtml(e.day,'01')+windowHtml(e.last_7_days,'02')+windowHtml(e.month,'03');
 }
 // Same approved-admin bar as the Firestore rules (promoSignedInAdmin):
 // signed in, email verified, approved, admin or owner. The rules are the
