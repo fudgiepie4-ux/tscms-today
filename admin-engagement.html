@@ -185,7 +185,7 @@ function fmtRange(w){
   if(a[1]===b[1])return MON[+a[2]-1]+' '+ +a[3] +' – '+MON[+b[2]-1]+' '+ +b[3] +', '+a[1]+' (Central Time)';
   return MON[+a[2]-1]+' '+ +a[3] +', '+a[1]+' – '+MON[+b[2]-1]+' '+ +b[3] +', '+b[1]+' (Central Time)';
 }
-function countStr(v){var n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US'):'—';}
+function countStr(v){if(v===null||v===undefined||v==='')return '—';var n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US'):'—';}
 function windowHtml(w,caseNo,periodLabel){
   if(!w)return '<section class="eng-win"><h2>'+periodLabel+'</h2><p class="eng-empty">This reporting window has not been published yet.</p></section>';
   var rows=Array.isArray(w.ranked)?w.ranked.map(function(r,i){
