@@ -2,7 +2,7 @@
    The Firebase rules are the actual authorization boundary. No shared-PIN bypass. */
 import {initializeApp,getApp,getApps} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,reload,getIdToken} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
-import {getFirestore,doc,collection,getDocFromServer,setDoc,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
+import {getFirestore,doc,collection,getDocFromServer,setDoc,serverTimestamp,query,where,getDocs,deleteDoc} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import {getStorage,ref,uploadBytes,deleteObject} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js';
 import {tscmsFirebaseConfig} from './firebase-admin-config.js';
 
@@ -19,6 +19,14 @@ function nowCT(){
   }).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
   return parts.year+'-'+parts.month+'-'+parts.day+'T'+parts.hour+':'+parts.minute;
 }
+function prettyCT(value){
+  const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(value||'');
+  if(!m)return value||'';
+  const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(Date.UTC(+m[1],+m[2]-1,+m[3])).getUTCDay()];
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2]-1];
+  let h=+m[4]; const ap=h>=12?'PM':'AM'; h=h%12; if(h===0)h=12;
+  return wd+', '+mo+' '+ +m[3] +', '+m[1]+' at '+h+':'+m[5]+' '+ap+' CT';
+}
 async function approvedEditor(user){
   if(!user||!user.uid)return false;
   await reload(user);
@@ -31,6 +39,13 @@ async function approvedEditor(user){
   if(p.owner===true)return true;
   const editor=await getDocFromServer(doc(db,'promoEditors',user.uid));
   return editor.exists()&&editor.data().enabled===true;
+}
+async function isOwnerUser(user){
+  if(!user||!user.uid)return false;
+  try{
+    const snap=await getDocFromServer(doc(db,'users',user.uid));
+    return snap.exists()&&snap.data().owner===true&&snap.data().status==='approved';
+  }catch(_){return false;}
 }
 function addStyles(){
   if(document.getElementById('tscms-promo-admin-style'))return;
@@ -45,10 +60,110 @@ function addStyles(){
     '.tscms-promo-admin input[type=file]{height:auto;line-height:1.5}'+
     '.tscms-promo-admin button{min-height:46px;margin-top:16px;padding:10px 18px;background:#e8b76b;color:#201405;border:1px solid #ffe0a1;border-radius:8px;font:700 16px system-ui,sans-serif;cursor:pointer}'+
     '.tscms-promo-admin button:disabled{cursor:wait;opacity:.65}'+
-    '.tscms-promo-admin .tscms-promo-admin-status{margin:12px 0 0;color:#ffdd9c;min-height:24px}';
+    '.tscms-promo-admin .tscms-promo-admin-status{margin:12px 0 0;color:#ffdd9c;min-height:24px}'+
+    '.tscms-promo-admin h3{font:700 18px/1.3 Georgia,serif;color:#ffd88a;margin:20px 0 6px}'+
+    '.tscms-promo-admin .tscms-promo-mine{list-style:none;margin:0;padding:0}'+
+    '.tscms-promo-admin .tscms-promo-mine li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #6b543a}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-mine-info{min-width:0}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-mine-title{font-weight:700}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-mine-when{color:#d9c49a;font-size:13px}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-mine-ended{color:#b7a684;font-size:13px}'+
+    '.tscms-promo-admin .tscms-promo-mine button{margin:0;min-height:40px;padding:8px 14px;font-size:14px;flex:none}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-delete{background:#7a2a1d;color:#ffe9d6;border-color:#c96a4a}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-confirm-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}'+
+    '.tscms-promo-admin .tscms-promo-mine .tscms-promo-confirm-row span{font-weight:700}';
   document.head.appendChild(style);
 }
 function removePanel(){panel?.remove();panel=null;}
+async function loadMyPromos(user,listEl,statusEl,owner){
+  if(!listEl)return;
+  listEl.innerHTML='';
+  const loading=document.createElement('li');
+  loading.textContent='Loading promos…';
+  listEl.append(loading);
+  try{
+    const q=owner?query(collection(db,'promoEntries')):query(collection(db,'promoEntries'),where('createdBy','==',user.uid));
+    const snap=await getDocs(q);
+    const rows=[];
+    snap.forEach(d=>{const v=d.data();rows.push({id:d.id,title:v.title||'(no title)',when:v.scheduledAtCT||'',imagePath:v.imagePath||'',poster:v.postingBy||''});});
+    rows.sort((a,b)=>(a.when<b.when?-1:a.when>b.when?1:0));
+    listEl.innerHTML='';
+    if(!rows.length){
+      const empty=document.createElement('li');
+      empty.textContent=owner?'No promos have been posted yet.':'You haven\u2019t posted any promos yet.';
+      listEl.append(empty);
+      return;
+    }
+    const now=nowCT();
+    rows.forEach(row=>{
+      const li=document.createElement('li');
+      const info=document.createElement('div');
+      info.className='tscms-promo-mine-info';
+      const title=document.createElement('div');
+      title.className='tscms-promo-mine-title';
+      title.textContent=row.title;
+      const when=document.createElement('div');
+      when.className='tscms-promo-mine-when';
+      when.textContent=prettyCT(row.when);
+      info.append(title,when);
+      if(owner&&row.poster){
+        const poster=document.createElement('div');
+        poster.className='tscms-promo-mine-when';
+        poster.textContent='Posted by '+row.poster;
+        info.append(poster);
+      }
+      if(row.when&&row.when<now){
+        const ended=document.createElement('div');
+        ended.className='tscms-promo-mine-ended';
+        ended.textContent='Event passed — no longer shown on the homepage.';
+        info.append(ended);
+      }
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='tscms-promo-delete';
+      del.textContent='Delete';
+      del.addEventListener('click',()=>{
+        const confirmRow=document.createElement('div');
+        confirmRow.className='tscms-promo-confirm-row';
+        const ask=document.createElement('span');
+        ask.textContent='Delete this promo?';
+        const yes=document.createElement('button');
+        yes.type='button';
+        yes.className='tscms-promo-delete';
+        yes.textContent='Yes, delete';
+        const no=document.createElement('button');
+        no.type='button';
+        no.textContent='Cancel';
+        confirmRow.append(ask,yes,no);
+        li.replaceChildren(info,confirmRow);
+        no.addEventListener('click',()=>{li.replaceChildren(info,del);});
+        yes.addEventListener('click',async ()=>{
+          yes.disabled=true;no.disabled=true;
+          ask.textContent='Deleting…';
+          try{
+            await deleteDoc(doc(db,'promoEntries',row.id));
+            if(row.imagePath){try{await deleteObject(ref(storage,row.imagePath));}catch(_){}}
+            li.remove();
+            if(statusEl)statusEl.textContent='Promo deleted.';
+            if(!listEl.children.length)loadMyPromos(user,listEl,statusEl,owner);
+          }catch(err){
+            ask.textContent='Couldn\u2019t delete that promo. Try again.';
+            yes.disabled=false;no.disabled=false;
+            console.warn('TSCMS promo delete failed:',err?.code||err?.message||'unknown');
+          }
+        });
+      });
+      li.append(info,del);
+      listEl.append(li);
+    });
+  }catch(err){
+    listEl.innerHTML='';
+    const failed=document.createElement('li');
+    failed.textContent='Couldn\u2019t load your promos. Refresh the page to try again.';
+    listEl.append(failed);
+    console.warn('TSCMS promo list failed:',err?.code||err?.message||'unknown');
+  }
+}
 function showPanel(user){
   if(!host||panel||auth.currentUser?.uid!==user.uid)return;
   addStyles();
@@ -89,15 +204,26 @@ function showPanel(user){
   status.className='tscms-promo-admin-status';
   status.setAttribute('role','status');
   form.append(submit,status);
-  panel.append(heading,help,form);
+  const mineHeading=document.createElement('h3');
+  const mineNote=document.createElement('p');
+  const mineList=document.createElement('ul');
+  mineList.className='tscms-promo-mine';
+  panel.append(heading,help,form,mineHeading,mineNote,mineList);
   host.prepend(panel);
+  let ownerFlag=false;
+  void isOwnerUser(user).then(owner=>{
+    ownerFlag=owner;
+    mineHeading.textContent=owner?'All posted promos':'Your posted promos';
+    mineNote.textContent=owner?'As site owner you can delete any promo here. Promos disappear from the homepage on their own once the event time passes — use Delete to take one down early. You\u2019ll be asked to confirm first.':'Promos disappear from the homepage on their own once the event time passes. Use Delete here to take one down early — you\u2019ll be asked to confirm first.';
+    void loadMyPromos(user,mineList,status,owner);
+  });
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     const selected=file.files?.[0],extension=mimeToExtension[selected?.type];
     const scheduledAtCT=when.value;
     const name=title.value.trim(),poster=postingBy.value.trim();
     if(!name||name.length>120||!poster||poster.length>80||
-       !/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(scheduledAtCT)||scheduledAtCT<nowCT()){
+      !/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(scheduledAtCT)||scheduledAtCT<nowCT()){
       status.textContent='Enter a valid title, poster and future event date and time.';return;
     }
     if(!selected||!extension||selected.size===0||selected.size>MAX_SIZE){
@@ -120,6 +246,7 @@ function showPanel(user){
       published=true;
       form.reset();when.min=nowCT();
       status.textContent='✅ Published! Members can see this promo on the homepage now.';
+      void loadMyPromos(user,mineList,status,ownerFlag);
     }catch(err){
       if(imageRef&&!published){try{await deleteObject(imageRef);}catch(_){}}
       status.textContent='Promo was not published. Check your connection, account approval and Firebase rules, then try again.';
