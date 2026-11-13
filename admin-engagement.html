@@ -84,39 +84,66 @@ a:focus-visible{outline:3px solid #ffdb8a;outline-offset:4px}
 @media(min-width:600px){.eng-scene{min-height:314px}.eng-cover{padding-top:65px}.eng-spot,.eng-win{padding:26px 30px}.eng-report-head{padding:26px 30px}}
 @media(max-width:390px){.eng-scene{grid-template-columns:39% 61%;min-height:232px}.eng-cover{padding:50px 7px 9px 0}.eng-cover h1{font-size:clamp(18px,6vw,25px)}.eng-sticker{font-size:9px!important}.eng-tag{font-size:9px!important}.eng-wrap{padding-left:10px;padding-right:10px}.eng-metric{padding:12px 10px}.eng-win{padding:17px 12px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Approved image-faithful Sherlock pug restyle — visual only. */
+body{background:radial-gradient(ellipse at 28% 2%,#56361b 0%,transparent 34%),repeating-linear-gradient(91deg,#110a06 0 20px,#24150b 21px 25px,#1c1008 27px 70px,#38210e 71px 74px);font-family:Georgia,'Times New Roman',serif}
+.eng-wrap{max-width:710px;padding:0 10px 42px}
+.eng-art-wrap{position:relative;margin:0 -10px 13px;overflow:hidden;background:#1e130c;box-shadow:0 12px 22px #000a}
+.eng-approved-art{display:block;width:100%;height:auto}
+.eng-art-menu{position:absolute;right:1%;top:0;width:12%;height:16%;border-radius:9px;cursor:pointer;min-width:35px;min-height:32px}
+.eng-art-menu:focus-visible{outline:3px solid #ffe2a3;outline-offset:-4px}
+.eng-gate{background:linear-gradient(#3b2315,#1b1009)!important;border:6px ridge #8e6434!important;box-shadow:0 12px 30px #000c,inset 0 0 18px #000!important;margin:22px auto!important;padding:30px 17px!important;max-width:570px}
+.eng-gate:before{display:none!important}
+.eng-gate h1{font:700 clamp(22px,6vw,30px)/1.15 Georgia,serif;color:#ffe1a6}
+.eng-gate .eng-kicker{color:#f4c47f}
+.eng-gate p{color:#efd5ab}
+.eng-report-head{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#f4dfbf!important;padding:10px 9px 13px!important;margin:0 0 10px!important}
+.eng-report-head:before{display:none}
+.eng-report-head h1{font:700 clamp(19px,5vw,27px)/1.2 Georgia,serif;color:#f8dfaa!important;margin:2px 0 9px}
+.eng-report-head .eng-kicker{color:#efb965;font-family:Georgia,serif}
+.eng-report-head .eng-meta,.eng-report-head .eng-note{color:#e9cfa3;font-size:12px}
+.eng-report-head .eng-note{max-width:62ch}
+.eng-board{position:relative;margin:0 0 23px;padding:22px 9px 13px;background:linear-gradient(110deg,#43270e 0%,#744c26 12%,#29170d 43%,#4d3018 90%);border:8px ridge #69421e;border-radius:19px;box-shadow:0 12px 27px #000b,inset 0 1px 8px #090500}
+.eng-board:before{content:"";position:absolute;left:50%;top:-18px;transform:translateX(-50%);height:30px;width:85px;background:linear-gradient(90deg,#3a352a 0%,#968a6b 25%,#c5aa78 50%,#62513c 90%);border:4px ridge #6b5640;border-radius:10px 10px 5px 5px;box-shadow:0 4px 8px #0009;z-index:3}
+.eng-board:after{content:"";position:absolute;left:50%;top:-16px;transform:translateX(-50%);height:14px;width:14px;border-radius:50%;background:#302316;border:3px solid #cab890;z-index:4}
+.eng-board-title{font:700 11px/1.3 Georgia,serif;text-transform:uppercase;letter-spacing:2px;color:#ffe5b9;text-align:center;margin:5px 0 12px}
+.eng-board-sheet{background:linear-gradient(120deg,#fff0cc,#ebd1a0);padding:5px 13px 7px;box-shadow:inset 0 0 24px #b57a3140,0 4px 7px #0008;clip-path:polygon(0 1%,6% 0,14% 1%,22% 0,30% 1%,39% 0,49% 1%,58% 0,66% 1%,76% 0,85% 1%,94% 0,100% 1%,100% 99%,95% 100%,88% 99%,80% 100%,73% 99%,64% 100%,53% 99%,45% 100%,36% 99%,26% 100%,18% 99%,9% 100%,0 99%)}
+.eng-summary-row{display:grid;grid-template-columns:61px minmax(0,1fr);align-items:center;gap:12px;padding:17px 3px;border-bottom:2px solid #cfa975}
+.eng-summary-row:last-child{border-bottom:0}
+.eng-summary-icon{width:57px;height:60px;display:grid;place-items:center;background:#f1d4a2;color:#683b20;border:1px solid #c29962;box-shadow:2px 3px 6px #61401d55;transform:rotate(-5deg);font-size:30px}
+.eng-summary-name{font:700 clamp(17px,4.8vw,24px)/1.15 Georgia,serif;color:#381a12}
+.eng-summary-figure{display:block;font:700 clamp(32px,9vw,49px)/1.07 Georgia,serif;color:#59160e;font-variant-numeric:tabular-nums}
+.eng-summary-period{font:700 11px/1.3 Georgia,serif;color:#60432f}
+.eng-win,.eng-spot{background:radial-gradient(ellipse at 75% 8%,#fff8dfaa 0%,transparent 63%),repeating-linear-gradient(93deg,#0000 0 11px,#9c6d1805 12px 13px),linear-gradient(155deg,#fce7ba,#e4c18b)!important;border:0!important;border-radius:3px!important;box-shadow:0 6px 0 #8f5a32,0 16px 26px #0009,inset 0 0 32px #bd7d3540!important;padding:26px 19px 22px!important;margin:0 0 23px!important;clip-path:polygon(0 1%,6% 0,14% 1%,22% 0,34% 1%,45% 0,57% 1%,67% 0,78% 1%,87% 0,100% 1%,100% 99%,93% 100%,84% 99%,75% 100%,64% 99%,52% 100%,41% 99%,32% 100%,22% 99%,12% 100%,0 99%);}
+.eng-win:before,.eng-spot:before{left:50%;top:1px;box-shadow:0 3px 3px #51240a88;background:radial-gradient(circle at 30% 25%,#f7c06a,#a53b1e 60%,#5b2111)}
+.eng-win h2,.eng-spot h2{font:700 clamp(20px,5.1vw,29px)/1.16 Georgia,serif;color:#39170f;margin:6px 0 5px}
+.eng-window-kicker{font:700 11px/1.2 Georgia,serif;letter-spacing:1.2px;color:#71251a;border:2px solid #aa513a;background:#f5d9a7;padding:5px 8px;transform:rotate(-3deg)}
+.eng-sub{color:#67472e;font:13px/1.4 Georgia,serif;margin:0 0 11px}
+.eng-rank-label{font:700 14px/1.3 Georgia,serif;color:#492319;letter-spacing:0;margin:13px 0 9px;text-transform:none}
+.eng-scroll{overflow-x:auto}
+.eng-win table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:15px/1.35 Georgia,serif}
+.eng-win th{color:#60402b;font:700 13px/1.3 Georgia,serif;border-bottom:2px solid #9a673e;padding:7px 5px}
+.eng-win td{border-bottom:1px dashed #be9565;padding:11px 5px;vertical-align:middle;color:#29180f}
+.eng-win tr:first-child td:nth-child(2){font-weight:800}
+.eng-win td.eng-n{font:700 20px/1.2 Georgia,serif;color:#611c16;text-align:right}
+.eng-win th:first-child,.eng-win td:first-child{width:29px}
+.eng-win th:last-child,.eng-win td:last-child{width:65px}
+.eng-zero{font:13px/1.4 Georgia,serif;border-left:4px solid #94562f;background:#fff2cf88;margin-top:15px;padding:10px}
+.eng-tot{margin-top:12px;font:700 13px/1.4 Georgia,serif;color:#5c3926;border-top:1px solid #bb9161;padding-top:11px}
+.eng-spot{margin-top:14px!important}
+.eng-spot .eng-kicker{font-family:Georgia,serif;color:#87391d}
+.eng-spot .eng-winner{font-size:27px}
+.eng-spot .eng-def{font-size:12px}
+.eng-foot{font-family:Georgia,serif;font-size:13px;color:#ead3ac}
+@media(min-width:690px){.eng-art-wrap{margin:0 auto 20px;max-width:710px}.eng-wrap{padding-top:0}.eng-summary-row{grid-template-columns:78px 1fr;padding:18px 12px}.eng-summary-icon{width:64px;height:68px}.eng-win,.eng-spot{padding:29px 35px!important}}
+@media(max-width:360px){.eng-board{padding:22px 5px 10px}.eng-summary-row{grid-template-columns:45px 1fr;gap:9px}.eng-summary-icon{width:42px;height:50px;font-size:25px}.eng-win{padding:25px 12px 19px!important}.eng-win th,.eng-win td{font-size:12px}.eng-win td.eng-n{font-size:17px}}
 </style>
 </head>
 <body>
 <div class="eng-wrap">
-<div class="eng-scene" aria-label="Pug detective themed people tracker">
-  <div class="eng-sitetop">✦ TSCMS RADIO ✦</div>
-  <svg class="eng-pug" viewBox="0 0 260 255" role="img" aria-label="Illustration of a pug dressed like Sherlock Holmes, holding a magnifying glass">
-    <defs><linearGradient id="engFur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d8b27d"/><stop offset=".58" stop-color="#b98b5c"/><stop offset="1" stop-color="#70462c"/></linearGradient><linearGradient id="engCoat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9a7652"/><stop offset="1" stop-color="#3b2a1d"/></linearGradient></defs>
-    <path d="M35 255Q19 194 90 167L173 170Q242 196 235 255Z" fill="url(#engCoat)" stroke="#27160d" stroke-width="5"/>
-    <path d="M114 159L89 253M155 160L184 253" stroke="#261810" stroke-width="11" opacity=".55"/>
-    <path d="M31 255L68 198L102 227L92 255M234 255L195 196L169 224L176 255" fill="#bb9b70" stroke="#3c2b1d" stroke-width="4"/>
-    <ellipse cx="59" cy="120" rx="27" ry="54" fill="#2f241e" transform="rotate(-23 59 120)"/>
-    <ellipse cx="204" cy="120" rx="29" ry="56" fill="#2c231c" transform="rotate(22 204 120)"/>
-    <ellipse cx="130" cy="122" rx="83" ry="88" fill="url(#engFur)" stroke="#3e2b20" stroke-width="4"/>
-    <path d="M73 118Q84 85 130 96Q175 83 191 120Q181 189 131 199Q81 191 73 118Z" fill="#514139"/>
-    <path d="M80 109Q91 96 112 105M144 106Q171 96 182 108M104 79Q125 69 140 77" fill="none" stroke="#513121" stroke-width="7" stroke-linecap="round"/>
-    <ellipse cx="102" cy="131" rx="19" ry="23" fill="#1c1714"/><ellipse cx="161" cy="130" rx="19" ry="22" fill="#201812"/>
-    <circle cx="109" cy="125" r="7" fill="#fff5d5"/><circle cx="166" cy="124" r="7" fill="#fff5d5"/>
-    <ellipse cx="105" cy="170" rx="27" ry="23" fill="#c9a47c"/><ellipse cx="157" cy="170" rx="27" ry="23" fill="#d0a77f"/>
-    <path d="M115 154Q131 146 147 155Q145 171 131 172Q116 169 115 154Z" fill="#16130f"/>
-    <path d="M131 172Q130 182 120 185M131 172Q132 182 142 185" stroke="#51362b" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <path d="M40 85Q44 39 111 28Q176 22 208 73L235 89Q208 107 173 96L74 98Q46 104 25 94Z" fill="#7c5b3c" stroke="#281e15" stroke-width="5"/>
-    <path d="M86 32Q118 6 144 29L177 31L170 51L92 49Z" fill="#b3986b" stroke="#2d2016" stroke-width="4"/>
-    <path d="M56 61L207 76M79 44L173 91M107 27L183 87" stroke="#d0ae79" opacity=".5" stroke-width="3"/>
-    <path d="M95 199L126 220L157 200" fill="none" stroke="#8c3723" stroke-width="12"/>
-    <circle cx="95" cy="125" r="39" fill="none" stroke="#17120f" stroke-width="12"/>
-    <circle cx="95" cy="125" r="39" fill="none" stroke="#b98b4b" stroke-width="7"/>
-    <path d="M69 154L43 195" stroke="#1a100c" stroke-width="20" stroke-linecap="round"/>
-    <path d="M69 154L43 195" stroke="#b38b57" stroke-width="10" stroke-linecap="round"/>
-    <ellipse cx="42" cy="200" rx="17" ry="14" fill="#ac8059" stroke="#2b1a10" stroke-width="3"/>
-  </svg>
-  <div class="eng-cover"><span class="eng-sticker">TOP SECRET · 🐾<br>PEOPLE TRACKER</span><h1>ADMIN<br>ENGAGEMENT<br>TRACKER</h1><div class="eng-tag">THE CASE OF THE COMMENT TRAIL</div></div>
-  <div class="eng-prints" aria-hidden="true">🐾 🐾</div>
+<div class="eng-art-wrap">
+  <img class="eng-approved-art" alt="TSCMS Radio Admin Engagement Tracker — approved realistic Sherlock Holmes pug detective artwork" src="data:image/webp;base64,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" decoding="async">
+  <a class="eng-art-menu" href="admin.html" target="_self" aria-label="Return to Admin Control Room"></a>
 </div>
   <div class="eng-gate" id="eng-gate">
     <span class="eng-kicker">🔒 TSCMS STAFF ACCESS</span><h1>Detective’s desk · Admin only</h1>
@@ -158,38 +185,53 @@ function fmtRange(w){
   if(a[1]===b[1])return MON[+a[2]-1]+' '+ +a[3] +' – '+MON[+b[2]-1]+' '+ +b[3] +', '+a[1]+' (Central Time)';
   return MON[+a[2]-1]+' '+ +a[3] +', '+a[1]+' – '+MON[+b[2]-1]+' '+ +b[3] +', '+b[1]+' (Central Time)';
 }
-function windowHtml(w,caseNo){
-  var rows=w.ranked.map(function(r,i){
-    return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.name)+'</td><td class="eng-n">'+r.comments+'</td></tr>';
-  }).join('');
-  var zero=w.no_comments.length
-    ? '<div class="eng-zero">No comments: <b>'+w.no_comments.map(escHtml).join(', ')+'</b></div>'
-    : '<div class="eng-zero">Everyone commented.</div>';
-  return '<section class="eng-win"><span class="eng-window-kicker">EVIDENCE '+caseNo+' · 🐾</span><h2>'+fmtRange(w)+'</h2>'+
-    '<p class="eng-sub">'+w.days_of_data+' day(s) of data collected</p>'+
-    '<div class="eng-metric"><div><div class="eng-metric-label">ADMIN COMMENTS</div><span class="eng-metric-desc">Of '+w.total_comments+' total comments seen</span></div><strong>'+w.admin_total+'</strong></div>'+
-    '<div class="eng-rank-label">🔎 The comment trail · ranked admins</div>'+
-    '<div class="eng-scroll"><table aria-label="Ranked administrator comments"><thead><tr><th>#</th><th>Admin</th><th>Comments</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    zero+
-    '<div class="eng-tot">Admin comments: '+w.admin_total+' of '+w.total_comments+' total comments seen.</div></section>';
+function countStr(v){var n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US'):'—';}
+function windowHtml(w,caseNo,periodLabel){
+  if(!w)return '<section class="eng-win"><h2>'+periodLabel+'</h2><p class="eng-empty">This reporting window has not been published yet.</p></section>';
+  var rows=Array.isArray(w.ranked)?w.ranked.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.name)+'</td><td class="eng-n">'+countStr(r.comments)+'</td></tr>';
+  }).join(''):'';
+  var none=Array.isArray(w.no_comments)?w.no_comments:[];
+  var zero=none.length?'<div class="eng-zero">No comments: <b>'+none.map(escHtml).join(', ')+'</b></div>':'<div class="eng-zero">Everyone commented.</div>';
+  var schedule=caseNo==='02'?' · Wednesday–Tuesday week':'';
+  return '<section class="eng-win"><span class="eng-window-kicker">CASE FILE '+caseNo+' · 🐾</span>'+
+    '<h2>'+periodLabel+'</h2><p class="eng-sub">'+fmtRange(w)+schedule+' · '+countStr(w.days_of_data)+' day(s) of data collected</p>'+
+    '<div class="eng-rank-label">🔎 People tracker — ranked admin comments</div>'+
+    '<div class="eng-scroll"><table aria-label="'+periodLabel+' ranked admin comments"><thead><tr><th>#</th><th>Admin</th><th>Comments</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    zero+'<div class="eng-tot">Admin comments: '+countStr(w.admin_total)+' of '+countStr(w.total_comments)+' total comments seen.</div></section>';
+}
+function summaryCard(title,count,detail,icon){
+  return '<div class="eng-summary-row"><div class="eng-summary-icon" aria-hidden="true">'+icon+'</div><div>'+
+    '<div class="eng-summary-name">'+title+'</div><strong class="eng-summary-figure">'+countStr(count)+'</strong>'+
+    '<div class="eng-summary-period">'+detail+'</div></div></div>';
 }
 function renderEngagement(e){
-  if(!e||!e.spotlight||!e.day||!e.last_7_days||!e.month){
-    return '<div class="eng-empty">No tracker data collected yet.</div>';
+  if(!e||!e.day||!e.month)return '<div class="eng-empty">No tracker data collected yet.</div>';
+  // "week" is produced by the collector for Wednesday 12:00 AM CT to Tuesday 11:59 PM CT.
+  // Do not use the former rolling-7-day window as the week substitute.
+  var w=e.week,s=e.spotlight;
+  var board='<section class="eng-board" aria-label="Engagement comment totals header"><div class="eng-board-title">📋 Evidence board · Admin comments</div>'+
+    '<div class="eng-board-sheet">'+
+    summaryCard("Today's Engagement",e.day.admin_total,fmtRange(e.day),'🐾')+
+    summaryCard("This Week's Engagement",w?w.admin_total:null,'Wednesday–Tuesday · Central Time','📅')+
+    summaryCard("This Month's Engagement",e.month.admin_total,fmtRange(e.month),'🗓️')+
+    '</div></section>';
+  var spotlight='';
+  if(s){
+    var finalists=Array.isArray(s.finalists)?s.finalists:[];
+    var fin=finalists.map(function(f){return '<li>'+escHtml(f.name)+' — '+countStr(f.total)+' total ('+escHtml(f.average)+' / day)</li>';}).join('');
+    spotlight='<section class="eng-spot"><span class="eng-kicker">⭐ MONTHLY CASE HONORS</span><h2>Admin Spotlight — '+escHtml(s.month)+' (Central Time)</h2>'+
+      '<div class="eng-winner">'+escHtml(s.winner)+'</div>'+
+      '<div class="eng-avg">'+escHtml(s.winner_average)+' comments per day average · '+countStr(s.winner_total)+' total</div>'+
+      '<ol>'+fin+'</ol><p class="eng-def">'+escHtml(s.definition)+' Based on '+countStr(s.days_of_data)+' day(s) of data collected so far ('+countStr(s.days_elapsed)+' days elapsed in the month, Central Time).</p></section>';
   }
-  var s=e.spotlight;
-  var fin=s.finalists.map(function(f,i){
-    return '<li>'+escHtml(f.name)+' — '+f.total+' total ('+f.average+' / day)</li>';
-  }).join('');
-  var spot='<section class="eng-spot"><span class="eng-kicker">🔎 THE FEATURED DETECTIVE</span><h2>⭐ Admin Spotlight — '+escHtml(s.month)+' (Central Time)</h2>'+
-    '<div class="eng-winner">'+escHtml(s.winner)+'</div>'+
-    '<div class="eng-avg">'+s.winner_average+' comments per day average &middot; '+s.winner_total+' total</div>'+
-    '<ol>'+fin+'</ol>'+
-    '<p class="eng-def">'+escHtml(s.definition)+' Based on '+s.days_of_data+' day(s) of data collected so far ('+s.days_elapsed+' days elapsed in the month, Central Time).</p></section>';
-  return '<section class="eng-report-head"><div class="eng-kicker">CASE FILE · ADMIN ONLY</div><h1>Following the footprints 🐾</h1>'+
-    '<p class="eng-meta">Data as of '+fmtDate(e.latest_date)+' &middot; updated '+escHtml(e.generated)+' &middot; admin-only</p>'+
-    '<p class="eng-note">Comments are counted on the Central Time day they were made — so an evening comment from Australia lands on the Central Time day it fell on.</p></section>'+
-    spot+windowHtml(e.day,'01')+windowHtml(e.last_7_days,'02')+windowHtml(e.month,'03');
+  return '<section class="eng-report-head"><div class="eng-kicker">🔒 ADMIN ONLY · CENTRAL TIME</div>'+
+    '<h1>Tracking the comment footprints</h1>'+
+    '<p class="eng-meta">Data as of '+fmtDate(e.latest_date)+' · updated '+escHtml(e.generated)+' · admin-only</p>'+
+    '<p class="eng-note">Comments are counted on the Central Time day they were made. The week runs Wednesday through Tuesday. Rankings below show each person for the day, current week, and month as collected days accumulate.</p></section>'+
+    board+windowHtml(e.day,'01','Daily Engagement')+
+    windowHtml(w,'02','Wednesday Week Engagement')+
+    windowHtml(e.month,'03','Monthly Engagement')+spotlight;
 }
 // Same approved-admin bar as the Firestore rules (promoSignedInAdmin):
 // signed in, email verified, approved, admin or owner. The rules are the
