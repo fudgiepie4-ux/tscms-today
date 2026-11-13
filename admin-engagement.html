@@ -1,241 +1,185 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin Engagement Tracker — TSCMS</title>
-<!--
-  TSCMS Admin Engagement Tracker (admin-only).
-  Standalone page: it does NOT touch admin.html, mc.js, site.css or site.js.
-  Firestore-backed (2026-11-13): it reads the `adminEngagement`
-  collection (one doc per collected day + one `aggregate` doc) with the
-  signed-in admin's Firebase Auth session. Read is gated twice: this page
-  shows nothing to anyone who is not a signed-in approved admin, and the
-  Firestore rules enforce the same (approved admin or owner, email
-  verified). No password, no encrypted bundle — the bundle version is
-  superseded. Tracker data lives only in Firestore, never in a public file.
-  Deploy: place this file next to admin.html and firebase-admin-config.js.
-  A link from admin.html is a one-line patch for Clara (see handoff).
--->
+<meta name="theme-color" content="#20120b">
+<title>Admin Engagement People Tracker — TSCMS Radio</title>
+<!-- APPROVED LOOK 2026-11-13: Exact user-approved detective-pug artwork.
+     The photo artwork is the source of truth, not a visual suggestion.
+     The three sample totals and example ranking entries painted in the original
+     mockup are covered by live, accessible Firebase-driven HTML before display.
+     No additional sign-in form: the existing Firebase admin session is checked.
+     Readonly Firestore source: adminEngagement/aggregate. Week means Wed–Tue CT.
+     Do not change admin.html; the existing one-link navigation is sufficient. -->
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Special+Elite&display=swap');
-:root{color-scheme:dark;--ink:#301b11;--coffee:#160e09;--leather:#301b12;--gold:#d49a43;--paper:#f0dbac;--parchment:#f7e7c2;--muted:#775b40;--wine:#5b1815}
+:root{color-scheme:dark;--leather:#271308;--cream:#f5dbab;--wine:#7c1309;--ink:#2c180d}
 *{box-sizing:border-box}
 html{min-width:280px}
-body{margin:0;min-height:100vh;color:#f5e7c9;font:16px/1.5 "DM Sans",system-ui,sans-serif;background:radial-gradient(circle at 20% 8%,#704123 0%,transparent 27%),repeating-linear-gradient(91deg,#1b110b 0 16px,#27170e 17px 20px,#170e09 21px 45px,#2b1a10 47px 49px,#180e08 50px 86px),#1b110b}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,#0008,transparent 22%,transparent 78%,#0008),radial-gradient(ellipse at 50% 5%,transparent 10%,#0008 120%);z-index:0}
-a{color:#ffe0a0}
-a:focus-visible{outline:3px solid #ffdb8a;outline-offset:4px}
-.eng-wrap{width:min(100%,770px);margin:0 auto;padding:13px clamp(10px,3vw,22px) 60px;position:relative;z-index:1}
-.eng-scene{position:relative;isolation:isolate;overflow:hidden;min-height:260px;border:2px solid #6c4727;border-radius:14px 14px 8px 8px;background:radial-gradient(ellipse at 22% 15%,#d4a36355,transparent 35%),linear-gradient(140deg,#4c301d,#2a1a10 45%,#130e0a);box-shadow:0 11px 36px #000b,inset 0 0 30px #080401;display:grid;grid-template-columns:minmax(126px,38%) 1fr;align-items:end;margin-bottom:20px}
-.eng-scene:before{content:"";position:absolute;inset:18px 15px;background:repeating-linear-gradient(23deg,transparent 0 24px,#bb90521c 25px 26px),linear-gradient(145deg,#d6b27b40,#a7794033);clip-path:polygon(6% 0,94% 4%,100% 90%,5% 100%);transform:rotate(-2deg);border:1px solid #e8bd7655;z-index:-1}
-.eng-sitetop{position:absolute;top:0;left:0;right:0;background:#0e0a08d9;color:#f3dfb7;text-align:center;font:700 clamp(15px,3vw,22px)/1.4 Georgia,serif;letter-spacing:1.4px;padding:10px 6px;border-bottom:2px solid #9b6a35}
-.eng-pug{width:100%;max-width:268px;display:block;filter:drop-shadow(5px 8px 7px #0009);align-self:end;z-index:1}
-.eng-cover{padding:52px 13px 16px 1px;align-self:center;text-align:center;z-index:2}
-.eng-cover .eng-sticker{display:inline-block;transform:rotate(-7deg);font:700 11px/1.1 "Special Elite",Georgia,serif;letter-spacing:1px;color:#6f2119;border:3px solid #6f2119;background:#f4dfb6e8;padding:6px 8px;margin-bottom:10px}
-.eng-cover h1{font:700 clamp(24px,4.7vw,40px)/1.07 "Special Elite",Georgia,serif;color:#f8e5b9;text-shadow:2px 3px #170a06,0 3px 12px #000;overflow-wrap:break-word;letter-spacing:.1px;margin:0}
-.eng-cover .eng-tag{font:700 11px/1.3 "Special Elite",Georgia,serif;color:#f3c67f;margin-top:11px;letter-spacing:1.3px}
-.eng-prints{position:absolute;right:8px;bottom:11px;font-size:22px;letter-spacing:16px;opacity:.4;transform:rotate(-18deg);pointer-events:none}
-.eng-gate,.eng-spot,.eng-win,.eng-report-head{position:relative;margin:0 0 17px;border-radius:5px 14px 7px 12px;border:1px solid #b18a51;background:radial-gradient(circle at 98% 98%,#cda36b33,transparent 35%),linear-gradient(137deg,#f9e8c5,#e4c994 100%);color:var(--ink);box-shadow:0 4px 0 #623f27,0 12px 22px #0008,inset 0 0 16px #9c69331a}
-.eng-gate:before,.eng-spot:before,.eng-win:before,.eng-report-head:before{content:"";position:absolute;left:50%;top:-8px;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f7a75a,#862d12 65%,#43180d);box-shadow:1px 3px 3px #0006;z-index:2}
-.eng-gate{margin:18px auto;max-width:640px;padding:32px 20px;text-align:center;border:7px solid #49301d;border-radius:18px;background:linear-gradient(160deg,#3b2519,#1a100a);color:#f6ddb0;box-shadow:inset 0 0 0 2px #9e7848,0 8px 25px #000b}
-.eng-gate:before{display:none}
-.eng-gate h1{font:700 clamp(23px,5vw,33px)/1.15 "Special Elite",Georgia,serif;color:#ffe3a8;margin:0 0 12px}
-.eng-gate p{margin:0 0 12px;color:#e6cca0}
-.eng-gate a{font-weight:800;text-underline-offset:4px}
-.eng-gate .eng-kicker{display:block;color:#d9a75e;letter-spacing:2px;font-size:12px;font-weight:800;margin-bottom:8px}
-.eng-err{color:#ffb39c!important;min-height:22px;font-weight:700}
-.eng-report-head{padding:22px 20px 20px;transform:rotate(-.15deg)}
-.eng-report-head h1{font:700 clamp(24px,5vw,32px)/1.1 "Special Elite",Georgia,serif;color:#411d13;margin:3px 0 8px}
-.eng-kicker{font-size:11px;font-weight:800;letter-spacing:2px;color:#71331d}
-.eng-meta{font-size:12px;font-weight:700;color:#6c4c36;margin:0 0 8px;overflow-wrap:anywhere}
-.eng-note{color:#614932;font-size:13px;line-height:1.45;margin:0}
-.eng-spot{padding:23px 19px 21px}
-.eng-spot h2{font:700 clamp(21px,4vw,27px)/1.16 "Special Elite",Georgia,serif;color:#511d16;margin:6px 0 16px}
-.eng-winner{color:#5b1815;font:700 clamp(24px,5vw,33px)/1.15 Georgia,serif;overflow-wrap:anywhere}
-.eng-avg{font-size:15px;font-weight:800;margin:8px 0 16px;color:#48261b}
-.eng-spot ol{margin:8px 0 12px;padding-left:25px;font-size:14px}
-.eng-spot li{margin-bottom:7px}
-.eng-def{border-top:1px dashed #ad8152;padding-top:11px;color:#694b36;font-size:12px;margin:14px 0 0}
-.eng-win{padding:19px 16px 17px}
-.eng-window-kicker{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1.7px;color:#832b1b;border:2px solid #a64d3c;padding:3px 8px;transform:rotate(-2deg);margin-bottom:9px}
-.eng-win h2{font:700 clamp(20px,4.5vw,27px)/1.15 "Special Elite",Georgia,serif;color:#422116;margin:0 0 3px}
-.eng-sub{color:#75543b;font-size:12px;margin:0 0 13px}
-.eng-metric{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#ead1a1;border:1px solid #b6905b;border-radius:7px;box-shadow:inset 0 1px 4px #84512b1c;padding:14px;margin-bottom:15px}
-.eng-metric>div:first-child{max-width:55%}
-.eng-metric-label{font-size:11px;letter-spacing:1.2px;font-weight:800;color:#6c4731}
-.eng-metric-desc{display:block;color:#6e5642;font-size:12px;margin-top:4px}
-.eng-metric strong{font:700 clamp(30px,8vw,48px)/1 Georgia,serif;color:#681e18;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.eng-rank-label{font-size:12px;letter-spacing:1px;font-weight:800;text-transform:uppercase;color:#553323;margin:2px 0 8px}
-.eng-scroll{overflow-x:auto}
-.eng-win table{width:100%;min-width:245px;border-collapse:collapse;font-size:14px;table-layout:fixed}
-.eng-win th{text-align:left;color:#724b2f;font-weight:800;font-size:12px;border-bottom:2px solid #9d7345;padding:7px 5px}
-.eng-win td{padding:10px 5px;border-bottom:1px dashed #c69e6c;overflow-wrap:anywhere}
-.eng-win th:first-child,.eng-win td:first-child{width:34px}
-.eng-win th:last-child,.eng-win td.eng-n{text-align:right;width:80px}
-.eng-win td.eng-n{font:700 17px/1.25 Georgia,serif;color:#642019;font-variant-numeric:tabular-nums}
-.eng-win tr:nth-child(1) td:nth-child(2){font-weight:800}
-.eng-zero{margin-top:14px;padding:9px 10px;font-size:13px;border-left:4px solid #a27946;background:#f7e6c277;color:#61432f}
-.eng-zero b{color:#451f15}
-.eng-empty{text-align:center;padding:27px;color:#593722;font-weight:700;background:var(--paper);border-radius:9px}
-.eng-tot{font-size:12px;color:#624b35;margin-top:10px}
-.eng-foot{color:#eed5a8;text-align:center;margin-top:25px;font:700 12px/1.6 "Special Elite",Georgia,serif;letter-spacing:1px}
-.eng-foot a{color:#f7d38d}
-@media(min-width:600px){.eng-scene{min-height:314px}.eng-cover{padding-top:65px}.eng-spot,.eng-win{padding:26px 30px}.eng-report-head{padding:26px 30px}}
-@media(max-width:390px){.eng-scene{grid-template-columns:39% 61%;min-height:232px}.eng-cover{padding:50px 7px 9px 0}.eng-cover h1{font-size:clamp(18px,6vw,25px)}.eng-sticker{font-size:9px!important}.eng-tag{font-size:9px!important}.eng-wrap{padding-left:10px;padding-right:10px}.eng-metric{padding:12px 10px}.eng-win{padding:17px 12px}}
+body{margin:0;min-height:100vh;color:var(--cream);font-family:Georgia,'Times New Roman',serif;
+background:radial-gradient(ellipse at 50% 0,#79431e 0,#2b160d 40%,#170e08 90%)}
+.eng-wrap{width:min(100%,941px);margin:0 auto;position:relative}
+.eng-gate{background:linear-gradient(150deg,#412512,#201109);color:#fce2ae;max-width:480px;margin:20vh auto 30px;
+ border:2px solid #bb8540;box-shadow:0 10px 35px #000a;padding:26px 22px;text-align:center;border-radius:16px}
+.eng-gate h1{font-size:clamp(24px,6vw,32px);line-height:1.15;margin:0 0 13px}
+.eng-gate p{font:500 15px/1.6 system-ui,sans-serif;color:#f6deaf}
+.eng-gate a{color:#ffe5ad;font-weight:800;text-underline-offset:3px}
+.eng-err{color:#ffb4a1!important;min-height:24px;font-weight:700}
+.eng-body[hidden],.eng-gate[hidden]{display:none!important}
+/* Exact artwork file approved by the owner; drawn intact under live overlays. */
+.eng-scene{position:relative;isolation:isolate;aspect-ratio:941/1672;width:100%;overflow:hidden;
+ background:#27170c;box-shadow:0 3px 25px #000b}
+.eng-approved-art{width:100%;height:100%;display:block;object-fit:fill;user-select:none;pointer-events:none}
+/* Mask ONLY the three example numbers in the approved artwork. The title,
+   pug, clip, pins, stamp, columns, books, leather, and props remain intact. */
+.eng-live-number{position:absolute;z-index:1;top:31.8%;height:4.3%;display:flex;align-items:center;justify-content:center;
+ font:700 clamp(18px,5.25vw,49px)/1 Georgia,'Times New Roman',serif;color:#7f130a;
+ background:linear-gradient(110deg,#f4d9ac 0%,#efd2a0 49%,#f3d9ac 100%);letter-spacing:-.04em;
+ text-shadow:0 1px #f8e6c9;white-space:nowrap;font-variant-numeric:tabular-nums}
+.eng-n-day{left:14%;width:19.5%}
+.eng-n-week{left:42%;width:19.6%}
+.eng-n-month{left:73.1%;width:20%}
+/* Recreate the editable interior of the SINGLE approved parchment table.
+   No split period panels and no substitute detective artwork. */
+.eng-rank-panel{position:absolute;z-index:2;left:6.2%;top:49.25%;width:87.5%;height:30.6%;
+ overflow:hidden;color:#271407;
+ background:radial-gradient(ellipse at 55% 45%,rgba(255,245,212,.3),transparent 72%),
+ linear-gradient(90deg,#efc48d 0%,#ffdda6 12%,#ffe1ae 53%,#f0c18b 100%)}
+.eng-rank-scroll{height:100%;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#85502e #f8dfa9}
+.eng-rank-table{width:100%;table-layout:fixed;border-collapse:collapse;font-family:Georgia,'Times New Roman',serif}
+.eng-rank-table th{position:sticky;top:0;z-index:1;background:#f6d49f;color:#301708;
+ font-weight:800;font-size:clamp(10px,1.9vw,19px);padding:clamp(4px,.8vw,9px) 2px;border-bottom:1px solid #80512e}
+.eng-rank-table td{color:#23150c;font-size:clamp(10px,1.9vw,21px);padding:clamp(3px,.65vw,7px) 2px;
+ border-bottom:1px solid #9765417a;line-height:1.3}
+.eng-rank-table th:nth-child(1),.eng-rank-table td:nth-child(1){width:7%;text-align:center}
+.eng-rank-table th:nth-child(2),.eng-rank-table td:nth-child(2){width:43%;text-align:left;padding-left:2px}
+.eng-rank-table th:nth-child(n+3),.eng-rank-table td:nth-child(n+3){width:16.666%;text-align:center;border-left:1px solid #a7774380}
+.eng-rank-table .eng-person{font-weight:800;overflow-wrap:anywhere}
+.eng-rank-table .eng-n{font-weight:800;color:#761711;font-variant-numeric:tabular-nums}
+.eng-table-note{font-size:clamp(10px,1.5vw,14px);line-height:1.3;font-style:italic;padding:8px}
+.eng-menu-hit{position:absolute;z-index:3;right:2.5%;top:.35%;width:10%;height:4.2%;background:transparent;border:0;cursor:pointer}
+.eng-menu-hit:focus-visible{outline:3px solid #ffe2a3;outline-offset:-4px;border-radius:10px}
+.eng-menu-panel{position:absolute;z-index:4;right:2.5%;top:4.3%;background:#28160d;border:2px solid #c1924c;
+ border-radius:9px;box-shadow:0 8px 25px #000c;padding:10px 14px;min-width:190px;font:700 15px/1.5 system-ui,sans-serif}
+.eng-menu-panel[hidden]{display:none}
+.eng-menu-panel a{display:block;color:#ffe2a3;padding:8px 4px;text-decoration:none}
+.eng-menu-panel a:focus-visible,.eng-menu-panel a:hover{text-decoration:underline}
+/* Existing spotlight data is retained in an optional case-note accordion,
+   BELOW the exact approved image so the poster itself remains visually fixed. */
+.eng-extra{padding:12px clamp(12px,3vw,26px) 36px;background:#190d07}
+.eng-extra details{border:1px solid #a46c36;border-radius:8px;background:linear-gradient(#432716,#22140d);margin:0 0 12px;padding:11px 14px}
+.eng-extra summary{cursor:pointer;color:#ffe4b2;font-size:18px;font-weight:700}
+.eng-extra .eng-spot-detail{font:15px/1.5 system-ui,sans-serif;color:#f4d6a3}
+.eng-extra .eng-spot-detail h2{color:#f6dbac;font-size:20px;line-height:1.2}
+.eng-extra .eng-meta{font:12px/1.55 system-ui,sans-serif;color:#e0bd85;overflow-wrap:anywhere}
+.eng-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:420px){
+ .eng-live-number{font-size:clamp(15px,5.8vw,24px)}
+ .eng-rank-panel{top:49.1%;height:30.6%}
+ .eng-rank-table th{font-size:10px;letter-spacing:-.25px;line-height:1.1}
+ .eng-rank-table td{font-size:10.5px;line-height:1.14;padding:3px 1px}
+ .eng-rank-table th:nth-child(2),.eng-rank-table td:nth-child(2){width:47%}
+ .eng-rank-table th:nth-child(n+3),.eng-rank-table td:nth-child(n+3){width:15.33%}
+ .eng-rank-table th:nth-child(1),.eng-rank-table td:nth-child(1){width:7%}
+}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-
-/* Approved image-faithful Sherlock pug restyle — visual only. */
-body{background:radial-gradient(ellipse at 28% 2%,#56361b 0%,transparent 34%),repeating-linear-gradient(91deg,#110a06 0 20px,#24150b 21px 25px,#1c1008 27px 70px,#38210e 71px 74px);font-family:Georgia,'Times New Roman',serif}
-.eng-wrap{max-width:710px;padding:0 10px 42px}
-.eng-art-wrap{position:relative;margin:0 -10px 13px;overflow:hidden;background:#1e130c;box-shadow:0 12px 22px #000a}
-.eng-approved-art{display:block;width:100%;height:auto}
-.eng-art-menu{position:absolute;right:1%;top:0;width:12%;height:16%;border-radius:9px;cursor:pointer;min-width:35px;min-height:32px}
-.eng-art-menu:focus-visible{outline:3px solid #ffe2a3;outline-offset:-4px}
-.eng-gate{background:linear-gradient(#3b2315,#1b1009)!important;border:6px ridge #8e6434!important;box-shadow:0 12px 30px #000c,inset 0 0 18px #000!important;margin:22px auto!important;padding:30px 17px!important;max-width:570px}
-.eng-gate:before{display:none!important}
-.eng-gate h1{font:700 clamp(22px,6vw,30px)/1.15 Georgia,serif;color:#ffe1a6}
-.eng-gate .eng-kicker{color:#f4c47f}
-.eng-gate p{color:#efd5ab}
-.eng-report-head{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#f4dfbf!important;padding:10px 9px 13px!important;margin:0 0 10px!important}
-.eng-report-head:before{display:none}
-.eng-report-head h1{font:700 clamp(19px,5vw,27px)/1.2 Georgia,serif;color:#f8dfaa!important;margin:2px 0 9px}
-.eng-report-head .eng-kicker{color:#efb965;font-family:Georgia,serif}
-.eng-report-head .eng-meta,.eng-report-head .eng-note{color:#e9cfa3;font-size:12px}
-.eng-report-head .eng-note{max-width:62ch}
-.eng-board{position:relative;margin:0 0 23px;padding:22px 9px 13px;background:linear-gradient(110deg,#43270e 0%,#744c26 12%,#29170d 43%,#4d3018 90%);border:8px ridge #69421e;border-radius:19px;box-shadow:0 12px 27px #000b,inset 0 1px 8px #090500}
-.eng-board:before{content:"";position:absolute;left:50%;top:-18px;transform:translateX(-50%);height:30px;width:85px;background:linear-gradient(90deg,#3a352a 0%,#968a6b 25%,#c5aa78 50%,#62513c 90%);border:4px ridge #6b5640;border-radius:10px 10px 5px 5px;box-shadow:0 4px 8px #0009;z-index:3}
-.eng-board:after{content:"";position:absolute;left:50%;top:-16px;transform:translateX(-50%);height:14px;width:14px;border-radius:50%;background:#302316;border:3px solid #cab890;z-index:4}
-.eng-board-title{font:700 11px/1.3 Georgia,serif;text-transform:uppercase;letter-spacing:2px;color:#ffe5b9;text-align:center;margin:5px 0 12px}
-.eng-board-sheet{background:linear-gradient(120deg,#fff0cc,#ebd1a0);padding:5px 13px 7px;box-shadow:inset 0 0 24px #b57a3140,0 4px 7px #0008;clip-path:polygon(0 1%,6% 0,14% 1%,22% 0,30% 1%,39% 0,49% 1%,58% 0,66% 1%,76% 0,85% 1%,94% 0,100% 1%,100% 99%,95% 100%,88% 99%,80% 100%,73% 99%,64% 100%,53% 99%,45% 100%,36% 99%,26% 100%,18% 99%,9% 100%,0 99%)}
-.eng-summary-row{display:grid;grid-template-columns:61px minmax(0,1fr);align-items:center;gap:12px;padding:17px 3px;border-bottom:2px solid #cfa975}
-.eng-summary-row:last-child{border-bottom:0}
-.eng-summary-icon{width:57px;height:60px;display:grid;place-items:center;background:#f1d4a2;color:#683b20;border:1px solid #c29962;box-shadow:2px 3px 6px #61401d55;transform:rotate(-5deg);font-size:30px}
-.eng-summary-name{font:700 clamp(17px,4.8vw,24px)/1.15 Georgia,serif;color:#381a12}
-.eng-summary-figure{display:block;font:700 clamp(32px,9vw,49px)/1.07 Georgia,serif;color:#59160e;font-variant-numeric:tabular-nums}
-.eng-summary-period{font:700 11px/1.3 Georgia,serif;color:#60432f}
-.eng-win,.eng-spot{background:radial-gradient(ellipse at 75% 8%,#fff8dfaa 0%,transparent 63%),repeating-linear-gradient(93deg,#0000 0 11px,#9c6d1805 12px 13px),linear-gradient(155deg,#fce7ba,#e4c18b)!important;border:0!important;border-radius:3px!important;box-shadow:0 6px 0 #8f5a32,0 16px 26px #0009,inset 0 0 32px #bd7d3540!important;padding:26px 19px 22px!important;margin:0 0 23px!important;clip-path:polygon(0 1%,6% 0,14% 1%,22% 0,34% 1%,45% 0,57% 1%,67% 0,78% 1%,87% 0,100% 1%,100% 99%,93% 100%,84% 99%,75% 100%,64% 99%,52% 100%,41% 99%,32% 100%,22% 99%,12% 100%,0 99%);}
-.eng-win:before,.eng-spot:before{left:50%;top:1px;box-shadow:0 3px 3px #51240a88;background:radial-gradient(circle at 30% 25%,#f7c06a,#a53b1e 60%,#5b2111)}
-.eng-win h2,.eng-spot h2{font:700 clamp(20px,5.1vw,29px)/1.16 Georgia,serif;color:#39170f;margin:6px 0 5px}
-.eng-window-kicker{font:700 11px/1.2 Georgia,serif;letter-spacing:1.2px;color:#71251a;border:2px solid #aa513a;background:#f5d9a7;padding:5px 8px;transform:rotate(-3deg)}
-.eng-sub{color:#67472e;font:13px/1.4 Georgia,serif;margin:0 0 11px}
-.eng-rank-label{font:700 14px/1.3 Georgia,serif;color:#492319;letter-spacing:0;margin:13px 0 9px;text-transform:none}
-.eng-scroll{overflow-x:auto}
-.eng-win table{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font:15px/1.35 Georgia,serif}
-.eng-win th{color:#60402b;font:700 13px/1.3 Georgia,serif;border-bottom:2px solid #9a673e;padding:7px 5px}
-.eng-win td{border-bottom:1px dashed #be9565;padding:11px 5px;vertical-align:middle;color:#29180f}
-.eng-win tr:first-child td:nth-child(2){font-weight:800}
-.eng-win td.eng-n{font:700 20px/1.2 Georgia,serif;color:#611c16;text-align:right}
-.eng-win th:first-child,.eng-win td:first-child{width:29px}
-.eng-win th:last-child,.eng-win td:last-child{width:65px}
-.eng-zero{font:13px/1.4 Georgia,serif;border-left:4px solid #94562f;background:#fff2cf88;margin-top:15px;padding:10px}
-.eng-tot{margin-top:12px;font:700 13px/1.4 Georgia,serif;color:#5c3926;border-top:1px solid #bb9161;padding-top:11px}
-.eng-spot{margin-top:14px!important}
-.eng-spot .eng-kicker{font-family:Georgia,serif;color:#87391d}
-.eng-spot .eng-winner{font-size:27px}
-.eng-spot .eng-def{font-size:12px}
-.eng-foot{font-family:Georgia,serif;font-size:13px;color:#ead3ac}
-@media(min-width:690px){.eng-art-wrap{margin:0 auto 20px;max-width:710px}.eng-wrap{padding-top:0}.eng-summary-row{grid-template-columns:78px 1fr;padding:18px 12px}.eng-summary-icon{width:64px;height:68px}.eng-win,.eng-spot{padding:29px 35px!important}}
-@media(max-width:360px){.eng-board{padding:22px 5px 10px}.eng-summary-row{grid-template-columns:45px 1fr;gap:9px}.eng-summary-icon{width:42px;height:50px;font-size:25px}.eng-win{padding:25px 12px 19px!important}.eng-win th,.eng-win td{font-size:12px}.eng-win td.eng-n{font-size:17px}}
 </style>
 </head>
 <body>
 <div class="eng-wrap">
-<div class="eng-art-wrap">
-  <img class="eng-approved-art" alt="TSCMS Radio Admin Engagement Tracker — approved realistic Sherlock Holmes pug detective artwork" src="data:image/webp;base64,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" decoding="async">
-  <a class="eng-art-menu" href="admin.html" target="_self" aria-label="Return to Admin Control Room"></a>
-</div>
-  <div class="eng-gate" id="eng-gate">
-    <span class="eng-kicker">🔒 TSCMS STAFF ACCESS</span><h1>Detective’s desk · Admin only</h1>
-    <p id="eng-gate-msg">Admins only. Checking your sign-in…</p>
+  <section class="eng-gate" id="eng-gate" aria-live="polite">
+    <h1>🔒 TSCMS People Tracker</h1>
+    <p id="eng-gate-msg">Checking your existing admin access…</p>
     <p class="eng-err" id="eng-err" role="status"></p>
-  </div>
-  <div class="eng-body" id="eng-body" style="display:none"></div>
-  <footer class="eng-foot">🐾 Follow the clues · <a href="admin.html" target="_self">Back to Admin Control Room</a></footer>
+  </section>
+  <main class="eng-body" id="eng-body" hidden aria-label="Admin Engagement People Tracker">
+    <section class="eng-scene" aria-label="Sherlock pug detective engagement tracker">
+      <img class="eng-approved-art" src="./assets/admin-engagement-sherlock-approved.webp"
+           width="941" height="1672" alt="" aria-hidden="true" decoding="async">
+      <button class="eng-menu-hit" type="button" id="eng-menu" aria-label="Open tracker navigation" aria-expanded="false" aria-controls="eng-menu-panel"></button>
+      <nav class="eng-menu-panel" id="eng-menu-panel" hidden aria-label="Tracker navigation">
+        <a href="admin.html">← Admin Control Room</a>
+      </nav>
+      <div class="eng-live-number eng-n-day" id="eng-day-number" aria-label="Today's admin comments">—</div>
+      <div class="eng-live-number eng-n-week" id="eng-week-number" aria-label="Current Wednesday to Tuesday admin comments">—</div>
+      <div class="eng-live-number eng-n-month" id="eng-month-number" aria-label="This month's admin comments">—</div>
+      <section class="eng-rank-panel" aria-label="Per-person comment rankings for the day, Wednesday week, and month">
+        <div class="eng-rank-scroll" tabindex="0" aria-label="Scroll through all admin rankings">
+          <table class="eng-rank-table">
+            <thead><tr>
+              <th scope="col">#</th><th scope="col">Admin</th>
+              <th scope="col">🐾<span class="eng-sr-only">Daily </span><span aria-hidden="true">Day</span></th>
+              <th scope="col">📅<span class="eng-sr-only">Wednesday to Tuesday </span><span aria-hidden="true">Week</span></th>
+              <th scope="col">🗓<span class="eng-sr-only">This </span><span aria-hidden="true">Month</span></th>
+            </tr></thead>
+            <tbody id="eng-people-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+    <div class="eng-extra">
+      <details id="eng-spotlight-details"><summary>🔎 Monthly Admin Spotlight · Case Notes</summary>
+        <div class="eng-spot-detail" id="eng-spotlight"></div>
+      </details>
+      <p class="eng-meta" id="eng-when"></p>
+      <p class="eng-meta">Comments are counted by the day they were made in Central Time. The TSCMS week begins Wednesday at 12:00 AM Central Time and runs through Tuesday. The table shows every admin returned by the tracker, including zero comments.</p>
+    </div>
+  </main>
 </div>
+<script>
+// Presentation only; no data source or authentication logic in this block.
+function engEsc(x){return String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function engNum(x){return Number.isFinite(Number(x))?Number(x).toLocaleString('en-US'):'—';}
+function engRankMap(w){
+  const m=new Map();
+  if(!w)return m;
+  (Array.isArray(w.ranked)?w.ranked:[]).forEach(r=>{
+    const n=String(r.name||'').trim();if(n)m.set(n.toLocaleLowerCase('en-US'),{name:n,count:Number(r.comments)||0});
+  });
+  (Array.isArray(w.no_comments)?w.no_comments:[]).forEach(s=>{
+    const n=String(s||'').trim(),k=n.toLocaleLowerCase('en-US');if(n&&!m.has(k))m.set(k,{name:n,count:0});
+  });
+  return m;
+}
+function renderEngagement(data){
+  if(!data||!data.day||!data.month)return false;
+  const week=data.week; // canonical Wednesday–Tuesday window. NEVER substitute rolling last_7_days.
+  document.getElementById('eng-day-number').textContent=engNum(data.day.admin_total);
+  document.getElementById('eng-week-number').textContent=engNum(week?.admin_total);
+  document.getElementById('eng-month-number').textContent=engNum(data.month.admin_total);
+  const day=engRankMap(data.day),wk=engRankMap(week),month=engRankMap(data.month);
+  const ids=new Set([...day.keys(),...wk.keys(),...month.keys()]);
+  const people=[...ids].map(k=>({
+    name:day.get(k)?.name||wk.get(k)?.name||month.get(k)?.name||'',
+    day:day.get(k)?.count??0,week:wk.get(k)?.count??0,month:month.get(k)?.count??0
+  })).sort((a,b)=>b.day-a.day||b.week-a.week||b.month-a.month||a.name.localeCompare(b.name));
+  document.getElementById('eng-people-rows').innerHTML=people.length?people.map((r,i)=>
+    '<tr><td>'+(i+1)+'</td><td class="eng-person" title="'+engEsc(r.name)+'">'+engEsc(r.name)+'</td>'+ 
+    '<td class="eng-n">'+engNum(r.day)+'</td><td class="eng-n">'+(week?engNum(r.week):'—')+'</td><td class="eng-n">'+engNum(r.month)+'</td></tr>'
+  ).join(''):'<tr><td colspan="5">No ranked admin records collected yet.</td></tr>';
+  const s=data.spotlight;
+  const spotlight=document.getElementById('eng-spotlight');
+  const spotlightWrap=document.getElementById('eng-spotlight-details');
+  if(s){
+    const fin=Array.isArray(s.finalists)?s.finalists:[];
+    spotlight.innerHTML='<h2>'+engEsc(s.month)+' (Central Time)</h2><p><strong>'+engEsc(s.winner)+'</strong> · '+engEsc(s.winner_average)+' comments/day average · '+engNum(s.winner_total)+' total</p>'+
+      '<ol>'+fin.map(f=>'<li>'+engEsc(f.name)+' — '+engNum(f.total)+' total ('+engEsc(f.average)+' / day)</li>').join('')+'</ol><p>'+engEsc(s.definition)+'</p>';
+    spotlightWrap.hidden=false;
+  }else{spotlightWrap.hidden=true;}
+  document.getElementById('eng-when').textContent='Data as of '+(data.latest_date||'not yet available')+' (Central Time) · Generated '+(data.generated||'unknown')+' · Approved admins only.';
+  return true;
+}
+const engMenu=document.getElementById('eng-menu'),engMenuPanel=document.getElementById('eng-menu-panel');
+engMenu.addEventListener('click',()=>{const open=engMenuPanel.hidden;engMenuPanel.hidden=!open;engMenu.setAttribute('aria-expanded',String(open));});
+</script>
 <script type="module">
 import {initializeApp,getApp,getApps} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,reload,getIdToken} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
 import {getFirestore,doc,getDocFromServer} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js';
 import {tscmsFirebaseConfig} from './firebase-admin-config.js';
-
 const app=getApps().length?getApp():initializeApp(tscmsFirebaseConfig);
 const auth=getAuth(app),db=getFirestore(app);
-
-function escHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-// Every date the tracker shows carries its timezone: members are in many
-// countries, so a bare date is ambiguous. All counts are bucketed on the
-// Central Time day the comment was made (see the note under the heading).
-var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-function fmtDate(iso){
-  var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(iso||'');
-  if(!m)return iso||'';
-  return MON[+m[2]-1]+' '+ +m[3] +', '+m[1]+' (Central Time)';
-}
-function fmtRange(w){
-  if(w.label==='This month'){
-    var mm=/^(\d{4})-(\d\d)-/.exec(w.start||'');
-    if(mm)return MONTHS[+mm[2]-1]+' '+mm[1]+' (Central Time)';
-  }
-  if(w.start===w.end)return fmtDate(w.start);
-  var a=/^(\d{4})-(\d\d)-(\d\d)$/.exec(w.start||''),b=/^(\d{4})-(\d\d)-(\d\d)$/.exec(w.end||'');
-  if(!a||!b)return escHtml(w.label);
-  if(a[1]===b[1]&&a[2]===b[2])return MON[+a[2]-1]+' '+ +a[3] +'–'+ +b[3] +', '+a[1]+' (Central Time)';
-  if(a[1]===b[1])return MON[+a[2]-1]+' '+ +a[3] +' – '+MON[+b[2]-1]+' '+ +b[3] +', '+a[1]+' (Central Time)';
-  return MON[+a[2]-1]+' '+ +a[3] +', '+a[1]+' – '+MON[+b[2]-1]+' '+ +b[3] +', '+b[1]+' (Central Time)';
-}
-function countStr(v){if(v===null||v===undefined||v==='')return '—';var n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US'):'—';}
-function windowHtml(w,caseNo,periodLabel){
-  if(!w)return '<section class="eng-win"><h2>'+periodLabel+'</h2><p class="eng-empty">This reporting window has not been published yet.</p></section>';
-  var rows=Array.isArray(w.ranked)?w.ranked.map(function(r,i){
-    return '<tr><td>'+(i+1)+'</td><td>'+escHtml(r.name)+'</td><td class="eng-n">'+countStr(r.comments)+'</td></tr>';
-  }).join(''):'';
-  var none=Array.isArray(w.no_comments)?w.no_comments:[];
-  var zero=none.length?'<div class="eng-zero">No comments: <b>'+none.map(escHtml).join(', ')+'</b></div>':'<div class="eng-zero">Everyone commented.</div>';
-  var schedule=caseNo==='02'?' · Wednesday–Tuesday week':'';
-  return '<section class="eng-win"><span class="eng-window-kicker">CASE FILE '+caseNo+' · 🐾</span>'+
-    '<h2>'+periodLabel+'</h2><p class="eng-sub">'+fmtRange(w)+schedule+' · '+countStr(w.days_of_data)+' day(s) of data collected</p>'+
-    '<div class="eng-rank-label">🔎 People tracker — ranked admin comments</div>'+
-    '<div class="eng-scroll"><table aria-label="'+periodLabel+' ranked admin comments"><thead><tr><th>#</th><th>Admin</th><th>Comments</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    zero+'<div class="eng-tot">Admin comments: '+countStr(w.admin_total)+' of '+countStr(w.total_comments)+' total comments seen.</div></section>';
-}
-function summaryCard(title,count,detail,icon){
-  return '<div class="eng-summary-row"><div class="eng-summary-icon" aria-hidden="true">'+icon+'</div><div>'+
-    '<div class="eng-summary-name">'+title+'</div><strong class="eng-summary-figure">'+countStr(count)+'</strong>'+
-    '<div class="eng-summary-period">'+detail+'</div></div></div>';
-}
-function renderEngagement(e){
-  if(!e||!e.day||!e.month)return '<div class="eng-empty">No tracker data collected yet.</div>';
-  // "week" is produced by the collector for Wednesday 12:00 AM CT to Tuesday 11:59 PM CT.
-  // Do not use the former rolling-7-day window as the week substitute.
-  var w=e.week,s=e.spotlight;
-  var board='<section class="eng-board" aria-label="Engagement comment totals header"><div class="eng-board-title">📋 Evidence board · Admin comments</div>'+
-    '<div class="eng-board-sheet">'+
-    summaryCard("Today's Engagement",e.day.admin_total,fmtRange(e.day),'🐾')+
-    summaryCard("This Week's Engagement",w?w.admin_total:null,'Wednesday–Tuesday · Central Time','📅')+
-    summaryCard("This Month's Engagement",e.month.admin_total,fmtRange(e.month),'🗓️')+
-    '</div></section>';
-  var spotlight='';
-  if(s){
-    var finalists=Array.isArray(s.finalists)?s.finalists:[];
-    var fin=finalists.map(function(f){return '<li>'+escHtml(f.name)+' — '+countStr(f.total)+' total ('+escHtml(f.average)+' / day)</li>';}).join('');
-    spotlight='<section class="eng-spot"><span class="eng-kicker">⭐ MONTHLY CASE HONORS</span><h2>Admin Spotlight — '+escHtml(s.month)+' (Central Time)</h2>'+
-      '<div class="eng-winner">'+escHtml(s.winner)+'</div>'+
-      '<div class="eng-avg">'+escHtml(s.winner_average)+' comments per day average · '+countStr(s.winner_total)+' total</div>'+
-      '<ol>'+fin+'</ol><p class="eng-def">'+escHtml(s.definition)+' Based on '+countStr(s.days_of_data)+' day(s) of data collected so far ('+countStr(s.days_elapsed)+' days elapsed in the month, Central Time).</p></section>';
-  }
-  return '<section class="eng-report-head"><div class="eng-kicker">🔒 ADMIN ONLY · CENTRAL TIME</div>'+
-    '<h1>Tracking the comment footprints</h1>'+
-    '<p class="eng-meta">Data as of '+fmtDate(e.latest_date)+' · updated '+escHtml(e.generated)+' · admin-only</p>'+
-    '<p class="eng-note">Comments are counted on the Central Time day they were made. The week runs Wednesday through Tuesday. Rankings below show each person for the day, current week, and month as collected days accumulate.</p></section>'+
-    board+windowHtml(e.day,'01','Daily Engagement')+
-    windowHtml(w,'02','Wednesday Week Engagement')+
-    windowHtml(e.month,'03','Monthly Engagement')+spotlight;
-}
-// Same approved-admin bar as the Firestore rules (promoSignedInAdmin):
-// signed in, email verified, approved, admin or owner. The rules are the
-// real boundary; this gate only decides what the page shows.
+// Keep exactly the same approved-admin gate as the preexisting secure tracker.
 async function approvedAdmin(user){
   if(!user||!user.uid)return false;
   await reload(user);
@@ -247,39 +191,24 @@ async function approvedAdmin(user){
   return p.status==='approved'&&(p.admin===true||p.owner===true);
 }
 async function loadEngagement(){
+  const gate=document.getElementById('eng-gate');
   const msg=document.getElementById('eng-gate-msg');
   const err=document.getElementById('eng-err');
+  const body=document.getElementById('eng-body');
+  body.hidden=true;gate.hidden=false;err.textContent='';
   const user=auth.currentUser;
-  if(!user){
-    msg.innerHTML='Admins only. <a href="admin.html">Sign in on the admin page</a>, then come back here.';
-    return;
-  }
+  if(!user){msg.innerHTML='Admins only. <a href="admin.html">Open the Admin Control Room to sign in</a>, then return to the tracker.';return;}
   msg.textContent='Checking your admin access…';
   let ok=false;
   try{ok=await approvedAdmin(user);}catch(e){ok=false;}
-  if(!ok){
-    msg.textContent='This page is for TSCMS admins only.';
-    err.textContent='Your account is not an approved admin.';
-    return;
-  }
-  msg.textContent='Loading tracker data…';
+  if(!ok){msg.textContent='Approved TSCMS administrators only.';err.textContent='Your account does not have access.';return;}
+  msg.textContent='Loading live tracker data…';
   let data=null;
-  try{
-    const snap=await getDocFromServer(doc(db,'adminEngagement','aggregate'));
-    if(snap.exists())data=snap.data();
-  }catch(e){
-    msg.textContent='Tracker data is temporarily unavailable.';
-    err.textContent='Check your connection and refresh.';
-    return;
-  }
-  if(!data){
-    msg.textContent='No tracker data collected yet.';
-    return;
-  }
-  document.getElementById('eng-gate').style.display='none';
-  const body=document.getElementById('eng-body');
-  body.style.display='block';
-  body.innerHTML=renderEngagement(data);
+  try{const snap=await getDocFromServer(doc(db,'adminEngagement','aggregate'));if(snap.exists())data=snap.data();}
+  catch(e){msg.textContent='Tracker data is temporarily unavailable.';err.textContent='Check your connection and refresh.';return;}
+  if(!data){msg.textContent='No tracker data collected yet.';return;}
+  if(!renderEngagement(data)){msg.textContent='No tracker data collected yet.';return;}
+  gate.hidden=true;body.hidden=false;
 }
 onAuthStateChanged(auth,()=>{void loadEngagement();});
 </script>
